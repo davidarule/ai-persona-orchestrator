@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  zeebe:
+    image: camunda/zeebe:8.5.0
+    container_name: zeebe
+    environment:
+      - ZEEBE_LOG_LEVEL=info
+      - ZEEBE_BROKER_GATEWAY_SECURITY_AUTHENTICATION_MODE=identity
+    ports:
+      - "26500:26500"
+      - "9600:9600"
+    volumes:
+      - ./data/zeebe:/usr/local/zeebe/data
+    networks:
+      - orchestrator-network
+    restart: unless-stopped
+
+  operate:
+    image: camunda/operate:8.5.0
+    container_name: operate
+    environment:
+      - CAMUNDA_OPERATE_ZEEBE_GATEWAYADDRESS=zeebe:26500
+      - SPRING_PROFILES_ACTIVE=identity-auth
+    ports:
+      - "8081:8080"
+    depends_on:
+      - zeebe
+      - elasticsearch
+    networks:
+      - orchestrator-network
+    restart: unless-stopped
+
+  tasklist:
+    image: camunda/tasklist:8.5.0
+    container_name: tasklist
+    environment:
+      - CAMUNDA_TASKLIST_ZEEBE_GATEWAYADDRESS=zeebe:26500
+      - SPRING_PROFILES_ACTIVE=identity-auth
+    ports:
+      - "8082:8080"
+    depends_on:
+      - zeebe
+      - elasticsearch
+    networks:
+      - orchestrator-network
+    restart: unless-stopped
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./data/elasticsearch:/usr/share/elasticsearch/data
+    networks:
+      - orchestrator-network
+    restart: unless-stopped
+
+  identity:
+    image: camunda/identity:8.5.0
+    container_name: identity
+    environment:
+      - IDENTITY_DATABASE_HOST=postgres
+      - IDENTITY_DATABASE_PORT=5432
+      - IDENTITY_DATABASE_NAME=identity
+      - IDENTITY_DATABASE_USERNAME=${POSTGRES_USER}
+      - IDENTITY_DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "8084:8080"
+    depends_on:
+      - postgres
+    networks:
+      - orchestrator-network
+    restart: unless-stopped
+
+networks:
+  orchestrator-network:
+    driver: bridge
