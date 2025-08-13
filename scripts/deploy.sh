@@ -15,16 +15,16 @@ fi
 
 # Initialize databases
 echo "🗄️ Initializing databases..."
-docker-compose up -d postgres neo4j redis
+docker compose up -d postgres neo4j redis
 sleep 10
 
 # Run database migrations
 echo "📊 Running database migrations..."
-docker-compose exec postgres psql -U $POSTGRES_USER -d $POSTGRES_DB -f /docker-entrypoint-initdb.d/init.sql
+docker compose exec postgres psql -U $POSTGRES_USER -d $POSTGRES_DB -f /docker-entrypoint-initdb.d/init.sql
 
 # Start Camunda Platform
 echo "⚙️ Starting Camunda Platform..."
-docker-compose -f docker/docker-compose.camunda.yml up -d
+docker compose -f docker/docker compose.camunda.yml up -d
 sleep 20
 
 # Deploy BPMN workflows
@@ -33,7 +33,7 @@ python scripts/deploy_workflows.py
 
 # Start application services
 echo "🎯 Starting application services..."
-docker-compose up -d
+docker compose up -d
 
 # Wait for services to be healthy
 echo "⏳ Waiting for services to be healthy..."

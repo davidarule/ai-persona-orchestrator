@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   zeebe:
@@ -6,14 +5,18 @@ services:
     container_name: zeebe
     environment:
       - ZEEBE_LOG_LEVEL=info
-      - ZEEBE_BROKER_GATEWAY_SECURITY_AUTHENTICATION_MODE=identity
+      - ZEEBE_BROKER_GATEWAY_SECURITY_AUTHENTICATION_MODE=${ZEEBE_AUTH_MODE:-none}
+      - ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_CLASSNAME=io.camunda.zeebe.exporter.ElasticsearchExporter
+      - ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_ARGS_URL=http://elasticsearch:9200
     ports:
       - "26500:26500"
       - "9600:9600"
     volumes:
-      - ./data/zeebe:/usr/local/zeebe/data
+      - ../data/zeebe:/usr/local/zeebe/data
     networks:
       - orchestrator-network
+    depends_on:
+      - elasticsearch
     restart: unless-stopped
 
   operate:
@@ -21,7 +24,10 @@ services:
     container_name: operate
     environment:
       - CAMUNDA_OPERATE_ZEEBE_GATEWAYADDRESS=zeebe:26500
-      - SPRING_PROFILES_ACTIVE=identity-auth
+      - CAMUNDA_OPERATE_ELASTICSEARCH_URL=http://elasticsearch:9200
+      - CAMUNDA_OPERATE_ELASTICSEARCH_HOST=elasticsearch
+      - CAMUNDA_OPERATE_ELASTICSEARCH_PORT=9200
+      - SPRING_PROFILES_ACTIVE=dev
     ports:
       - "8081:8080"
     depends_on:
@@ -36,7 +42,8 @@ services:
     container_name: tasklist
     environment:
       - CAMUNDA_TASKLIST_ZEEBE_GATEWAYADDRESS=zeebe:26500
-      - SPRING_PROFILES_ACTIVE=identity-auth
+      - CAMUNDA_TASKLIST_ELASTICSEARCH_URL=http://elasticsearch:9200
+      - SPRING_PROFILES_ACTIVE=dev
     ports:
       - "8082:8080"
     depends_on:
@@ -46,38 +53,22 @@ services:
       - orchestrator-network
     restart: unless-stopped
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
-    container_name: elasticsearch
+  connectors:
+    image: camunda/connectors-bundle:8.5.0
+    container_name: connectors
     environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
-    ports:
-      - "9200:9200"
-    volumes:
-      - ./data/elasticsearch:/usr/share/elasticsearch/data
-    networks:
-      - orchestrator-network
-    restart: unless-stopped
-
-  identity:
-    image: camunda/identity:8.5.0
-    container_name: identity
-    environment:
-      - IDENTITY_DATABASE_HOST=postgres
-      - IDENTITY_DATABASE_PORT=5432
-      - IDENTITY_DATABASE_NAME=identity
-      - IDENTITY_DATABASE_USERNAME=${POSTGRES_USER}
-      - IDENTITY_DATABASE_PASSWORD=${POSTGRES_PASSWORD}
-    ports:
-      - "8084:8080"
+      - ZEEBE_CLIENT_BROKER_GATEWAY-ADDRESS=zeebe:26500
+      - ZEEBE_CLIENT_SECURITY_PLAINTEXT=true
+      - CAMUNDA_OPERATE_CLIENT_URL=http://operate:8080
+      - CAMUNDA_OPERATE_CLIENT_USERNAME=demo
+      - CAMUNDA_OPERATE_CLIENT_PASSWORD=demo
     depends_on:
-      - postgres
+      - zeebe
+      - operate
     networks:
       - orchestrator-network
     restart: unless-stopped
 
 networks:
   orchestrator-network:
-    driver: bridge
+    external: true
