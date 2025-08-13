@@ -1,0 +1,292 @@
+metadata:
+  id: wf9-post-merge-monitoring
+  name: Post-Merge Monitoring Workflow - Monitor system health after merge
+  version: 1.0.0
+  type: support
+  description: Monitor deployments and health after merge
+  author: AI Personas Team
+  tags:
+    - monitoring
+    - post-merge
+    - support
+    - wf9
+  averageDuration: 1-24 hours
+
+inputs:
+  - name: MERGE_COMMIT
+    type: string
+    description: The merge commit SHA to monitor
+    required: true
+  - name: MONITOR_DURATION
+    type: string
+    description: How long to monitor (e.g., 1h, 4h, 24h)
+    required: true
+    default: 24h
+  - name: ALERT_THRESHOLD
+    type: enum
+    values: [critical, high, medium, low]
+    description: Alert threshold level
+    required: false
+    default: high
+  - name: VERIFY_BUG_FIXED
+    type: boolean
+    description: Whether to verify a specific bug was fixed
+    required: false
+    default: false
+  - name: BUG_ID
+    type: string
+    description: Bug ID to verify if VERIFY_BUG_FIXED is true
+    required: false
+  - name: INCIDENT_ID
+    type: string
+    description: Incident ID for hotfix monitoring
+    required: false
+  - name: MONITORING_API_URL
+    type: string
+    description: URL for monitoring API
+    required: false
+    default: "https://metrics.company.com/api"
+
+prerequisites:
+  - description: Merge commit exists in repository
+    required: true
+  - description: Monitoring endpoints configured
+    required: true
+  - description: Access to deployment environments
+    required: true
+
+steps:
+  - id: verify-deployment
+    name: Verify Deployment
+    description: Confirm the commit was deployed
+    action: azure-devops
+    operation: check-deployment-status
+    inputs:
+      commit: "${inputs.MERGE_COMMIT}"
+      environments: ["staging", "production"]
+    outputs:
+      - DEPLOYED_TO
+      - DEPLOYMENT_TIME
+      - DEPLOYMENT_STATUS
+
+  - id: setup-monitoring
+    name: Setup Monitoring
+    description: Configure monitoring parameters
+    action: shell-command
+    command: |
+      # Parse duration into seconds
+      DURATION="${inputs.MONITOR_DURATION}"
+      if [[ $DURATION =~ ([0-9]+)h ]]; then
+        DURATION_SECONDS=$((${BASH_REMATCH[1]} * 3600))
+      elif [[ $DURATION =~ ([0-9]+)m ]]; then
+        DURATION_SECONDS=$((${BASH_REMATCH[1]} * 60))
+      else
+        DURATION_SECONDS=86400  # Default 24h
+      fi
+      
+      # Set check interval based on duration
+      if [ $DURATION_SECONDS -gt 3600 ]; then
+        CHECK_INTERVAL=300  # 5 minutes for long monitoring
+      else
+        CHECK_INTERVAL=60   # 1 minute for short monitoring
+      fi
+      
+      echo "DURATION_SECONDS=$DURATION_SECONDS"
+      echo "CHECK_INTERVAL=$CHECK_INTERVAL"
+    outputs:
+      - DURATION_SECONDS
+      - CHECK_INTERVAL
+
+  - id: initial-health-check
+    name: Initial Health Check
+    description: Get baseline metrics
+    action: parallel
+    steps:
+      - id: check-error-rates
+        action: shell-command
+        command: |
+          # Check error rates from monitoring service
+          curl -s "${inputs.MONITORING_API_URL}/metrics/errors?window=5m" | jq '.error_rate'
+        outputs:
+          - BASELINE_ERROR_RATE
+      
+      - id: check-performance
+        action: shell-command
+        command: |
+          # Check performance metrics
+          curl -s "${inputs.MONITORING_API_URL}/metrics/performance?window=5m" | jq '.p95_response_time'
+        outputs:
+          - BASELINE_RESPONSE_TIME
+      
+      - id: check-system-health
+        action: shell-command
+        command: |
+          # Check system health
+          curl -s "${inputs.MONITORING_API_URL}/health" | jq '.status'
+        outputs:
+          - SYSTEM_HEALTH
+
+  - id: continuous-monitoring
+    name: Continuous Monitoring
+    description: Monitor for the specified duration
+    action: repeat
+    count: 24  # Max 24 iterations (for 24h monitoring with hourly checks)
+    steps:
+      - id: collect-metrics
+        name: Collect Current Metrics
+        action: parallel
+        steps:
+          - action: shell-command
+            command: curl -s "${inputs.MONITORING_API_URL}/metrics/errors?window=5m"
+            outputs: ["CURRENT_ERROR_RATE"]
+          
+          - action: shell-command
+            command: curl -s "${inputs.MONITORING_API_URL}/metrics/performance?window=5m"
+            outputs: ["CURRENT_RESPONSE_TIME"]
+          
+          - action: shell-command
+            command: curl -s "${inputs.MONITORING_API_URL}/logs/errors?commit=${inputs.MERGE_COMMIT}"
+            outputs: ["NEW_ERRORS"]
+      
+      - id: analyze-metrics
+        name: Analyze Metrics
+        action: shell-command
+        command: |
+          # Extract values from previous steps
+          CURRENT_ERROR_RATE=$(echo "${steps.collect-metrics.CURRENT_ERROR_RATE}" | jq -r '.error_rate')
+          BASELINE_ERROR_RATE=$(echo "${steps.initial-health-check.BASELINE_ERROR_RATE}" | jq -r '.error_rate')
+          CURRENT_RESPONSE_TIME=$(echo "${steps.collect-metrics.CURRENT_RESPONSE_TIME}" | jq -r '.p95_response_time')
+          BASELINE_RESPONSE_TIME=$(echo "${steps.initial-health-check.BASELINE_RESPONSE_TIME}" | jq -r '.p95_response_time')
+          NEW_ERRORS_COUNT=$(echo "${steps.collect-metrics.NEW_ERRORS}" | jq -r '. | length')
+          
+          # Check if metrics degraded
+          ERROR_THRESHOLD=$(echo "$BASELINE_ERROR_RATE * 1.1" | bc)
+          PERF_THRESHOLD=$(echo "$BASELINE_RESPONSE_TIME * 1.2" | bc)
+          
+          ALERT_NEEDED="false"
+          if (( $(echo "$CURRENT_ERROR_RATE > $ERROR_THRESHOLD" | bc -l) )); then
+            ALERT_NEEDED="true"
+          fi
+          if (( $(echo "$CURRENT_RESPONSE_TIME > $PERF_THRESHOLD" | bc -l) )); then
+            ALERT_NEEDED="true"
+          fi
+          if [ "$NEW_ERRORS_COUNT" -gt 0 ]; then
+            ALERT_NEEDED="true"
+          fi
+          
+          echo "ALERT_NEEDED=$ALERT_NEEDED"
+          echo "CURRENT_ERROR_RATE=$CURRENT_ERROR_RATE"
+          echo "CURRENT_RESPONSE_TIME=$CURRENT_RESPONSE_TIME"
+          echo "NEW_ERRORS_COUNT=$NEW_ERRORS_COUNT"
+        outputs:
+          - ALERT_NEEDED
+          - CURRENT_ERROR_RATE
+          - CURRENT_RESPONSE_TIME
+          - NEW_ERRORS_COUNT
+      
+      - id: trigger-alerts
+        name: Trigger Alerts if Needed
+        action: conditional
+        condition: "${steps.analyze-metrics.ALERT_NEEDED eq 'true'}"
+        steps:
+          - action: azure-devops
+            operation: create-alert
+            inputs:
+              severity: "${inputs.ALERT_THRESHOLD}"
+              title: "Post-merge issue detected for ${inputs.MERGE_COMMIT}"
+              description: |
+                Metrics show degradation after merge:
+                - Error rate: ${steps.analyze-metrics.CURRENT_ERROR_RATE} (baseline: ${steps.initial-health-check.BASELINE_ERROR_RATE})
+                - Response time: ${steps.analyze-metrics.CURRENT_RESPONSE_TIME}ms (baseline: ${steps.initial-health-check.BASELINE_RESPONSE_TIME}ms)
+                - New errors: ${steps.analyze-metrics.NEW_ERRORS_COUNT}
+      
+      - id: wait-interval
+        name: Wait for Next Check
+        action: wait
+        duration: "${steps.setup-monitoring.CHECK_INTERVAL}s"
+
+  - id: verify-bug-fix
+    name: Verify Bug Fix
+    description: Verify specific bug was fixed
+    action: conditional
+    condition: "${inputs.VERIFY_BUG_FIXED and inputs.BUG_ID}"
+    steps:
+      - id: run-bug-verification
+        action: shell-command
+        command: |
+          # Run specific test for the bug
+          npm test -- --testNamePattern="${inputs.BUG_ID}" || 
+          pytest -k "${inputs.BUG_ID}" ||
+          echo "No specific bug test found"
+        outputs:
+          - BUG_TEST_RESULT
+      
+      - id: check-bug-metrics
+        action: shell-command
+        command: |
+          # Check if bug-specific errors still occur
+          curl -s "${inputs.MONITORING_API_URL}/logs/search?q=${inputs.BUG_ID}&after=${context.DEPLOYMENT_TIME}" | jq '.count'
+        outputs:
+          - BUG_ERROR_COUNT
+
+  - id: generate-report
+    name: Generate Monitoring Report
+    description: Create summary report
+    action: set-variable
+    variable: MONITORING_REPORT
+    value: |
+      ## Post-Merge Monitoring Report
+      
+      **Commit**: ${inputs.MERGE_COMMIT}
+      **Duration**: ${inputs.MONITOR_DURATION}
+      **Deployment**: ${steps.verify-deployment.DEPLOYED_TO}
+      
+      ### Health Metrics
+      - Error Rate: ${context.final_error_rate} (${context.error_trend})
+      - Response Time: ${context.final_response_time}ms (${context.performance_trend})
+      - Availability: ${context.availability_percentage}%
+      - Incidents: ${context.incident_count}
+      
+      ### Bug Verification
+      ${inputs.VERIFY_BUG_FIXED ? context.bug_verification_result : 'N/A'}
+      
+      ### Recommendation
+      ${context.overall_health_assessment}
+
+outputs:
+  - name: MONITORING_STATUS
+    value: "${context.monitoring_passed ? 'healthy' : 'issues_detected'}"
+    description: Overall monitoring status
+  - name: VERIFICATION_STATUS
+    value: "${inputs.VERIFY_BUG_FIXED ? context.bug_fixed_status : 'not_applicable'}"
+    description: Bug verification status
+  - name: INCIDENT_COUNT
+    value: "${context.incident_count}"
+    description: Number of incidents detected
+  - name: MONITORING_REPORT
+    value: "${context.MONITORING_REPORT}"
+    description: Full monitoring report
+
+successCriteria:
+  - Deployment verified
+  - No critical incidents during monitoring
+  - Performance within acceptable range
+  - Bug verified as fixed (if applicable)
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: escalate-issues
+      action: conditional
+      condition: "${context.critical_issues_found}"
+      steps:
+        - action: execute-workflow
+          workflow: wf11-rollback
+          inputs:
+            COMMIT: "${inputs.MERGE_COMMIT}"
+            REASON: "Critical issues detected in post-merge monitoring"
+  notifications:
+    - type: log
+      target: error
+    - type: slack
+      target: "#deployments"

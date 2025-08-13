@@ -1,0 +1,296 @@
+# persona-mobile-developer-workflow.yaml
+metadata:
+  id: persona-mobile-developer-workflow
+  name: Mobile Developer Workflow - Mobile application development for iOS and Android
+  version: 1.0.0
+  type: persona
+  description: Defines how Mobile Developer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - mobile-developer
+    - ios
+    - android
+    - react-native
+    - flutter
+  persona_info:
+    type: mobile-developer
+    first_name: Marcus
+    last_name: Bot
+    email: marcus.bot@company.com
+    role: Mobile Developer
+    skills:
+      - iOS Development
+      - Android Development
+      - React Native
+      - Flutter
+      - Mobile UI/UX
+      - Performance Optimization
+      - Push Notifications
+      - App Store Deployment
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, mobile-bug]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, implement, review, plan, deploy, test]
+    description: Action to perform
+    required: false
+    default: analyze
+  - name: PLATFORM
+    type: enum
+    values: [ios, android, both, react-native, flutter]
+    description: Target platform
+    required: false
+    default: both
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Mobile development environment setup
+    required: true
+  - description: Platform SDKs installed
+    required: true
+
+steps:
+  - id: analyze-mobile-requirements
+    name: Analyze Mobile Requirements
+    description: Analyze mobile development requirements
+    action: shell-command
+    command: |
+      # Analyze mobile requirements
+      echo "Analyzing mobile requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Detect platform
+      PLATFORM="${inputs.PLATFORM}"
+      
+      # Check for native vs cross-platform
+      if [[ "$PLATFORM" == "react-native" ]] || [[ "$PLATFORM" == "flutter" ]]; then
+        echo "DEVELOPMENT_TYPE=cross-platform"
+      else
+        echo "DEVELOPMENT_TYPE=native"
+      fi
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "mobile-bug")
+          echo "RECOMMENDED_ACTION=fix-mobile-bug"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=implement-mobile-feature"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-mobile-work"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - DEVELOPMENT_TYPE
+      - TARGET_PLATFORM
+
+  - id: setup-mobile-env
+    name: Setup Mobile Environment
+    description: Prepare mobile development environment
+    action: conditional
+    condition: "${steps.analyze-mobile-requirements.DEVELOPMENT_TYPE}"
+    branches:
+      - condition: "eq 'native'"
+        steps:
+          - action: shell-command
+            command: |
+              # Setup native environment
+              setup_xcode_environment
+              setup_android_studio
+              configure_simulators_emulators
+      - condition: "eq 'cross-platform'"
+        steps:
+          - action: shell-command
+            command: |
+              # Setup cross-platform environment
+              setup_react_native_env
+              setup_flutter_env
+              configure_expo
+    outputs:
+      - MOBILE_ENV_READY
+
+  - id: route-to-workflow
+    name: Route to Mobile Workflow
+    description: Execute appropriate mobile workflow
+    action: conditional
+    condition: "${steps.analyze-mobile-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'implement-mobile-feature'"
+        steps:
+          - action: execute-workflow
+            workflow: wf0-feature-development
+            inputs:
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              FEATURE_NAME: mobile-${inputs.WORK_ITEM_ID}
+          - action: execute-workflow
+            workflow: wf3-branch-creation
+            inputs:
+              WORK_TYPE: feature
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              DESCRIPTION: mobile-feature
+      
+      - condition: "eq 'fix-mobile-bug'"
+        steps:
+          - action: execute-workflow
+            workflow: wf1-bug-fix
+            inputs:
+              BUG_ID: ${inputs.WORK_ITEM_ID}
+              BUG_SEVERITY: P2
+
+  - id: implement-mobile-ui
+    name: Implement Mobile UI
+    description: Create mobile user interface
+    action: shell-command
+    command: |
+      # Implement mobile UI
+      create_screens
+      implement_navigation
+      add_gestures_animations
+      implement_responsive_layouts
+    outputs:
+      - MOBILE_UI_CREATED
+
+  - id: platform-specific-features
+    name: Platform Specific Features
+    description: Implement platform-specific features
+    action: conditional
+    condition: "${inputs.PLATFORM}"
+    branches:
+      - condition: "contains 'ios'"
+        steps:
+          - action: shell-command
+            command: |
+              # iOS specific features
+              implement_face_id_touch_id
+              setup_apple_pay
+              configure_push_notifications_ios
+      - condition: "contains 'android'"
+        steps:
+          - action: shell-command
+            command: |
+              # Android specific features
+              implement_fingerprint_auth
+              setup_google_pay
+              configure_push_notifications_android
+
+  - id: mobile-testing
+    name: Mobile Testing
+    description: Run mobile tests
+    action: shell-command
+    command: |
+      # Run mobile tests
+      run_unit_tests
+      run_ui_tests
+      run_appium_tests
+      test_on_real_devices
+    outputs:
+      - MOBILE_TESTS_PASSED
+
+  - id: performance-profiling
+    name: Performance Profiling
+    description: Profile mobile app performance
+    action: shell-command
+    command: |
+      # Profile performance
+      run_instruments_profiling
+      analyze_memory_usage
+      check_battery_consumption
+      optimize_app_size
+    outputs:
+      - PERFORMANCE_PROFILE
+
+  - id: prepare-deployment
+    name: Prepare Deployment
+    description: Prepare app for deployment
+    action: shell-command
+    command: |
+      # Prepare deployment
+      increment_version_number
+      generate_release_notes
+      create_app_screenshots
+      prepare_app_store_metadata
+    outputs:
+      - DEPLOYMENT_READY
+
+  - id: commit-mobile-changes
+    name: Commit Mobile Changes
+    description: Commit mobile implementation
+    action: execute-workflow
+    workflow: wf4-code-commit
+    inputs:
+      BRANCH_NAME: ${context.branch_name}
+      COMMIT_TYPE: feat
+      COMMIT_MESSAGE: "Implement mobile feature ${inputs.WORK_ITEM_ID}"
+
+  - id: create-mobile-pr
+    name: Create Mobile PR
+    description: Submit mobile code for review
+    action: execute-workflow
+    workflow: wf5-pull-request-creation
+    inputs:
+      BRANCH_NAME: ${context.branch_name}
+      WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+
+  - id: distribute-for-testing
+    name: Distribute for Testing
+    description: Distribute app to testers
+    action: shell-command
+    command: |
+      # Distribute app
+      upload_to_testflight
+      upload_to_play_console_beta
+      distribute_via_app_center
+    outputs:
+      - DISTRIBUTION_LINKS
+
+  - id: create-testing-tasks
+    name: Create Testing Tasks
+    description: Create mobile testing tasks
+    action: azure-devops
+    operation: create-work-item
+    inputs:
+      type: Task
+      title: "Mobile app testing for ${inputs.WORK_ITEM_ID}"
+      assignedTo: qa-test-engineer
+      parent: ${inputs.WORK_ITEM_ID}
+      description: "Test links: ${steps.distribute-for-testing.DISTRIBUTION_LINKS}"
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Mobile development result
+  - name: APP_VERSION
+    value: "${context.app_version}"
+    description: App version
+  - name: DISTRIBUTION_LINKS
+    value: "${steps.distribute-for-testing.DISTRIBUTION_LINKS}"
+    description: Testing distribution links
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Mobile UI implemented
+  - Platform features working
+  - Tests passing
+  - Performance acceptable
+  - App distributed for testing
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in mobile workflow: ${error.message}"

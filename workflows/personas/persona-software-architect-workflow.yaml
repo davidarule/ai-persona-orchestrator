@@ -1,0 +1,220 @@
+# persona-software-architect-workflow.yaml
+metadata:
+  id: persona-software-architect-workflow
+  name: Software Architect Workflow - System design and technical leadership
+  version: 1.0.0
+  type: persona
+  description: Defines how Software Architect operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - software-architect
+    - design
+    - architecture
+    - technical-leadership
+  persona_info:
+    type: software-architect
+    first_name: Sarah
+    last_name: Bot
+    email: sarah.bot@company.com
+    role: Software Architect
+    skills:
+      - System Design
+      - Architecture Patterns
+      - Technology Selection
+      - Performance Optimization
+      - Scalability Planning
+      - API Design
+      - Cloud Architecture
+      - Documentation
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, design-review]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, design, review, plan, validate]
+    description: Action to perform
+    required: false
+    default: analyze
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Appropriate permissions
+    required: true
+  - description: Architecture repository access
+    required: true
+
+steps:
+  - id: analyze-requirements
+    name: Analyze Requirements
+    description: Analyze architectural requirements
+    action: shell-command
+    command: |
+      # Analyze work item for architectural impact
+      echo "Analyzing architectural requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Check complexity
+      COMPLEXITY=$(az boards work-item show --id ${inputs.WORK_ITEM_ID} \
+        --query "fields.'Microsoft.VSTS.Common.StoryPoints'" -o tsv)
+      
+      # Determine if architecture review needed
+      if [ "$COMPLEXITY" -gt 8 ] || [ "${inputs.WORK_ITEM_TYPE}" == "epic" ]; then
+        echo "ARCHITECTURE_REVIEW_REQUIRED=true"
+        echo "RECOMMENDED_ACTION=design-review"
+      else
+        echo "ARCHITECTURE_REVIEW_REQUIRED=false"
+        echo "RECOMMENDED_ACTION=standard-implementation"
+      fi
+    outputs:
+      - ARCHITECTURE_REVIEW_REQUIRED
+      - RECOMMENDED_ACTION
+      - COMPLEXITY
+
+  - id: design-analysis
+    name: Perform Design Analysis
+    description: Analyze system design requirements
+    action: conditional
+    condition: "${steps.analyze-requirements.ARCHITECTURE_REVIEW_REQUIRED}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Perform design analysis
+              analyze_system_impact
+              check_architecture_principles
+              evaluate_technology_stack
+              assess_scalability_requirements
+            outputs:
+              - DESIGN_RECOMMENDATIONS
+              - TECHNOLOGY_CHOICES
+
+  - id: create-architecture-artifacts
+    name: Create Architecture Artifacts
+    description: Generate design documentation
+    action: conditional
+    condition: "${steps.analyze-requirements.ARCHITECTURE_REVIEW_REQUIRED}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Create architecture diagrams
+              generate_c4_diagrams
+              create_sequence_diagrams
+              generate_architecture_decision_records
+            outputs:
+              - ARCHITECTURE_DIAGRAMS
+              - ADR_DOCUMENTS
+
+  - id: route-to-workflow
+    name: Route to Appropriate Workflow
+    description: Execute appropriate workflows based on analysis
+    action: conditional
+    condition: "${steps.analyze-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'design-review'"
+        steps:
+          - action: execute-workflow
+            workflow: wf5-pull-request-creation
+            inputs:
+              BRANCH_NAME: "architecture/${inputs.WORK_ITEM_ID}"
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              PR_TYPE: design
+          - action: execute-workflow
+            workflow: wf16-reviewer-selection
+            inputs:
+              PR_SIZE: large
+              AREAS_AFFECTED: ["architecture", "design"]
+      
+      - condition: "eq 'standard-implementation'"
+        steps:
+          - action: execute-workflow
+            workflow: wf0-feature-development
+            inputs:
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              FEATURE_NAME: ${context.feature_name}
+
+  - id: api-design
+    name: API Design
+    description: Design API specifications
+    action: conditional
+    condition: "${context.api_required}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Design API
+              generate_openapi_spec
+              create_api_documentation
+              setup_api_versioning
+            outputs:
+              - API_SPECIFICATION
+
+  - id: performance-analysis
+    name: Performance Analysis
+    description: Analyze performance requirements
+    action: shell-command
+    command: |
+      # Performance analysis
+      analyze_performance_requirements
+      design_caching_strategy
+      plan_load_distribution
+    outputs:
+      - PERFORMANCE_PLAN
+
+  - id: create-implementation-tasks
+    name: Create Implementation Tasks
+    description: Break down into development tasks
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: Task
+        title: "Backend Implementation"
+        assignedTo: backend-developer
+        parent: ${inputs.WORK_ITEM_ID}
+      - type: Task
+        title: "Frontend Implementation"
+        assignedTo: frontend-developer
+        parent: ${inputs.WORK_ITEM_ID}
+      - type: Task
+        title: "Database Design"
+        assignedTo: data-engineer-dba
+        parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Architecture work result
+  - name: DESIGN_DOCUMENTS
+    value: "${steps.create-architecture-artifacts.ADR_DOCUMENTS}"
+    description: Architecture documentation
+  - name: API_SPECS
+    value: "${steps.api-design.API_SPECIFICATION}"
+    description: API specifications
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Architecture documented
+  - Design reviewed and approved
+  - Implementation tasks created
+  - Performance requirements defined
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in architecture workflow: ${error.message}"

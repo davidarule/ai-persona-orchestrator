@@ -1,0 +1,336 @@
+metadata:
+  id: wf11-rollback
+  name: Rollback Workflow - Rollback problematic deployments
+  version: 1.0.0
+  type: support
+  description: Emergency rollback procedures
+  author: AI Personas Team
+  tags:
+    - rollback
+    - emergency
+    - support
+    - wf11
+  averageDuration: 5-15 minutes
+  critical: true
+
+inputs:
+  - name: TARGET
+    type: string
+    description: Commit SHA or 'last_known_good' to rollback to
+    required: true
+  - name: COMMIT
+    type: string
+    description: The commit to rollback (if reverting specific commit)
+    required: false
+  - name: REASON
+    type: string
+    description: Reason for rollback
+    required: true
+  - name: EMERGENCY
+    type: boolean
+    description: Emergency rollback (skip validations)
+    required: false
+    default: false
+  - name: ENVIRONMENT
+    type: enum
+    values: [production, staging, all]
+    description: Environment to rollback
+    required: false
+    default: production
+  - name: NOTIFY_CHANNELS
+    type: array
+    description: Additional notification channels
+    required: false
+    default: ["#deployments", "#incidents"]
+  - name: DEPLOYMENT_API_URL
+    type: string
+    description: URL for deployment API (e.g., https://api.deploy.company.com)
+    required: false
+    default: "https://api.deploy.company.com"
+  - name: HEALTH_CHECK_URL
+    type: string
+    description: URL for health check endpoint
+    required: false
+    default: "https://api.company.com/health"
+  - name: MONITORING_API_URL
+    type: string
+    description: URL for monitoring API
+    required: false
+    default: "https://metrics.company.com/api"
+  - name: USER
+    type: string
+    description: User initiating the rollback
+    required: true
+
+prerequisites:
+  - description: Rollback authorization
+    required: true
+  - description: Target commit/state exists
+    required: true
+  - description: Deployment pipeline access
+    required: true
+
+steps:
+  - id: validate-rollback
+    name: Validate Rollback Request
+    description: Ensure rollback is safe and authorized
+    action: conditional
+    condition: "${not inputs.EMERGENCY}"
+    steps:
+      - id: check-authorization
+        action: azure-devops
+        operation: check-permission
+        inputs:
+          permission: rollback_production
+          user: "${inputs.USER}"
+        onError: fail
+      
+      - id: validate-target
+        action: shell-command
+        command: |
+          if [ "${inputs.TARGET}" = "last_known_good" ]; then
+            # Get last known good from deployment history
+            TARGET_COMMIT=$(curl -s "${inputs.DEPLOYMENT_API_URL}/last-known-good" | jq -r '.commit')
+          else
+            TARGET_COMMIT="${inputs.TARGET}"
+          fi
+          
+          # Verify commit exists
+          if ! git rev-parse "$TARGET_COMMIT" >/dev/null 2>&1; then
+            echo "ERROR: Target commit not found: $TARGET_COMMIT"
+            exit 1
+          fi
+          
+          echo "Rollback target: $TARGET_COMMIT"
+        outputs:
+          - TARGET_COMMIT
+
+  - id: create-incident
+    name: Create Incident Record
+    description: Document the rollback incident
+    action: azure-devops
+    operation: create-incident
+    inputs:
+      title: "Production Rollback: ${inputs.REASON}"
+      severity: "${inputs.EMERGENCY ? 'P1' : 'P2'}"
+      description: |
+        ## Rollback Incident
+        
+        **Reason**: ${inputs.REASON}
+        **Target**: ${inputs.TARGET}
+        **Initiated by**: ${inputs.USER}
+        **Emergency**: ${inputs.EMERGENCY}
+        
+        ### Affected Services
+        - Production environment
+        - All services dependent on commit ${inputs.TARGET}
+        
+        ### Timeline
+        - Rollback initiated: $(date)
+    outputs:
+      - INCIDENT_ID
+
+  - id: notify-stakeholders
+    name: Notify Stakeholders
+    description: Alert teams about rollback
+    action: parallel
+    steps:
+      - id: slack-notification
+        action: azure-devops
+        operation: send-notification
+        inputs:
+          channels: "${inputs.NOTIFY_CHANNELS}"
+          message: |
+            🚨 **PRODUCTION ROLLBACK IN PROGRESS** 🚨
+            
+            **Reason**: ${inputs.REASON}
+            **Incident**: #${steps.create-incident.INCIDENT_ID}
+            **Target**: ${inputs.TARGET}
+            
+            Stand by for updates...
+          urgency: high
+      
+      - id: email-notification
+        action: azure-devops
+        operation: send-email
+        inputs:
+          to: ["oncall@company.com", "engineering-leads@company.com"]
+          subject: "URGENT: Production Rollback - ${inputs.REASON}"
+          body: "Rollback initiated. See incident #${steps.create-incident.INCIDENT_ID}"
+
+  - id: execute-rollback
+    name: Execute Rollback
+    description: Perform the actual rollback
+    action: conditional
+    condition: "${inputs.COMMIT}"
+    steps:
+      - id: revert-commit
+        name: Revert Specific Commit
+        action: shell-command
+        command: |
+          # Create revert commit
+          git checkout main
+          git pull origin main
+          
+          # Revert the problematic commit
+          git revert ${inputs.COMMIT} --no-edit -m 1 || git revert ${inputs.COMMIT} --no-edit
+          
+          # Add rollback information to commit message
+          git commit --amend -m "Revert \"$(git log -1 --pretty=%s ${inputs.COMMIT})\"
+          
+          Rollback reason: ${inputs.REASON}
+          Incident: #${steps.create-incident.INCIDENT_ID}
+          
+          This reverts commit ${inputs.COMMIT}"
+          
+          REVERT_COMMIT=$(git rev-parse HEAD)
+          echo "Created revert commit: $REVERT_COMMIT"
+        outputs:
+          - REVERT_COMMIT
+    else:
+      - id: reset-to-target
+        name: Reset to Target State
+        action: shell-command
+        command: |
+          # For last_known_good or specific target
+          TARGET="${steps.validate-rollback.TARGET_COMMIT}"
+          
+          # Create rollback branch
+          git checkout -b "rollback-${steps.create-incident.INCIDENT_ID}"
+          git reset --hard "$TARGET"
+          
+          # Force push if emergency
+          if [ "${inputs.EMERGENCY}" = "true" ]; then
+            git push --force-with-lease origin main
+          else
+            git push origin "rollback-${steps.create-incident.INCIDENT_ID}"
+            # Would normally create PR here for non-emergency
+          fi
+
+  - id: trigger-deployment
+    name: Trigger Deployment
+    description: Deploy the rollback
+    action: azure-devops
+    operation: trigger-pipeline
+    inputs:
+      pipeline: deployment-pipeline
+      branch: "${inputs.EMERGENCY ? 'main' : 'rollback-' + steps.create-incident.INCIDENT_ID}"
+      parameters:
+        environment: "${inputs.ENVIRONMENT}"
+        skip_tests: "${inputs.EMERGENCY}"
+        rollback: true
+        incident_id: "${steps.create-incident.INCIDENT_ID}"
+    outputs:
+      - DEPLOYMENT_ID
+      - DEPLOYMENT_URL
+
+  - id: verify-rollback
+    name: Verify Rollback Success
+    description: Ensure rollback was successful
+    action: parallel
+    steps:
+      - id: check-deployment
+        action: azure-devops
+        operation: wait-for-deployment
+        inputs:
+          deployment_id: "${steps.trigger-deployment.DEPLOYMENT_ID}"
+          timeout: 600
+        outputs:
+          - DEPLOYMENT_STATUS
+      
+      - id: health-check
+        action: shell-command
+        command: |
+          # Wait for deployment to stabilize
+          sleep 30
+          
+          # Run health checks
+          HEALTH_STATUS=$(curl -s "${inputs.HEALTH_CHECK_URL}" | jq -r '.status')
+          ERROR_RATE=$(curl -s "${inputs.MONITORING_API_URL}/metrics/errors?window=5m" | jq -r '.error_rate')
+          
+          if [ "$HEALTH_STATUS" != "healthy" ] || [ $(echo "$ERROR_RATE > 0.01" | bc) -eq 1 ]; then
+            echo "WARNING: Health check failed after rollback"
+            exit 1
+          fi
+          
+          echo "Health check passed"
+        onError: continue
+
+  - id: update-incident
+    name: Update Incident
+    description: Update incident with rollback status
+    action: azure-devops
+    operation: update-incident
+    inputs:
+      incident_id: "${steps.create-incident.INCIDENT_ID}"
+      status: "${steps.verify-rollback.DEPLOYMENT_STATUS eq 'succeeded' ? 'mitigated' : 'ongoing'}"
+      update: |
+        ## Rollback ${steps.verify-rollback.DEPLOYMENT_STATUS eq 'succeeded' ? 'Completed' : 'Failed'}
+        
+        - Deployment: ${steps.trigger-deployment.DEPLOYMENT_URL}
+        - Health Status: ${context.health_status}
+        - Time to Rollback: ${context.elapsed_time}
+        
+        ${steps.verify-rollback.DEPLOYMENT_STATUS eq 'succeeded' ? 'System restored to previous state.' : 'Rollback failed - escalating.'}
+
+  - id: post-rollback-actions
+    name: Post-Rollback Actions
+    description: Cleanup and follow-up tasks
+    action: parallel
+    steps:
+      - id: create-postmortem
+        action: azure-devops
+        operation: create-work-item
+        inputs:
+          type: Task
+          title: "Postmortem for Rollback Incident #${steps.create-incident.INCIDENT_ID}"
+          description: "Conduct postmortem for production rollback"
+          assigned_to: "${context.incident_owner}"
+          due_date: "${context.plus_days(2)}"
+      
+      - id: disable-problematic-commit
+        action: conditional
+        condition: "${inputs.COMMIT}"
+        steps:
+          - action: git-operation
+            operation: tag
+            inputs:
+              tag_name: "DO_NOT_DEPLOY_${inputs.COMMIT}"
+              message: "Problematic commit - caused rollback incident #${steps.create-incident.INCIDENT_ID}"
+
+outputs:
+  - name: INCIDENT_ID
+    value: "${steps.create-incident.INCIDENT_ID}"
+    description: Created incident ID
+  - name: ROLLBACK_COMMIT
+    value: "${steps.execute-rollback.REVERT_COMMIT or steps.validate-rollback.TARGET_COMMIT}"
+    description: The commit we rolled back to
+  - name: DEPLOYMENT_STATUS
+    value: "${steps.verify-rollback.DEPLOYMENT_STATUS}"
+    description: Rollback deployment status
+  - name: STATUS
+    value: "${steps.verify-rollback.DEPLOYMENT_STATUS eq 'succeeded' ? 'success' : 'failed'}"
+    description: Overall rollback status
+
+successCriteria:
+  - Rollback deployed successfully
+  - System health restored
+  - Incident documented
+  - Stakeholders notified
+
+errorHandling:
+  strategy: fail-fast
+  onFailure:
+    - id: escalate-to-oncall
+      action: azure-devops
+      operation: page-oncall
+      inputs:
+        message: "CRITICAL: Rollback failed for incident #${steps.create-incident.INCIDENT_ID}"
+        severity: P1
+  notifications:
+    - type: log
+      target: error
+    - type: slack
+      target: "#incidents"
+    - type: pagerduty
+      target: oncall

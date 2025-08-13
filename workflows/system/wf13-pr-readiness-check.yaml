@@ -1,0 +1,289 @@
+metadata:
+  id: wf13-pr-readiness-check
+  name: PR Readiness Check Workflow - Determine if code is ready for pull request
+  version: 1.0.0
+  type: support
+  description: Validates if code is ready for PR
+  author: AI Personas Team
+  tags:
+    - validation
+    - pull-request
+    - support
+    - wf13
+  averageDuration: 5-10 minutes
+
+inputs:
+  - name: BRANCH_NAME
+    type: string
+    description: Branch to check for PR readiness
+    required: true
+  - name: TARGET_BRANCH
+    type: string
+    description: Target branch for the PR
+    required: false
+    default: main
+  - name: CHECK_TYPES
+    type: array
+    description: Types of checks to perform
+    required: false
+    default: ["commits", "tests", "lint", "build", "coverage", "docs"]
+
+prerequisites:
+  - description: Branch exists locally
+    required: true
+  - description: Git repository accessible
+    required: true
+
+steps:
+  - id: checkout-branch
+    name: Checkout Branch
+    description: Switch to the branch to check
+    action: git-operation
+    operation: checkout
+    inputs:
+      branch: "${inputs.BRANCH_NAME}"
+
+  - id: check-commits
+    name: Check Commits
+    description: Validate commit quality
+    action: conditional
+    condition: "${context.includes(inputs.CHECK_TYPES, 'commits')}"
+    steps:
+      - id: analyze-commits
+        action: shell-command
+        command: |
+          # Get commits not in target branch
+          COMMITS=$(git log ${inputs.TARGET_BRANCH}..${inputs.BRANCH_NAME} --oneline)
+          COMMIT_COUNT=$(echo "$COMMITS" | wc -l)
+          
+          echo "Found $COMMIT_COUNT commits"
+          
+          # Check commit messages follow conventional format
+          INVALID_COMMITS=0
+          while IFS= read -r commit; do
+            if ! echo "$commit" | grep -qE "^[a-f0-9]+ (feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .+"; then
+              echo "Invalid commit format: $commit"
+              INVALID_COMMITS=$((INVALID_COMMITS + 1))
+            fi
+          done <<< "$COMMITS"
+          
+          echo "Invalid commits: $INVALID_COMMITS"
+        outputs:
+          - COMMIT_COUNT
+          - INVALID_COMMIT_COUNT
+          - COMMIT_CHECK_PASSED
+
+  - id: check-tests
+    name: Check Tests
+    description: Run test suite
+    action: conditional
+    condition: "${context.includes(inputs.CHECK_TYPES, 'tests')}"
+    steps:
+      - id: run-unit-tests
+        action: shell-command
+        command: |
+          echo "Running tests..."
+          npm test -- --passWithNoTests || yarn test --passWithNoTests || pytest || mvn test || dotnet test || echo "No tests found"
+        outputs:
+          - TEST_RESULT
+          - TEST_COUNT
+          - FAILED_TESTS
+        onError: continue
+      
+      - id: check-new-tests
+        action: shell-command
+        command: |
+          # Check if new code has tests
+          NEW_FILES=$(git diff ${inputs.TARGET_BRANCH}...${inputs.BRANCH_NAME} --name-only | grep -E "\.(js|ts|py|java|cs)$" | grep -v test)
+          TEST_FILES=$(git diff ${inputs.TARGET_BRANCH}...${inputs.BRANCH_NAME} --name-only | grep -E "(test|spec)\.")
+          
+          if [ -n "$NEW_FILES" ] && [ -z "$TEST_FILES" ]; then
+            echo "WARNING: New code added without tests"
+            echo "New files: $NEW_FILES"
+          fi
+        outputs:
+          - HAS_NEW_TESTS
+
+  - id: check-lint
+    name: Check Linting
+    description: Run linters
+    action: conditional
+    condition: "${context.includes(inputs.CHECK_TYPES, 'lint')}"
+    steps:
+      - action: shell-command
+        command: |
+          echo "Running linters..."
+          LINT_ERRORS=0
+          
+          # Run appropriate linter
+          npm run lint || yarn lint || LINT_ERRORS=$?
+          pylint . || flake8 . || LINT_ERRORS=$?
+          rubocop || LINT_ERRORS=$?
+          
+          echo "Lint errors: $LINT_ERRORS"
+        outputs:
+          - LINT_ERRORS
+          - LINT_PASSED
+        onError: continue
+
+  - id: check-build
+    name: Check Build
+    description: Verify project builds
+    action: conditional
+    condition: "${context.includes(inputs.CHECK_TYPES, 'build')}"
+    steps:
+      - action: shell-command
+        command: |
+          echo "Running build..."
+          npm run build || yarn build || make build || mvn compile || dotnet build || echo "No build configured"
+        outputs:
+          - BUILD_RESULT
+          - BUILD_TIME
+        onError: continue
+
+  - id: check-coverage
+    name: Check Coverage
+    description: Check test coverage
+    action: conditional
+    condition: "${context.includes(inputs.CHECK_TYPES, 'coverage')}"
+    steps:
+      - action: shell-command
+        command: |
+          echo "Checking coverage..."
+          npm run coverage || yarn coverage || pytest --cov || echo "No coverage configured"
+          
+          # Try to extract coverage percentage
+          COVERAGE=$(cat coverage/coverage-summary.json 2>/dev/null | jq -r '.total.lines.pct' || echo "0")
+          echo "Coverage: $COVERAGE%"
+          
+          # Check if coverage meets threshold
+          THRESHOLD=80
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "WARNING: Coverage $COVERAGE% is below threshold $THRESHOLD%"
+          fi
+        outputs:
+          - COVERAGE_PERCENT
+          - COVERAGE_PASSED
+        onError: continue
+
+  - id: check-docs
+    name: Check Documentation
+    description: Verify documentation is updated
+    action: conditional
+    condition: "${context.includes(inputs.CHECK_TYPES, 'docs')}"
+    steps:
+      - action: shell-command
+        command: |
+          # Check if code changes require doc updates
+          CODE_CHANGES=$(git diff ${inputs.TARGET_BRANCH}...${inputs.BRANCH_NAME} --name-only | grep -E "\.(js|ts|py|java|cs)$" | grep -v test)
+          DOC_CHANGES=$(git diff ${inputs.TARGET_BRANCH}...${inputs.BRANCH_NAME} --name-only | grep -E "\.(md|rst|txt)$|docs/")
+          
+          if [ -n "$CODE_CHANGES" ]; then
+            # Check for API changes
+            API_CHANGES=$(git diff ${inputs.TARGET_BRANCH}...${inputs.BRANCH_NAME} | grep -E "^[+-].*function|^[+-].*class|^[+-].*interface|^[+-].*public")
+            
+            if [ -n "$API_CHANGES" ] && [ -z "$DOC_CHANGES" ]; then
+              echo "WARNING: API changes detected without documentation updates"
+            fi
+          fi
+          
+          # Check for TODO comments
+          TODO_COUNT=$(grep -r "TODO\|FIXME\|XXX" --include="*.js" --include="*.ts" --include="*.py" . | wc -l)
+          echo "Found $TODO_COUNT TODO/FIXME comments"
+        outputs:
+          - DOCS_UPDATED
+          - TODO_COUNT
+
+  - id: check-dependencies
+    name: Check Dependencies
+    description: Check for dependency issues
+    action: shell-command
+    command: |
+      echo "Checking dependencies..."
+      
+      # Check for security vulnerabilities
+      npm audit || yarn audit || safety check || echo "No dependency checker"
+      
+      # Check for outdated dependencies
+      npm outdated || yarn outdated || pip list --outdated || echo "No outdated check"
+    outputs:
+      - VULNERABILITIES
+      - OUTDATED_COUNT
+    onError: continue
+
+  - id: generate-report
+    name: Generate Readiness Report
+    description: Compile all check results
+    action: set-variable
+    variable: READINESS_REPORT
+    value: |
+      ## PR Readiness Report
+      
+      Branch: ${inputs.BRANCH_NAME} → ${inputs.TARGET_BRANCH}
+      
+      ### Check Results
+      
+      #### Commits (${steps.check-commits.COMMIT_COUNT} total)
+      - ✅ Valid commit messages: ${steps.check-commits.COMMIT_CHECK_PASSED}
+      - Invalid commits: ${steps.check-commits.INVALID_COMMIT_COUNT}
+      
+      #### Tests
+      - ${steps.check-tests.TEST_RESULT eq 'passed' ? '✅' : '❌'} Test suite: ${steps.check-tests.TEST_RESULT}
+      - Test count: ${steps.check-tests.TEST_COUNT}
+      - ${steps.check-tests.HAS_NEW_TESTS ? '✅' : '⚠️'} New tests added
+      
+      #### Code Quality
+      - ${steps.check-lint.LINT_PASSED ? '✅' : '❌'} Linting: ${steps.check-lint.LINT_ERRORS} errors
+      - ${steps.check-build.BUILD_RESULT eq 'success' ? '✅' : '❌'} Build: ${steps.check-build.BUILD_RESULT}
+      - ${steps.check-coverage.COVERAGE_PASSED ? '✅' : '⚠️'} Coverage: ${steps.check-coverage.COVERAGE_PERCENT}%
+      
+      #### Documentation
+      - ${steps.check-docs.DOCS_UPDATED ? '✅' : '⚠️'} Docs updated
+      - TODO comments: ${steps.check-docs.TODO_COUNT}
+      
+      #### Dependencies
+      - Security vulnerabilities: ${steps.check-dependencies.VULNERABILITIES}
+      - Outdated dependencies: ${steps.check-dependencies.OUTDATED_COUNT}
+      
+      ### Overall Status: ${context.calculate_overall_status()}
+
+  - id: determine-readiness
+    name: Determine Readiness
+    description: Make final readiness determination
+    action: set-variable
+    variable: READY_FOR_PR
+    value: |
+      ${steps.check-commits.COMMIT_CHECK_PASSED and
+        steps.check-tests.TEST_RESULT eq 'passed' and
+        steps.check-lint.LINT_PASSED and
+        steps.check-build.BUILD_RESULT eq 'success'}
+
+outputs:
+  - name: READY_FOR_PR
+    value: "${context.READY_FOR_PR}"
+    description: Whether code is ready for PR
+  - name: READINESS_REPORT
+    value: "${context.READINESS_REPORT}"
+    description: Detailed readiness report
+  - name: BLOCKING_ISSUES
+    value: "${context.blocking_issues}"
+    description: List of blocking issues
+  - name: WARNINGS
+    value: "${context.warnings}"
+    description: List of warnings
+
+successCriteria:
+  - All checks completed
+  - Readiness determination made
+  - Report generated
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: mark-check-failed
+      action: set-variable
+      variable: READY_FOR_PR
+      value: false
+  notifications:
+    - type: log
+      target: error

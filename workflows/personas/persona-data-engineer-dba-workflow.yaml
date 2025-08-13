@@ -1,0 +1,288 @@
+# persona-data-engineer-dba-workflow.yaml
+metadata:
+  id: persona-data-engineer-dba-workflow
+  name: Data Engineer/DBA Workflow - Data pipeline and database management
+  version: 1.0.0
+  type: persona
+  description: Defines how Data Engineer/DBA operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - data-engineer
+    - database-administrator
+    - etl
+    - data-pipeline
+  persona_info:
+    type: data-engineer-dba
+    first_name: Daniel
+    last_name: Bot
+    email: daniel.bot@company.com
+    role: Data Engineer/Database Administrator
+    skills:
+      - Database Design
+      - ETL Development
+      - Data Warehousing
+      - Big Data Processing
+      - Query Optimization
+      - Data Modeling
+      - Backup & Recovery
+      - Performance Tuning
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, data-pipeline, database-issue]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, design, implement, optimize, migrate]
+    description: Action to perform
+    required: false
+    default: analyze
+  - name: DATABASE_TYPE
+    type: enum
+    values: [relational, nosql, warehouse, lake]
+    description: Type of database
+    required: false
+    default: relational
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Database access
+    required: true
+  - description: ETL tools access
+    required: true
+
+steps:
+  - id: analyze-data-requirements
+    name: Analyze Data Requirements
+    description: Analyze data and database requirements
+    action: shell-command
+    command: |
+      # Analyze data requirements
+      echo "Analyzing data requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Check data volume
+      DATA_VOLUME=$(estimate_data_volume ${inputs.WORK_ITEM_ID})
+      
+      # Check performance requirements
+      PERF_REQUIREMENTS=$(analyze_performance_requirements)
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "data-pipeline")
+          echo "RECOMMENDED_ACTION=build-data-pipeline"
+          ;;
+        "database-issue")
+          echo "RECOMMENDED_ACTION=fix-database-issue"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=design-data-model"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-data-work"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - DATA_VOLUME
+      - PERF_REQUIREMENTS
+
+  - id: data-modeling
+    name: Data Modeling
+    description: Design data models
+    action: shell-command
+    command: |
+      # Data modeling
+      analyze_business_requirements
+      design_conceptual_model
+      create_logical_model
+      develop_physical_model
+      optimize_for_performance
+    outputs:
+      - DATA_MODEL
+
+  - id: route-to-workflow
+    name: Route to Data Workflow
+    description: Execute appropriate data workflow
+    action: conditional
+    condition: "${steps.analyze-data-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'build-data-pipeline'"
+        steps:
+          - action: shell-command
+            command: |
+              # Build data pipeline
+              design_pipeline_architecture
+              implement_etl_processes
+              setup_data_validation
+              implement_error_handling
+          - action: execute-workflow
+            workflow: wf3-branch-creation
+            inputs:
+              WORK_TYPE: feature
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              DESCRIPTION: data-pipeline
+      
+      - condition: "eq 'fix-database-issue'"
+        steps:
+          - action: execute-workflow
+            workflow: wf1-bug-fix
+            inputs:
+              BUG_ID: ${inputs.WORK_ITEM_ID}
+              BUG_SEVERITY: P2
+      
+      - condition: "eq 'design-data-model'"
+        steps:
+          - action: shell-command
+            command: |
+              # Design data model
+              create_entity_relationship_diagram
+              define_tables_and_relationships
+              establish_constraints
+              create_indexes
+
+  - id: database-design
+    name: Database Design
+    description: Design database schema
+    action: shell-command
+    command: |
+      # Database design
+      design_table_structures
+      define_relationships
+      create_constraints
+      design_indexes
+      plan_partitioning
+    outputs:
+      - DATABASE_SCHEMA
+
+  - id: etl-development
+    name: ETL Development
+    description: Develop ETL processes
+    action: shell-command
+    command: |
+      # ETL development
+      develop_extraction_logic
+      implement_transformations
+      create_loading_processes
+      implement_data_quality_checks
+      setup_scheduling
+    outputs:
+      - ETL_PROCESSES
+
+  - id: performance-tuning
+    name: Performance Tuning
+    description: Optimize database performance
+    action: shell-command
+    command: |
+      # Performance tuning
+      analyze_query_performance
+      optimize_slow_queries
+      create_missing_indexes
+      update_statistics
+      configure_caching
+    outputs:
+      - PERFORMANCE_IMPROVEMENTS
+
+  - id: data-migration
+    name: Data Migration
+    description: Migrate data
+    action: conditional
+    condition: "${context.migration_required}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Data migration
+              plan_migration_strategy
+              create_migration_scripts
+              perform_test_migration
+              execute_production_migration
+              validate_migrated_data
+            outputs:
+              - MIGRATION_COMPLETE
+
+  - id: backup-recovery
+    name: Backup and Recovery
+    description: Setup backup and recovery
+    action: shell-command
+    command: |
+      # Backup and recovery
+      implement_backup_strategy
+      setup_automated_backups
+      test_recovery_procedures
+      document_recovery_plans
+      setup_monitoring
+    outputs:
+      - BACKUP_CONFIGURED
+
+  - id: data-quality
+    name: Data Quality
+    description: Implement data quality measures
+    action: shell-command
+    command: |
+      # Data quality
+      implement_data_validation
+      setup_data_profiling
+      create_quality_metrics
+      implement_cleansing_rules
+      setup_quality_monitoring
+    outputs:
+      - DATA_QUALITY_MEASURES
+
+  - id: create-implementation-tasks
+    name: Create Implementation Tasks
+    description: Create data implementation tasks
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: Task
+        title: "Implement database changes for ${inputs.WORK_ITEM_ID}"
+        assignedTo: backend-developer
+        parent: ${inputs.WORK_ITEM_ID}
+      - type: Task
+        title: "Test data pipeline"
+        assignedTo: qa-test-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Data engineering result
+  - name: DATA_MODEL
+    value: "${steps.data-modeling.DATA_MODEL}"
+    description: Data model design
+  - name: ETL_PROCESSES
+    value: "${steps.etl-development.ETL_PROCESSES}"
+    description: ETL processes
+  - name: PERFORMANCE
+    value: "${steps.performance-tuning.PERFORMANCE_IMPROVEMENTS}"
+    description: Performance improvements
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Data model designed
+  - Database optimized
+  - ETL processes implemented
+  - Performance improved
+  - Data quality ensured
+
+errorHandling:
+  strategy: rollback
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in data engineer workflow: ${error.message}"
+    - id: rollback-database
+      action: shell-command
+      command: "rollback_database_changes"
+      condition: "${context.database_modified}"

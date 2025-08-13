@@ -1,0 +1,280 @@
+# persona-software-qa-workflow.yaml
+metadata:
+  id: persona-software-qa-workflow
+  name: Software QA Workflow - Quality assurance and process improvement
+  version: 1.0.0
+  type: persona
+  description: Defines how Software QA operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - software-qa
+    - quality-assurance
+    - process-improvement
+    - compliance
+  persona_info:
+    type: software-qa
+    first_name: Quincy
+    last_name: Bot
+    email: quincy.bot@company.com
+    role: Software QA
+    skills:
+      - Quality Management
+      - Process Improvement
+      - Standards Compliance
+      - Quality Metrics
+      - Risk Management
+      - Audit Management
+      - Training & Coaching
+      - Continuous Improvement
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, quality-issue, process-improvement]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, assess, audit, improve, validate]
+    description: Action to perform
+    required: false
+    default: analyze
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Quality management system access
+    required: true
+  - description: Process documentation access
+    required: true
+
+steps:
+  - id: analyze-quality-requirements
+    name: Analyze Quality Requirements
+    description: Analyze quality assurance requirements
+    action: shell-command
+    command: |
+      # Analyze quality requirements
+      echo "Analyzing quality requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Check quality standards
+      QUALITY_STANDARDS=$(check_applicable_standards ${inputs.WORK_ITEM_ID})
+      
+      # Assess compliance needs
+      COMPLIANCE_REQUIRED=$(assess_compliance_requirements)
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "quality-issue")
+          echo "RECOMMENDED_ACTION=investigate-quality-issue"
+          ;;
+        "process-improvement")
+          echo "RECOMMENDED_ACTION=improve-process"
+          ;;
+        "epic")
+          echo "RECOMMENDED_ACTION=quality-planning"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-qa-work"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - QUALITY_STANDARDS
+      - COMPLIANCE_REQUIRED
+
+  - id: quality-planning
+    name: Quality Planning
+    description: Develop quality plans
+    action: shell-command
+    command: |
+      # Quality planning
+      define_quality_objectives
+      establish_quality_criteria
+      plan_quality_activities
+      allocate_quality_resources
+      create_quality_schedule
+    outputs:
+      - QUALITY_PLAN
+
+  - id: route-to-workflow
+    name: Route to QA Workflow
+    description: Execute appropriate QA workflow
+    action: conditional
+    condition: "${steps.analyze-quality-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'investigate-quality-issue'"
+        steps:
+          - action: shell-command
+            command: |
+              # Investigate quality issue
+              perform_root_cause_analysis
+              identify_corrective_actions
+              implement_preventive_measures
+              update_quality_procedures
+      
+      - condition: "eq 'improve-process'"
+        steps:
+          - action: shell-command
+            command: |
+              # Improve process
+              analyze_current_process
+              identify_improvement_opportunities
+              design_improved_process
+              implement_changes
+      
+      - condition: "eq 'quality-planning'"
+        steps:
+          - action: execute-workflow
+            workflow: wf15-factory-settings-lookup
+            inputs:
+              SETTING_TYPE: quality_standards
+
+  - id: quality-assessment
+    name: Quality Assessment
+    description: Assess quality levels
+    action: shell-command
+    command: |
+      # Quality assessment
+      review_quality_metrics
+      assess_product_quality
+      evaluate_process_quality
+      identify_quality_gaps
+      prioritize_improvements
+    outputs:
+      - QUALITY_ASSESSMENT
+
+  - id: process-audit
+    name: Process Audit
+    description: Conduct process audits
+    action: shell-command
+    command: |
+      # Process audit
+      plan_audit_activities
+      conduct_process_audits
+      document_audit_findings
+      identify_non_conformances
+      track_corrective_actions
+    outputs:
+      - AUDIT_REPORT
+
+  - id: standards-compliance
+    name: Standards Compliance
+    description: Ensure standards compliance
+    action: shell-command
+    command: |
+      # Standards compliance
+      review_iso_compliance
+      check_industry_standards
+      verify_regulatory_compliance
+      maintain_compliance_records
+      generate_compliance_reports
+    outputs:
+      - COMPLIANCE_STATUS
+
+  - id: quality-metrics
+    name: Quality Metrics Management
+    description: Manage quality metrics
+    action: shell-command
+    command: |
+      # Quality metrics
+      collect_quality_data
+      calculate_quality_indicators
+      analyze_quality_trends
+      create_quality_dashboards
+      report_quality_status
+    outputs:
+      - QUALITY_METRICS
+
+  - id: process-improvement
+    name: Process Improvement
+    description: Implement process improvements
+    action: shell-command
+    command: |
+      # Process improvement
+      apply_lean_principles
+      implement_six_sigma
+      use_kaizen_methodology
+      optimize_workflows
+      measure_improvement_impact
+    outputs:
+      - PROCESS_IMPROVEMENTS
+
+  - id: risk-management
+    name: Risk Management
+    description: Manage quality risks
+    action: shell-command
+    command: |
+      # Risk management
+      identify_quality_risks
+      assess_risk_impact
+      develop_mitigation_plans
+      monitor_risk_indicators
+      update_risk_register
+    outputs:
+      - RISK_ASSESSMENT
+
+  - id: training-coaching
+    name: Training and Coaching
+    description: Provide quality training
+    action: shell-command
+    command: |
+      # Training and coaching
+      identify_training_needs
+      develop_training_materials
+      conduct_quality_training
+      coach_team_members
+      assess_training_effectiveness
+    outputs:
+      - TRAINING_COMPLETED
+
+  - id: create-improvement-tasks
+    name: Create Improvement Tasks
+    description: Create quality improvement tasks
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: Task
+        title: "Implement quality improvement for ${inputs.WORK_ITEM_ID}"
+        assignedTo: engineering-manager
+        parent: ${inputs.WORK_ITEM_ID}
+      - type: Task
+        title: "Update quality documentation"
+        assignedTo: technical-writer
+        parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Software QA result
+  - name: QUALITY_ASSESSMENT
+    value: "${steps.quality-assessment.QUALITY_ASSESSMENT}"
+    description: Quality assessment
+  - name: COMPLIANCE_STATUS
+    value: "${steps.standards-compliance.COMPLIANCE_STATUS}"
+    description: Compliance status
+  - name: METRICS
+    value: "${steps.quality-metrics.QUALITY_METRICS}"
+    description: Quality metrics
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Quality assessed
+  - Standards compliance verified
+  - Processes improved
+  - Metrics tracked
+  - Risks managed
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in software QA workflow: ${error.message}"

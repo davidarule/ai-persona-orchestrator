@@ -1,0 +1,255 @@
+# persona-site-reliability-engineer-workflow.yaml
+metadata:
+  id: persona-site-reliability-engineer-workflow
+  name: Site Reliability Engineer Workflow - System reliability and operations
+  version: 1.0.0
+  type: persona
+  description: Defines how Site Reliability Engineer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - site-reliability-engineer
+    - sre
+    - monitoring
+    - incident-response
+  persona_info:
+    type: site-reliability-engineer
+    first_name: Samuel
+    last_name: Bot
+    email: samuel.bot@company.com
+    role: Site Reliability Engineer
+    skills:
+      - System Reliability
+      - Monitoring & Alerting
+      - Incident Response
+      - Capacity Planning
+      - Performance Tuning
+      - Automation
+      - Chaos Engineering
+      - SLO/SLI Management
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, incident, reliability-issue]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, monitor, respond, optimize, automate]
+    description: Action to perform
+    required: false
+    default: analyze
+  - name: SEVERITY
+    type: enum
+    values: [P1, P2, P3, P4]
+    description: Incident severity
+    required: false
+    default: P3
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Monitoring systems access
+    required: true
+  - description: Production environment access
+    required: true
+
+steps:
+  - id: analyze-reliability-context
+    name: Analyze Reliability Context
+    description: Analyze system reliability needs
+    action: shell-command
+    command: |
+      # Analyze reliability context
+      echo "Analyzing reliability context for ${inputs.WORK_ITEM_ID}"
+      
+      # Check system health
+      SYSTEM_HEALTH=$(check_system_health)
+      
+      # Check SLO status
+      SLO_STATUS=$(check_slo_compliance)
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "incident")
+          echo "RECOMMENDED_ACTION=incident-response"
+          ;;
+        "reliability-issue")
+          echo "RECOMMENDED_ACTION=improve-reliability"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=reliability-review"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-sre-work"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - SYSTEM_HEALTH
+      - SLO_STATUS
+
+  - id: system-monitoring
+    name: System Monitoring
+    description: Monitor system health and performance
+    action: shell-command
+    command: |
+      # System monitoring
+      check_service_health
+      monitor_error_rates
+      track_latency_metrics
+      analyze_resource_utilization
+      check_dependency_health
+    outputs:
+      - MONITORING_STATUS
+
+  - id: route-to-workflow
+    name: Route to SRE Workflow
+    description: Execute appropriate SRE workflow
+    action: conditional
+    condition: "${steps.analyze-reliability-context.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'incident-response'"
+        steps:
+          - action: shell-command
+            command: |
+              # Incident response
+              assess_incident_severity
+              initiate_incident_response
+              coordinate_war_room
+              implement_mitigation
+          - action: conditional
+            condition: "${inputs.SEVERITY}"
+            branches:
+              - condition: "eq 'P1'"
+                steps:
+                  - action: execute-workflow
+                    workflow: wf2-hotfix
+                    inputs:
+                      INCIDENT_ID: ${inputs.WORK_ITEM_ID}
+                      SEVERITY: P1
+                      ROLLBACK_FIRST: true
+      
+      - condition: "eq 'improve-reliability'"
+        steps:
+          - action: shell-command
+            command: |
+              # Improve reliability
+              analyze_failure_patterns
+              identify_weak_points
+              implement_redundancy
+              improve_error_handling
+      
+      - condition: "eq 'reliability-review'"
+        steps:
+          - action: execute-workflow
+            workflow: wf6-pull-request-review
+            inputs:
+              PR_NUMBER: ${context.pr_number}
+              REVIEW_TYPE: reliability
+
+  - id: incident-management
+    name: Incident Management
+    description: Manage incidents
+    action: conditional
+    condition: "${inputs.WORK_ITEM_TYPE}"
+    branches:
+      - condition: "eq 'incident'"
+        steps:
+          - action: shell-command
+            command: |
+              # Incident management
+              create_incident_timeline
+              identify_root_cause
+              implement_fix
+              document_lessons_learned
+            outputs:
+              - INCIDENT_REPORT
+
+  - id: monitoring-setup
+    name: Monitoring Setup
+    description: Setup monitoring and alerting
+    action: shell-command
+    command: |
+      # Monitoring setup
+      configure_prometheus_metrics
+      setup_grafana_dashboards
+      create_alert_rules
+      configure_pagerduty
+      setup_log_aggregation
+    outputs:
+      - MONITORING_CONFIGURED
+
+  - id: capacity-planning
+    name: Capacity Planning
+    description: Plan system capacity
+    action: shell-command
+    command: |
+      # Capacity planning
+      analyze_usage_trends
+      forecast_growth
+      identify_bottlenecks
+      plan_scaling_strategy
+      update_capacity_models
+    outputs:
+      - CAPACITY_PLAN
+
+  - id: chaos-engineering
+    name: Chaos Engineering
+    description: Run chaos experiments
+    action: conditional
+    condition: "${context.chaos_testing_enabled}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Chaos engineering
+              design_chaos_experiments
+              run_failure_injection
+              monitor_system_response
+              analyze_results
+              improve_resilience
+            outputs:
+              - CHAOS_RESULTS
+
+  - id: performance-optimization
+    name: Performance Optimization
+    description: Optimize system performance
+    action: shell-command
+    command: |
+      # Performance optimization
+      profile_system_performance
+      identify_performance_bottlenecks
+      optimize_database_queries
+      tune_system_parameters
+      implement_caching
+    outputs:
+      - PERFORMANCE_IMPROVEMENTS
+
+  - id: automation
+    name: Automation
+    description: Automate operational tasks
+    action: shell-command
+    command: |
+      # Automation
+      identify_manual_tasks
+      create_automation_scripts
+      implement_auto_remediation
+      setup_deployment_automation
+      document_automation
+    outputs:
+      - AUTOMATION_IMPLEMENTED
+
+  - id: post-incident-review
+    name: Post-Incident Review
+    description: Conduct post-incident review
+    action: conditional
+    condition: "${steps.incident-management.INCIDENT_REPORT}"
+    branches:
+      - condition:

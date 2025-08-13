@@ -1,0 +1,180 @@
+metadata:
+  id: wf0-feature-development
+  name: Feature Development Workflow - End-to-end feature development process
+  version: 1.0.0
+  type: master
+  description: End-to-end feature development process
+  author: AI Personas Team
+  tags:
+    - feature
+    - development
+    - master
+    - orchestration
+    - workflow0
+  averageDuration: 2-5 days
+inputs:
+  - name: FEATURE_ID
+    type: string
+    description: Azure DevOps Feature ID
+    required: true
+    pattern: ^[A-Z0-9-]+$
+  - name: FEATURE_DESCRIPTION
+    type: string
+    description: Brief description (alphanumeric + hyphens)
+    required: true
+    pattern: ^[a-z0-9-]+$
+  - name: PRIORITY
+    type: enum
+    values:
+      - high
+      - medium
+      - low
+    description: Feature priority level
+    required: true
+    default: medium
+prerequisites:
+  - description: Authenticated with Azure DevOps
+    required: true
+  - description: Repository cloned locally
+    required: true
+  - description: Access to required development tools
+    required: true
+steps:
+  - id: initialize-feature
+    name: Initialize Feature
+    description: Create feature branch and set up development environment
+    action: execute-workflow
+    workflow: wf3-branch-creation
+    inputs:
+      WORK_TYPE: feature
+      WORK_ITEM_ID: ${inputs.FEATURE_ID}
+      DESCRIPTION: ${inputs.FEATURE_DESCRIPTION}
+    outputs:
+      - BRANCH_NAME
+      - STATUS
+  - id: development-cycle
+    name: Development Cycle
+    description: Iterative development with commits
+    action: while-loop
+    condition: ${not context.feature_complete}
+    steps:
+      - id: implement-changes
+        name: Implement Changes
+        action: log
+        message: Implementing feature changes...
+        level: info
+      - id: commit-changes
+        name: Commit Changes
+        action: execute-workflow
+        workflow: wf4-code-commit
+        inputs:
+          BRANCH_NAME: ${steps.initialize-feature.BRANCH_NAME}
+          COMMIT_TYPE: feat
+      - id: check-readiness
+        name: Check PR Readiness
+        action: execute-workflow
+        workflow: wf13-pr-readiness-check
+        outputs:
+          - READY_FOR_PR
+      - id: update-completion-status
+        name: Update Completion Status
+        action: set-variable
+        variable: context.feature_complete
+        value: ${steps.check-readiness.READY_FOR_PR}
+  - id: create-pull-request
+    name: Create Pull Request
+    description: Create PR for code review
+    action: execute-workflow
+    workflow: wf5-pull-request-creation
+    inputs:
+      BRANCH_NAME: ${steps.initialize-feature.BRANCH_NAME}
+      WORK_ITEM_ID: ${inputs.FEATURE_ID}
+      PR_TYPE: feature
+    outputs:
+      - PR_NUMBER
+      - PR_URL
+  - id: review-cycle
+    name: Review Cycle
+    description: Handle PR review feedback
+    action: while-loop
+    condition: ${not context.pr_approved}
+    steps:
+      - id: wait-for-review
+        name: Wait for Review
+        action: wait
+        duration: 30m
+      - id: check-review-status
+        name: Check Review Status
+        action: log
+        message: Checking PR review status...
+        level: info
+      - id: handle-feedback
+        name: Handle Review Feedback
+        action: conditional
+        condition: ${context.feedback_received}
+        steps:
+          - id: respond-to-feedback
+            name: Respond to Feedback
+            action: execute-workflow
+            workflow: wf7-pull-request-response
+            inputs:
+              PR_NUMBER: ${steps.create-pull-request.PR_NUMBER}
+  - id: merge-feature
+    name: Merge Feature
+    description: Merge approved PR
+    action: execute-workflow
+    workflow: wf8-merge
+    inputs:
+      PR_NUMBER: ${steps.create-pull-request.PR_NUMBER}
+      MERGE_STRATEGY: squash
+    outputs:
+      - MERGE_COMMIT
+      - STATUS
+  - id: post-merge-validation
+    name: Post-Merge Validation
+    description: Monitor merged changes
+    action: execute-workflow
+    workflow: wf9-post-merge-monitoring
+    inputs:
+      MERGE_COMMIT: ${steps.merge-feature.MERGE_COMMIT}
+      MONITOR_DURATION: 24h
+outputs:
+  - name: FEATURE_BRANCH
+    value: ${steps.initialize-feature.BRANCH_NAME}
+    description: Created branch name
+  - name: PR_NUMBER
+    value: ${steps.create-pull-request.PR_NUMBER}
+    description: Pull request number
+  - name: MERGE_COMMIT
+    value: ${steps.merge-feature.MERGE_COMMIT}
+    description: Final merge commit SHA
+  - name: STATUS
+    value: ${steps.merge-feature.STATUS}
+    description: Workflow completion status
+successCriteria:
+  - Feature branch created successfully
+  - All code changes committed
+  - Pull request approved by required reviewers
+  - Merge completed without conflicts
+  - Post-merge tests passing
+errorHandling:
+  strategy: fail-fast
+  onFailure:
+    - id: log-failure
+      action: log
+      message: Feature development workflow failed at step ${context.current_step}
+      level: error
+    - id: cleanup-on-failure
+      action: conditional
+      condition: ${steps.merge-feature.STATUS eq 'completed'}
+      steps:
+        - id: execute-rollback
+          action: execute-workflow
+          workflow: wf11-rollback
+          inputs:
+            COMMIT: ${steps.merge-feature.MERGE_COMMIT}
+  notifications:
+    - type: log
+      target: error
+    - type: azure-devops
+      target: ${inputs.FEATURE_ID}

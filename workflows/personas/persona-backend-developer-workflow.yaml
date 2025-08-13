@@ -1,0 +1,300 @@
+# persona-backend-developer-workflow.yaml
+metadata:
+  id: persona-backend-developer-workflow
+  name: Back End Developer Workflow - API and server-side development
+  version: 1.0.0
+  type: persona
+  description: Defines how Back End Developer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - backend-developer
+    - api
+    - server
+    - database
+  persona_info:
+    type: backend-developer
+    first_name: Blake
+    last_name: Bot
+    email: blake.bot@company.com
+    role: Back End Developer
+    skills:
+      - API Development
+      - Database Design
+      - Microservices
+      - Authentication/Authorization
+      - Performance Optimization
+      - Caching Strategies
+      - Message Queues
+      - Server Configuration
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, api-task]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, implement, review, plan, optimize, test]
+    description: Action to perform
+    required: false
+    default: analyze
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Database access configured
+    required: true
+  - description: Backend environment setup
+    required: true
+
+steps:
+  - id: analyze-backend-requirements
+    name: Analyze Backend Requirements
+    description: Analyze backend development needs
+    action: shell-command
+    command: |
+      # Analyze backend requirements
+      echo "Analyzing backend requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Check for API specifications
+      API_SPEC_EXISTS=$(check_api_spec ${inputs.WORK_ITEM_ID})
+      
+      # Check database requirements
+      DB_CHANGES_NEEDED=$(check_db_requirements ${inputs.WORK_ITEM_ID})
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "api-task")
+          echo "RECOMMENDED_ACTION=implement-api"
+          ;;
+        "bug")
+          echo "RECOMMENDED_ACTION=fix-backend-bug"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=implement-backend-feature"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-backend-work"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - API_SPEC_EXISTS
+      - DB_CHANGES_NEEDED
+
+  - id: setup-backend-env
+    name: Setup Backend Environment
+    description: Prepare backend development environment
+    action: shell-command
+    command: |
+      # Setup backend environment
+      setup_database_connections
+      configure_orm
+      setup_message_queues
+      configure_cache_layer
+    outputs:
+      - BACKEND_ENV_READY
+
+  - id: route-to-workflow
+    name: Route to Backend Workflow
+    description: Execute appropriate backend workflow
+    action: conditional
+    condition: "${steps.analyze-backend-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'implement-api'"
+        steps:
+          - action: execute-workflow
+            workflow: wf3-branch-creation
+            inputs:
+              WORK_TYPE: feature
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              DESCRIPTION: api-implementation
+          - action: shell-command
+            command: |
+              # Generate API boilerplate
+              generate_api_endpoints
+              setup_route_handlers
+      
+      - condition: "eq 'fix-backend-bug'"
+        steps:
+          - action: execute-workflow
+            workflow: wf1-bug-fix
+            inputs:
+              BUG_ID: ${inputs.WORK_ITEM_ID}
+              BUG_SEVERITY: P2
+      
+      - condition: "eq 'implement-backend-feature'"
+        steps:
+          - action: execute-workflow
+            workflow: wf0-feature-development
+            inputs:
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              FEATURE_NAME: backend-${inputs.WORK_ITEM_ID}
+
+  - id: implement-api-endpoints
+    name: Implement API Endpoints
+    description: Create API endpoints
+    action: shell-command
+    command: |
+      # Implement API
+      create_rest_endpoints
+      implement_business_logic
+      add_input_validation
+      implement_error_handling
+    outputs:
+      - API_ENDPOINTS_CREATED
+
+  - id: database-operations
+    name: Database Operations
+    description: Handle database changes
+    action: conditional
+    condition: "${steps.analyze-backend-requirements.DB_CHANGES_NEEDED}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Database operations
+              create_migrations
+              update_models
+              optimize_queries
+              add_indexes
+            outputs:
+              - DB_CHANGES_COMPLETE
+
+  - id: implement-auth
+    name: Implement Authentication
+    description: Setup authentication/authorization
+    action: shell-command
+    command: |
+      # Implement auth
+      setup_jwt_authentication
+      implement_rbac
+      configure_oauth2
+      add_api_key_management
+    outputs:
+      - AUTH_IMPLEMENTED
+
+  - id: backend-testing
+    name: Backend Testing
+    description: Run backend tests
+    action: shell-command
+    command: |
+      # Run tests
+      run_unit_tests
+      run_integration_tests
+      test_api_endpoints
+      verify_database_operations
+    outputs:
+      - BACKEND_TESTS_PASSED
+
+  - id: api-documentation
+    name: Generate API Documentation
+    description: Create API documentation
+    action: shell-command
+    command: |
+      # Generate documentation
+      generate_swagger_docs
+      create_postman_collection
+      update_api_changelog
+    outputs:
+      - API_DOCS_GENERATED
+
+  - id: performance-optimization
+    name: Performance Optimization
+    description: Optimize backend performance
+    action: shell-command
+    command: |
+      # Optimize performance
+      implement_caching
+      optimize_database_queries
+      setup_connection_pooling
+      configure_load_balancing
+    outputs:
+      - PERFORMANCE_OPTIMIZED
+
+  - id: commit-backend-changes
+    name: Commit Backend Changes
+    description: Commit backend implementation
+    action: execute-workflow
+    workflow: wf4-code-commit
+    inputs:
+      BRANCH_NAME: ${context.branch_name}
+      COMMIT_TYPE: feat
+      COMMIT_MESSAGE: "Implement backend for ${inputs.WORK_ITEM_ID}"
+
+  - id: create-backend-pr
+    name: Create Backend PR
+    description: Submit backend code for review
+    action: conditional
+    condition: "${steps.backend-testing.BACKEND_TESTS_PASSED}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: execute-workflow
+            workflow: wf13-pr-readiness-check
+            inputs:
+              BRANCH_NAME: ${context.branch_name}
+          - action: execute-workflow
+            workflow: wf5-pull-request-creation
+            inputs:
+              BRANCH_NAME: ${context.branch_name}
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+
+  - id: create-integration-tasks
+    name: Create Integration Tasks
+    description: Create tasks for integration
+    action: parallel
+    steps:
+      - action: azure-devops
+        operation: create-work-item
+        inputs:
+          type: Task
+          title: "Frontend integration with API ${inputs.WORK_ITEM_ID}"
+          assignedTo: frontend-developer
+          parent: ${inputs.WORK_ITEM_ID}
+      - action: azure-devops
+        operation: create-work-item
+        inputs:
+          type: Task
+          title: "API testing for ${inputs.WORK_ITEM_ID}"
+          assignedTo: qa-test-engineer
+          parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Backend development result
+  - name: API_ENDPOINTS
+    value: "${steps.implement-api-endpoints.API_ENDPOINTS_CREATED}"
+    description: Created API endpoints
+  - name: API_DOCUMENTATION
+    value: "${steps.api-documentation.API_DOCS_GENERATED}"
+    description: API documentation
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - API endpoints implemented
+  - Database operations completed
+  - Authentication configured
+  - Tests passing
+  - Documentation generated
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in backend workflow: ${error.message}"
+    - id: rollback-db
+      action: shell-command
+      command: "rollback_database_migration"
+      condition: "${steps.database-operations.DB_CHANGES_COMPLETE}"

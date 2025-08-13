@@ -1,0 +1,282 @@
+# persona-scrum-master-workflow.yaml
+metadata:
+  id: persona-scrum-master-workflow
+  name: Scrum Master Workflow - Agile facilitation and team coaching
+  version: 1.0.0
+  type: persona
+  description: Defines how Scrum Master operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - scrum-master
+    - agile
+    - facilitation
+    - coaching
+  persona_info:
+    type: scrum-master
+    first_name: Scott
+    last_name: Bot
+    email: scott.bot@company.com
+    role: Scrum Master
+    skills:
+      - Scrum Framework
+      - Agile Coaching
+      - Facilitation
+      - Impediment Removal
+      - Team Building
+      - Sprint Planning
+      - Retrospectives
+      - Metrics Tracking
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, impediment, sprint]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, facilitate, coach, remove-impediment, plan]
+    description: Action to perform
+    required: false
+    default: analyze
+  - name: CEREMONY
+    type: enum
+    values: [sprint-planning, daily-standup, sprint-review, retrospective]
+    description: Scrum ceremony
+    required: false
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Sprint board access
+    required: true
+  - description: Team availability
+    required: true
+
+steps:
+  - id: analyze-agile-context
+    name: Analyze Agile Context
+    description: Analyze agile process needs
+    action: shell-command
+    command: |
+      # Analyze agile context
+      echo "Analyzing agile context for ${inputs.WORK_ITEM_ID}"
+      
+      # Check sprint status
+      SPRINT_STATUS=$(check_current_sprint_status)
+      
+      # Check team velocity
+      TEAM_VELOCITY=$(calculate_team_velocity)
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "impediment")
+          echo "RECOMMENDED_ACTION=remove-impediment"
+          ;;
+        "sprint")
+          echo "RECOMMENDED_ACTION=facilitate-sprint"
+          ;;
+        "user-story")
+          echo "RECOMMENDED_ACTION=refine-story"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-facilitation"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - SPRINT_STATUS
+      - TEAM_VELOCITY
+
+  - id: team-health-check
+    name: Team Health Check
+    description: Assess team health and dynamics
+    action: shell-command
+    command: |
+      # Team health check
+      assess_team_morale
+      check_collaboration_levels
+      identify_team_conflicts
+      measure_engagement
+    outputs:
+      - TEAM_HEALTH_SCORE
+
+  - id: route-to-workflow
+    name: Route to Agile Workflow
+    description: Execute appropriate agile workflow
+    action: conditional
+    condition: "${steps.analyze-agile-context.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'remove-impediment'"
+        steps:
+          - action: shell-command
+            command: |
+              # Remove impediment
+              identify_root_cause
+              develop_solution
+              coordinate_with_stakeholders
+              implement_resolution
+          - action: execute-workflow
+            workflow: wf12-work-item-update
+            inputs:
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              UPDATE_TYPE: status
+              NEW_STATE: Resolved
+      
+      - condition: "eq 'facilitate-sprint'"
+        steps:
+          - action: shell-command
+            command: |
+              # Facilitate sprint ceremonies
+              prepare_sprint_planning
+              facilitate_daily_standups
+              organize_sprint_review
+              conduct_retrospective
+      
+      - condition: "eq 'refine-story'"
+        steps:
+          - action: shell-command
+            command: |
+              # Refine user story
+              facilitate_refinement_session
+              ensure_acceptance_criteria
+              estimate_story_points
+
+  - id: sprint-planning
+    name: Sprint Planning
+    description: Facilitate sprint planning
+    action: conditional
+    condition: "${inputs.CEREMONY}"
+    branches:
+      - condition: "eq 'sprint-planning'"
+        steps:
+          - action: shell-command
+            command: |
+              # Sprint planning
+              review_product_backlog
+              calculate_sprint_capacity
+              facilitate_story_selection
+              create_sprint_backlog
+            outputs:
+              - SPRINT_BACKLOG
+
+  - id: daily-standup
+    name: Daily Standup
+    description: Facilitate daily standup
+    action: conditional
+    condition: "${inputs.CEREMONY}"
+    branches:
+      - condition: "eq 'daily-standup'"
+        steps:
+          - action: shell-command
+            command: |
+              # Daily standup
+              gather_team_updates
+              identify_blockers
+              update_burndown_chart
+              note_action_items
+            outputs:
+              - STANDUP_NOTES
+
+  - id: sprint-metrics
+    name: Sprint Metrics
+    description: Track and analyze sprint metrics
+    action: shell-command
+    command: |
+      # Sprint metrics
+      calculate_burndown
+      track_velocity
+      measure_cycle_time
+      analyze_defect_rate
+      update_dashboards
+    outputs:
+      - SPRINT_METRICS
+
+  - id: impediment-tracking
+    name: Impediment Tracking
+    description: Track and resolve impediments
+    action: shell-command
+    command: |
+      # Impediment tracking
+      log_impediments
+      prioritize_impediments
+      assign_resolution_owners
+      track_resolution_progress
+    outputs:
+      - IMPEDIMENTS_STATUS
+
+  - id: retrospective
+    name: Sprint Retrospective
+    description: Conduct retrospective
+    action: conditional
+    condition: "${inputs.CEREMONY}"
+    branches:
+      - condition: "eq 'retrospective'"
+        steps:
+          - action: shell-command
+            command: |
+              # Retrospective
+              gather_feedback
+              identify_improvements
+              create_action_items
+              follow_up_previous_actions
+            outputs:
+              - RETRO_ACTION_ITEMS
+
+  - id: create-improvement-tasks
+    name: Create Improvement Tasks
+    description: Create tasks for process improvements
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: Task
+        title: "Process improvement from retro"
+        assignedTo: scrum-master
+        description: "${steps.retrospective.RETRO_ACTION_ITEMS}"
+
+  - id: update-team-board
+    name: Update Team Board
+    description: Update sprint board
+    action: execute-workflow
+    workflow: wf12-work-item-update
+    inputs:
+      WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+      UPDATE_TYPE: custom
+      FIELDS: |
+        {
+          "Sprint": "${context.current_sprint}",
+          "StoryPoints": "${context.story_points}"
+        }
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Scrum facilitation result
+  - name: SPRINT_METRICS
+    value: "${steps.sprint-metrics.SPRINT_METRICS}"
+    description: Sprint metrics
+  - name: TEAM_HEALTH
+    value: "${steps.team-health-check.TEAM_HEALTH_SCORE}"
+    description: Team health score
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Ceremonies facilitated effectively
+  - Impediments identified and addressed
+  - Team health maintained
+  - Metrics tracked and reported
+  - Continuous improvement implemented
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in scrum master workflow: ${error.message}"

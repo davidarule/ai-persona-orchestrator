@@ -1,0 +1,257 @@
+# persona-systems-architect-workflow.yaml
+metadata:
+  id: persona-systems-architect-workflow
+  name: Systems Architect Workflow - Enterprise systems architecture and design
+  version: 1.0.0
+  type: persona
+  description: Defines how Systems Architect operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - systems-architect
+    - enterprise-architecture
+    - system-design
+  persona_info:
+    type: systems-architect
+    first_name: Simon
+    last_name: Bot
+    email: simon.bot@company.com
+    role: Systems Architect
+    skills:
+      - Enterprise Architecture
+      - System Integration
+      - Infrastructure Design
+      - Capacity Planning
+      - Network Architecture
+      - Virtualization
+      - Disaster Recovery
+      - Architecture Governance
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, system-design, integration]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, design, review, validate, govern]
+    description: Action to perform
+    required: false
+    default: analyze
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Enterprise architecture repository
+    required: true
+  - description: System documentation access
+    required: true
+
+steps:
+  - id: analyze-system-requirements
+    name: Analyze System Requirements
+    description: Analyze enterprise system requirements
+    action: shell-command
+    command: |
+      # Analyze system requirements
+      echo "Analyzing system requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Check system complexity
+      SYSTEM_COMPLEXITY=$(assess_system_complexity ${inputs.WORK_ITEM_ID})
+      
+      # Check integration points
+      INTEGRATION_POINTS=$(identify_integration_points)
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "system-design")
+          echo "RECOMMENDED_ACTION=design-system-architecture"
+          ;;
+        "integration")
+          echo "RECOMMENDED_ACTION=design-integration"
+          ;;
+        "epic")
+          echo "RECOMMENDED_ACTION=enterprise-architecture-review"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-architecture-work"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - SYSTEM_COMPLEXITY
+      - INTEGRATION_POINTS
+
+  - id: enterprise-architecture
+    name: Enterprise Architecture
+    description: Design enterprise architecture
+    action: shell-command
+    command: |
+      # Enterprise architecture
+      assess_current_state
+      define_target_state
+      identify_architecture_gaps
+      create_roadmap
+      define_governance_model
+    outputs:
+      - ENTERPRISE_ARCHITECTURE
+
+  - id: route-to-workflow
+    name: Route to Architecture Workflow
+    description: Execute appropriate architecture workflow
+    action: conditional
+    condition: "${steps.analyze-system-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'design-system-architecture'"
+        steps:
+          - action: shell-command
+            command: |
+              # Design system architecture
+              create_system_blueprint
+              design_component_architecture
+              define_interfaces
+              establish_standards
+          - action: execute-workflow
+            workflow: wf15-factory-settings-lookup
+            inputs:
+              SETTING_TYPE: architecture_standards
+      
+      - condition: "eq 'design-integration'"
+        steps:
+          - action: shell-command
+            command: |
+              # Design integration
+              map_integration_points
+              design_data_flows
+              define_protocols
+              establish_sla
+      
+      - condition: "eq 'enterprise-architecture-review'"
+        steps:
+          - action: execute-workflow
+            workflow: wf6-pull-request-review
+            inputs:
+              PR_NUMBER: ${context.pr_number}
+              REVIEW_TYPE: architecture
+
+  - id: system-design
+    name: System Design
+    description: Create detailed system design
+    action: shell-command
+    command: |
+      # System design
+      design_system_components
+      define_system_boundaries
+      specify_hardware_requirements
+      design_network_topology
+      plan_scalability
+    outputs:
+      - SYSTEM_DESIGN
+
+  - id: integration-architecture
+    name: Integration Architecture
+    description: Design system integrations
+    action: shell-command
+    command: |
+      # Integration architecture
+      design_api_architecture
+      define_message_formats
+      establish_integration_patterns
+      design_middleware_layer
+      create_data_mapping
+    outputs:
+      - INTEGRATION_DESIGN
+
+  - id: infrastructure-planning
+    name: Infrastructure Planning
+    description: Plan infrastructure requirements
+    action: shell-command
+    command: |
+      # Infrastructure planning
+      calculate_capacity_requirements
+      design_server_architecture
+      plan_storage_architecture
+      design_network_infrastructure
+      plan_disaster_recovery
+    outputs:
+      - INFRASTRUCTURE_PLAN
+
+  - id: architecture-governance
+    name: Architecture Governance
+    description: Apply architecture governance
+    action: shell-command
+    command: |
+      # Architecture governance
+      review_compliance
+      enforce_standards
+      manage_technical_debt
+      update_architecture_repository
+      conduct_architecture_review
+    outputs:
+      - GOVERNANCE_REPORT
+
+  - id: create-implementation-blueprint
+    name: Create Implementation Blueprint
+    description: Create detailed implementation blueprint
+    action: shell-command
+    command: |
+      # Implementation blueprint
+      create_deployment_diagrams
+      define_implementation_phases
+      specify_dependencies
+      create_migration_plan
+      document_risks
+    outputs:
+      - IMPLEMENTATION_BLUEPRINT
+
+  - id: create-architecture-tasks
+    name: Create Architecture Tasks
+    description: Create architecture implementation tasks
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: Task
+        title: "Implement system architecture for ${inputs.WORK_ITEM_ID}"
+        assignedTo: software-architect
+        parent: ${inputs.WORK_ITEM_ID}
+      - type: Task
+        title: "Review infrastructure requirements"
+        assignedTo: cloud-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+      - type: Task
+        title: "Validate system design"
+        assignedTo: engineering-manager
+        parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Systems architecture result
+  - name: SYSTEM_DESIGN
+    value: "${steps.system-design.SYSTEM_DESIGN}"
+    description: System design documents
+  - name: INTEGRATION_DESIGN
+    value: "${steps.integration-architecture.INTEGRATION_DESIGN}"
+    description: Integration architecture
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - System architecture designed
+  - Integration points defined
+  - Infrastructure planned
+  - Governance applied
+  - Implementation blueprint created
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in systems architect workflow: ${error.message}"

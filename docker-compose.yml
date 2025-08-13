@@ -122,7 +122,7 @@ services:
       - REACT_APP_API_URL=http://localhost:8000
       - REACT_APP_WS_URL=ws://localhost:8000
     ports:
-      - "3000:3000"
+      - "3020:3000"
     depends_on:
       - backend
     networks:
@@ -142,7 +142,7 @@ services:
       - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
       - ./data/grafana:/var/lib/grafana
     ports:
-      - "3001:3000"
+      - "3021:3000"
     networks:
       - orchestrator-network
     restart: unless-stopped
@@ -157,7 +157,7 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
     ports:
-      - "9090:9090"
+      - "9091:9090"
     networks:
       - orchestrator-network
     restart: unless-stopped

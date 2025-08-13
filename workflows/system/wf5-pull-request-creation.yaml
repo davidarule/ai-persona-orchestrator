@@ -1,0 +1,328 @@
+metadata:
+  id: wf5-pull-request-creation
+  name: Pull Request Creation Workflow - Create and configure pull requests
+  version: 1.0.0
+  type: core
+  description: Create and configure pull requests
+  author: AI Personas Team
+  tags:
+    - pull-request
+    - pr
+    - core
+    - atomic
+    - wf5
+  averageDuration: 2-5 minutes
+  idempotent: false
+
+inputs:
+  - name: BRANCH_NAME
+    type: string
+    description: Source branch
+    required: true
+  - name: WORK_ITEM_ID
+    type: string
+    description: Azure DevOps work item ID
+    required: true
+  - name: PR_TYPE
+    type: enum
+    values: [feature, bugfix, hotfix]
+    description: Type of pull request
+    required: true
+  - name: PR_TITLE
+    type: string
+    description: Optional PR title (auto-generated if not provided)
+    required: false
+  - name: PR_DESCRIPTION
+    type: string
+    description: Optional PR description (template used if not provided)
+    required: false
+  - name: DRAFT
+    type: boolean
+    description: Create as draft PR
+    required: false
+    default: false
+  - name: EMERGENCY
+    type: boolean
+    description: Emergency PR (bypass policies)
+    required: false
+    default: false
+  - name: EXPEDITE
+    type: boolean
+    description: Expedite review process
+    required: false
+    default: false
+  - name: REQUIRED_REVIEWERS
+    type: array
+    description: Additional required reviewers
+    required: false
+  - name: BYPASS_POLICIES
+    type: boolean
+    description: Bypass branch policies
+    required: false
+    default: false
+
+prerequisites:
+  - description: Branch pushed to remote
+    check: git push origin ${BRANCH_NAME} --dry-run
+    required: true
+  - description: At least one commit ahead of main
+    required: true
+  - description: Work item exists and is active
+    required: true
+  - description: No existing PR for this branch
+    required: true
+
+steps:
+  - id: validate-branch-state
+    name: Validate Branch State
+    description: Ensure branch is ready for PR
+    action: shell-command
+    command: |
+      # Ensure branch is pushed
+      if ! git push origin ${inputs.BRANCH_NAME} --dry-run; then
+        echo "ERROR: Branch ${inputs.BRANCH_NAME} not pushed to remote"
+        exit 1
+      fi
+      
+      # Check commits ahead
+      COMMITS_AHEAD=$(git rev-list --count main..${inputs.BRANCH_NAME})
+      if [ "$COMMITS_AHEAD" -eq 0 ]; then
+        echo "ERROR: No commits to create PR"
+        exit 1
+      fi
+      echo "Branch has $COMMITS_AHEAD commits ahead of main"
+    outputs:
+      - COMMITS_AHEAD
+    onError: fail
+
+  - id: check-existing-pr
+    name: Check for Existing PR
+    description: Verify no PR exists for this branch
+    action: azure-devops
+    operation: check-existing-pr
+    inputs:
+      source_branch: "${inputs.BRANCH_NAME}"
+      status: active
+    outputs:
+      - EXISTING_PR_ID
+    onError: fail
+
+  - id: get-required-reviewers
+    name: Get Required Reviewers
+    description: Determine reviewers based on PR type
+    action: shell-command
+    command: |
+      # Read factory settings
+      FACTORY_SETTINGS=".azuredevops/factory-settings.json"
+      if [ ! -f "$FACTORY_SETTINGS" ]; then
+        DEFAULT_REVIEWERS="[]"
+      else
+        # Extract reviewers based on PR type
+        if [ "${inputs.PR_TYPE}" == "hotfix" ] || [ "${inputs.EMERGENCY}" == "true" ]; then
+          DEFAULT_REVIEWERS=$(jq -r '.required_reviewers.emergency[]' $FACTORY_SETTINGS 2>/dev/null || echo "[]")
+        else
+          DEFAULT_REVIEWERS=$(jq -r '.required_reviewers.default[]' $FACTORY_SETTINGS 2>/dev/null || echo "[]")
+        fi
+      fi
+      echo "DEFAULT_REVIEWERS=$DEFAULT_REVIEWERS"
+    outputs:
+      - DEFAULT_REVIEWERS
+
+  - id: generate-pr-details
+    name: Generate PR Title and Description
+    description: Auto-generate PR details if not provided
+    action: shell-command
+    command: |
+      # Generate title
+      if [ -z "${inputs.PR_TITLE}" ]; then
+        LATEST_COMMIT=$(git log -1 --pretty=%B | head -1)
+        PR_TITLE="[${inputs.WORK_ITEM_ID}] ${inputs.PR_TYPE}: $LATEST_COMMIT"
+      else
+        PR_TITLE="${inputs.PR_TITLE}"
+      fi
+      
+      # Generate description
+      if [ -z "${inputs.PR_DESCRIPTION}" ]; then
+        PR_DESCRIPTION="## Summary
+      Implements work item #${inputs.WORK_ITEM_ID}
+      
+      ## Type of Change
+      - [x] ${inputs.PR_TYPE}
+      
+      ## Changes Made
+      $(git log main..${inputs.BRANCH_NAME} --oneline | sed 's/^/- /')
+      
+      ## Testing
+      - [ ] Unit tests pass
+      - [ ] Integration tests pass
+      - [ ] Manual testing completed
+      
+      ## Checklist
+      - [ ] Code follows style guidelines
+      - [ ] Self-review completed
+      - [ ] Comments added for complex logic
+      - [ ] Documentation updated
+      - [ ] No warnings in build
+      
+      ## Related Work Items
+      Fixes #${inputs.WORK_ITEM_ID}"
+      else
+        PR_DESCRIPTION="${inputs.PR_DESCRIPTION}"
+      fi
+      
+      echo "PR_TITLE=$PR_TITLE"
+      echo "PR_DESCRIPTION<<EOF"
+      echo "$PR_DESCRIPTION"
+      echo "EOF"
+    outputs:
+      - PR_TITLE
+      - PR_DESCRIPTION
+
+  - id: create-pull-request
+    name: Create Pull Request
+    description: Create PR using Azure DevOps API
+    action: azure-devops
+    operation: create-pr
+    inputs:
+      source_branch: "${inputs.BRANCH_NAME}"
+      target_branch: main
+      title: "${steps.generate-pr-details.PR_TITLE}"
+      description: "${steps.generate-pr-details.PR_DESCRIPTION}"
+      work_items: ["${inputs.WORK_ITEM_ID}"]
+      draft: "${inputs.DRAFT}"
+    outputs:
+      - PR_ID
+      - PR_URL
+    onError: fail
+
+  - id: add-reviewers
+    name: Add Reviewers
+    description: Add required and optional reviewers
+    action: parallel
+    steps:
+      - id: add-default-reviewers
+        name: Add Default Reviewers
+        action: azure-devops
+        operation: add-reviewers
+        inputs:
+          pr_id: "${steps.create-pull-request.PR_ID}"
+          reviewers: "${steps.get-required-reviewers.DEFAULT_REVIEWERS}"
+          required: true
+      
+      - id: add-custom-reviewers
+        name: Add Custom Reviewers
+        action: conditional
+        condition: "${inputs.REQUIRED_REVIEWERS}"
+        steps:
+          - action: azure-devops
+            operation: add-reviewers
+            inputs:
+              pr_id: "${steps.create-pull-request.PR_ID}"
+              reviewers: "${inputs.REQUIRED_REVIEWERS}"
+              required: true
+      
+      - id: add-team-reviewers
+        name: Add Team Reviewers
+        action: shell-command
+        command: |
+          # Add reviewers based on files changed
+          FILES_CHANGED=$(git diff --name-only main..${inputs.BRANCH_NAME})
+          if echo "$FILES_CHANGED" | grep -q "frontend/"; then
+            echo "frontend-team"
+          fi
+          if echo "$FILES_CHANGED" | grep -q "backend/"; then
+            echo "backend-team"
+          fi
+        outputs:
+          - TEAM_REVIEWERS
+
+  - id: set-pr-policies
+    name: Set PR Policies
+    description: Configure PR settings and policies
+    action: conditional
+    condition: "${not inputs.EMERGENCY}"
+    steps:
+      - id: configure-auto-complete
+        action: azure-devops
+        operation: update-pr
+        inputs:
+          pr_id: "${steps.create-pull-request.PR_ID}"
+          auto_complete: true
+          delete_source_branch: true
+          merge_commit_message: "Merged PR #${steps.create-pull-request.PR_ID}: ${context.PR_TITLE}"
+      
+      - id: add-labels
+        action: azure-devops
+        operation: add-labels
+        inputs:
+          pr_id: "${steps.create-pull-request.PR_ID}"
+          labels:
+            - "${inputs.PR_TYPE}"
+            - "work-item-${inputs.WORK_ITEM_ID}"
+            - "${inputs.EXPEDITE ? 'expedite' : ''}"
+
+  - id: validate-pr
+    name: Validate PR Creation
+    description: Verify PR was created successfully
+    action: azure-devops
+    operation: get-pr-status
+    inputs:
+      pr_id: "${steps.create-pull-request.PR_ID}"
+    outputs:
+      - PR_STATUS
+    onError: fail
+
+  - id: send-notifications
+    name: Send Notifications
+    description: Notify teams about new PR
+    action: conditional
+    condition: "${inputs.EXPEDITE or inputs.EMERGENCY}"
+    steps:
+      - action: azure-devops
+        operation: send-notification
+        inputs:
+          type: pull_request_created
+          pr_id: "${steps.create-pull-request.PR_ID}"
+          urgency: "${inputs.EMERGENCY ? 'high' : 'normal'}"
+          channels: ["#pr-reviews", "${inputs.EMERGENCY ? '#emergency' : ''}"]
+
+outputs:
+  - name: PR_NUMBER
+    value: "${steps.create-pull-request.PR_ID}"
+    description: Pull request number
+  - name: PR_URL
+    value: "${steps.create-pull-request.PR_URL}"
+    description: Pull request URL
+  - name: PR_STATUS
+    value: "${steps.validate-pr.PR_STATUS}"
+    description: Pull request status
+  - name: SOURCE_BRANCH
+    value: "${inputs.BRANCH_NAME}"
+    description: Source branch name
+  - name: TARGET_BRANCH
+    value: "main"
+    description: Target branch name
+  - name: REVIEWERS_COUNT
+    value: "${context.total_reviewers}"
+    description: Number of reviewers added
+
+successCriteria:
+  - Pull request created successfully
+  - Required reviewers assigned
+  - Work item linked
+  - Policies configured (unless emergency)
+
+errorHandling:
+  strategy: fail-fast
+  onFailure:
+    - id: cleanup-failed-pr
+      action: azure-devops
+      operation: abandon-pr
+      inputs:
+        pr_id: "${steps.create-pull-request.PR_ID}"
+        reason: "Creation failed"
+  notifications:
+    - type: log
+      target: error
+    - type: azure-devops
+      target: "${inputs.WORK_ITEM_ID}"

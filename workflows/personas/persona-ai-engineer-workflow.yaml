@@ -1,0 +1,297 @@
+# persona-ai-engineer-workflow.yaml
+metadata:
+  id: persona-ai-engineer-workflow
+  name: AI Engineer Workflow - Machine learning and AI system development
+  version: 1.0.0
+  type: persona
+  description: Defines how AI Engineer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - ai-engineer
+    - machine-learning
+    - mlops
+    - deep-learning
+  persona_info:
+    type: ai-engineer
+    first_name: Alex
+    last_name: Bot
+    email: alex.bot@company.com
+    role: AI Engineer
+    skills:
+      - Machine Learning
+      - Deep Learning
+      - MLOps
+      - Model Training
+      - Model Deployment
+      - Data Engineering
+      - TensorFlow/PyTorch
+      - NLP/Computer Vision
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, ml-model, data-pipeline]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, train, deploy, optimize, evaluate]
+    description: Action to perform
+    required: false
+    default: analyze
+  - name: MODEL_TYPE
+    type: enum
+    values: [classification, regression, nlp, computer-vision, reinforcement-learning]
+    description: Type of ML model
+    required: false
+    default: classification
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Data access configured
+    required: true
+  - description: Compute resources available
+    required: true
+  - description: ML platform access
+    required: true
+
+steps:
+  - id: analyze-ml-requirements
+    name: Analyze ML Requirements
+    description: Analyze machine learning requirements
+    action: shell-command
+    command: |
+      # Analyze ML requirements
+      echo "Analyzing ML requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Check data availability
+      DATA_AVAILABLE=$(check_data_availability)
+      
+      # Determine model complexity
+      MODEL_COMPLEXITY=$(assess_model_complexity ${inputs.WORK_ITEM_ID})
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "ml-model")
+          echo "RECOMMENDED_ACTION=develop-ml-model"
+          ;;
+        "data-pipeline")
+          echo "RECOMMENDED_ACTION=build-data-pipeline"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=implement-ml-feature"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-ml-work"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - DATA_AVAILABLE
+      - MODEL_COMPLEXITY
+
+  - id: data-preparation
+    name: Data Preparation
+    description: Prepare data for ML
+    action: shell-command
+    command: |
+      # Data preparation
+      load_raw_data
+      perform_exploratory_data_analysis
+      clean_data
+      engineer_features
+      split_train_test_validation
+    outputs:
+      - PREPARED_DATA
+      - DATA_STATISTICS
+
+  - id: route-to-workflow
+    name: Route to ML Workflow
+    description: Execute appropriate ML workflow
+    action: conditional
+    condition: "${steps.analyze-ml-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'develop-ml-model'"
+        steps:
+          - action: execute-workflow
+            workflow: wf3-branch-creation
+            inputs:
+              WORK_TYPE: feature
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              DESCRIPTION: ml-model
+          - action: shell-command
+            command: |
+              # Develop ML model
+              select_algorithms
+              define_model_architecture
+              setup_training_pipeline
+      
+      - condition: "eq 'build-data-pipeline'"
+        steps:
+          - action: shell-command
+            command: |
+              # Build data pipeline
+              setup_data_ingestion
+              implement_transformation
+              configure_feature_store
+      
+      - condition: "eq 'implement-ml-feature'"
+        steps:
+          - action: execute-workflow
+            workflow: wf0-feature-development
+            inputs:
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              FEATURE_NAME: ml-${inputs.WORK_ITEM_ID}
+
+  - id: model-development
+    name: Model Development
+    description: Develop and train ML model
+    action: shell-command
+    command: |
+      # Model development
+      define_model_architecture
+      setup_hyperparameters
+      implement_custom_layers
+      configure_loss_functions
+      setup_metrics
+    outputs:
+      - MODEL_ARCHITECTURE
+
+  - id: model-training
+    name: Model Training
+    description: Train the ML model
+    action: shell-command
+    command: |
+      # Model training
+      initialize_training
+      run_training_loop
+      monitor_training_metrics
+      implement_early_stopping
+      save_checkpoints
+    outputs:
+      - TRAINED_MODEL
+      - TRAINING_METRICS
+
+  - id: model-evaluation
+    name: Model Evaluation
+    description: Evaluate model performance
+    action: shell-command
+    command: |
+      # Model evaluation
+      evaluate_on_test_set
+      calculate_metrics
+      generate_confusion_matrix
+      perform_error_analysis
+      check_for_bias
+    outputs:
+      - EVALUATION_RESULTS
+
+  - id: hyperparameter-tuning
+    name: Hyperparameter Tuning
+    description: Optimize model hyperparameters
+    action: conditional
+    condition: "${steps.model-evaluation.EVALUATION_RESULTS}"
+    branches:
+      - condition: "needs_improvement"
+        steps:
+          - action: shell-command
+            command: |
+              # Hyperparameter tuning
+              setup_hyperparameter_search
+              run_grid_search
+              run_bayesian_optimization
+              select_best_parameters
+            outputs:
+              - OPTIMIZED_PARAMETERS
+
+  - id: model-deployment
+    name: Model Deployment
+    description: Deploy model to production
+    action: shell-command
+    command: |
+      # Model deployment
+      convert_model_format
+      optimize_for_inference
+      containerize_model
+      setup_model_serving
+      configure_monitoring
+    outputs:
+      - DEPLOYMENT_URL
+      - MODEL_VERSION
+
+  - id: mlops-setup
+    name: MLOps Setup
+    description: Setup ML operations
+    action: shell-command
+    command: |
+      # MLOps setup
+      setup_experiment_tracking
+      configure_model_registry
+      implement_ci_cd_pipeline
+      setup_model_monitoring
+      configure_drift_detection
+    outputs:
+      - MLOPS_CONFIGURED
+
+  - id: create-documentation
+    name: Create ML Documentation
+    description: Document ML system
+    action: azure-devops
+    operation: create-work-item
+    inputs:
+      type: Task
+      title: "Document ML model ${inputs.WORK_ITEM_ID}"
+      assignedTo: technical-writer
+      parent: ${inputs.WORK_ITEM_ID}
+      description: "Model architecture, training details, and API documentation"
+
+  - id: create-monitoring-tasks
+    name: Create Monitoring Tasks
+    description: Setup monitoring tasks
+    action: azure-devops
+    operation: create-work-item
+    inputs:
+      type: Task
+      title: "Monitor ML model ${inputs.WORK_ITEM_ID}"
+      assignedTo: site-reliability-engineer
+      parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: AI engineering result
+  - name: MODEL
+    value: "${steps.model-training.TRAINED_MODEL}"
+    description: Trained model
+  - name: DEPLOYMENT_URL
+    value: "${steps.model-deployment.DEPLOYMENT_URL}"
+    description: Model deployment endpoint
+  - name: METRICS
+    value: "${steps.model-evaluation.EVALUATION_RESULTS}"
+    description: Model performance metrics
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Data prepared successfully
+  - Model trained and evaluated
+  - Performance meets requirements
+  - Model deployed successfully
+  - MLOps pipeline configured
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in AI engineer workflow: ${error.message}"
+    - id: cleanup-resources
+      action: shell-command
+      command: "cleanup_compute_resources"

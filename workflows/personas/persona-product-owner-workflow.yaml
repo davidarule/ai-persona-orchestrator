@@ -1,0 +1,243 @@
+# persona-product-owner-workflow.yaml
+metadata:
+  id: persona-product-owner-workflow
+  name: Product Owner Workflow - Product management and backlog prioritization
+  version: 1.0.0
+  type: persona
+  description: Defines how Product Owner operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - product-owner
+    - product-management
+    - backlog
+    - requirements
+  persona_info:
+    type: product-owner
+    first_name: Patricia
+    last_name: Bot
+    email: patricia.bot@company.com
+    role: Product Owner
+    skills:
+      - Product Strategy
+      - Backlog Management
+      - User Story Creation
+      - Stakeholder Management
+      - Sprint Planning
+      - Requirements Analysis
+      - Market Research
+      - ROI Analysis
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, requirement]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, prioritize, review, plan, approve, define]
+    description: Action to perform
+    required: false
+    default: analyze
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Product backlog access
+    required: true
+  - description: Stakeholder input available
+    required: false
+
+steps:
+  - id: analyze-product-requirements
+    name: Analyze Product Requirements
+    description: Analyze business and product requirements
+    action: shell-command
+    command: |
+      # Analyze product requirements
+      echo "Analyzing product requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Check business value
+      BUSINESS_VALUE=$(calculate_business_value ${inputs.WORK_ITEM_ID})
+      
+      # Check priority
+      PRIORITY=$(determine_priority ${inputs.WORK_ITEM_ID})
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "epic")
+          echo "RECOMMENDED_ACTION=break-down-epic"
+          ;;
+        "user-story")
+          echo "RECOMMENDED_ACTION=refine-user-story"
+          ;;
+        "requirement")
+          echo "RECOMMENDED_ACTION=create-user-stories"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-analysis"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - BUSINESS_VALUE
+      - PRIORITY
+
+  - id: stakeholder-analysis
+    name: Stakeholder Analysis
+    description: Analyze stakeholder needs
+    action: shell-command
+    command: |
+      # Stakeholder analysis
+      gather_stakeholder_feedback
+      analyze_user_needs
+      check_market_requirements
+      assess_competitive_landscape
+    outputs:
+      - STAKEHOLDER_FEEDBACK
+
+  - id: route-to-workflow
+    name: Route to Product Workflow
+    description: Execute appropriate product workflow
+    action: conditional
+    condition: "${steps.analyze-product-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'break-down-epic'"
+        steps:
+          - action: shell-command
+            command: |
+              # Break down epic
+              identify_features
+              create_user_stories
+              define_acceptance_criteria
+          - action: azure-devops
+            operation: create-work-items
+            inputs:
+              - type: User Story
+                title: "User story from epic ${inputs.WORK_ITEM_ID}"
+                parent: ${inputs.WORK_ITEM_ID}
+      
+      - condition: "eq 'refine-user-story'"
+        steps:
+          - action: shell-command
+            command: |
+              # Refine user story
+              clarify_requirements
+              add_acceptance_criteria
+              estimate_story_points
+      
+      - condition: "eq 'create-user-stories'"
+        steps:
+          - action: shell-command
+            command: |
+              # Create user stories from requirements
+              analyze_requirement
+              decompose_into_stories
+              prioritize_stories
+
+  - id: define-acceptance-criteria
+    name: Define Acceptance Criteria
+    description: Create clear acceptance criteria
+    action: shell-command
+    command: |
+      # Define acceptance criteria
+      create_given_when_then_scenarios
+      define_test_cases
+      specify_done_criteria
+    outputs:
+      - ACCEPTANCE_CRITERIA
+
+  - id: prioritize-backlog
+    name: Prioritize Backlog
+    description: Prioritize product backlog items
+    action: shell-command
+    command: |
+      # Prioritize backlog
+      apply_moscow_prioritization
+      calculate_wsjf_score
+      update_backlog_order
+    outputs:
+      - BACKLOG_PRIORITIZED
+
+  - id: sprint-planning
+    name: Sprint Planning
+    description: Plan sprint work
+    action: shell-command
+    command: |
+      # Sprint planning
+      select_sprint_items
+      verify_team_capacity
+      confirm_sprint_goal
+    outputs:
+      - SPRINT_PLANNED
+
+  - id: create-development-tasks
+    name: Create Development Tasks
+    description: Create tasks for development team
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: Task
+        title: "Implement ${inputs.WORK_ITEM_ID}"
+        assignedTo: developer-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+      - type: Task
+        title: "Design review for ${inputs.WORK_ITEM_ID}"
+        assignedTo: software-architect
+        parent: ${inputs.WORK_ITEM_ID}
+
+  - id: update-documentation
+    name: Update Documentation
+    description: Update product documentation
+    action: azure-devops
+    operation: create-work-item
+    inputs:
+      type: Task
+      title: "Document requirements for ${inputs.WORK_ITEM_ID}"
+      assignedTo: business-analyst
+      parent: ${inputs.WORK_ITEM_ID}
+
+  - id: stakeholder-communication
+    name: Stakeholder Communication
+    description: Communicate with stakeholders
+    action: shell-command
+    command: |
+      # Stakeholder communication
+      prepare_status_update
+      send_stakeholder_notification
+      schedule_review_meeting
+    outputs:
+      - STAKEHOLDERS_NOTIFIED
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Product management result
+  - name: USER_STORIES
+    value: "${context.created_stories}"
+    description: Created user stories
+  - name: ACCEPTANCE_CRITERIA
+    value: "${steps.define-acceptance-criteria.ACCEPTANCE_CRITERIA}"
+    description: Acceptance criteria
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Requirements analyzed
+  - User stories created
+  - Acceptance criteria defined
+  - Backlog prioritized
+  - Development tasks created
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in product owner workflow: ${error.message}"

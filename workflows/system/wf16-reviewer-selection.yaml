@@ -1,0 +1,359 @@
+metadata:
+  id: wf16-reviewer-selection
+  name: Reviewer Selection Workflow - Select appropriate reviewers for PR
+  version: 1.0.0
+  type: decision
+  description: Intelligently select reviewers based on code changes, expertise, and availability
+  author: AI Personas Team
+  tags:
+    - reviewers
+    - decision
+    - pull-request
+    - logic
+    - wf16
+  averageDuration: 1-2 minutes
+
+inputs:
+  - name: PR_NUMBER
+    type: string
+    description: Pull request number
+    required: true
+  - name: BRANCH_NAME
+    type: string
+    description: Source branch name
+    required: true
+  - name: TARGET_BRANCH
+    type: string
+    description: Target branch for merge
+    required: true
+    default: main
+  - name: FILES_CHANGED
+    type: array
+    description: List of changed files
+    required: false
+  - name: PR_TYPE
+    type: enum
+    values: [feature, bugfix, hotfix, refactor, docs]
+    description: Type of pull request
+    required: false
+  - name: URGENCY
+    type: enum
+    values: [low, normal, high, critical]
+    description: Urgency level
+    required: false
+    default: normal
+
+prerequisites:
+  - description: Access to git repository
+    required: true
+  - description: Factory settings configured
+    required: true
+  - description: Team member data available
+    required: false
+
+steps:
+  - id: get-factory-settings
+    name: Get Factory Settings
+    description: Retrieve reviewer configurations
+    action: execute-workflow
+    workflow: wf15-factory-settings-lookup
+    inputs:
+      SETTING_TYPE: reviewers
+      FORMAT: json
+    outputs:
+      - REVIEWER_CONFIG
+
+  - id: analyze-changed-files
+    name: Analyze Changed Files
+    description: Determine code areas affected
+    action: shell-command
+    command: |
+      # Get changed files if not provided
+      if [ -z "${inputs.FILES_CHANGED}" ]; then
+        FILES_CHANGED=$(git diff --name-only ${inputs.TARGET_BRANCH}...${inputs.BRANCH_NAME})
+      else
+        FILES_CHANGED="${inputs.FILES_CHANGED}"
+      fi
+      
+      # Analyze file patterns to determine expertise needed
+      FRONTEND_CHANGES=0
+      BACKEND_CHANGES=0
+      DATABASE_CHANGES=0
+      SECURITY_CHANGES=0
+      INFRA_CHANGES=0
+      DOCS_CHANGES=0
+      TEST_CHANGES=0
+      
+      for file in $FILES_CHANGED; do
+        # Frontend patterns
+        if [[ $file =~ \.(tsx?|jsx?|css|scss|html)$ ]] || [[ $file =~ ^(src/components|src/ui|public)/ ]]; then
+          ((FRONTEND_CHANGES++))
+        fi
+        
+        # Backend patterns
+        if [[ $file =~ \.(py|java|cs|go|rb)$ ]] || [[ $file =~ ^(src/api|src/services|backend)/ ]]; then
+          ((BACKEND_CHANGES++))
+        fi
+        
+        # Database patterns
+        if [[ $file =~ \.(sql|migration)$ ]] || [[ $file =~ ^(db|database|migrations)/ ]]; then
+          ((DATABASE_CHANGES++))
+        fi
+        
+        # Security patterns
+        if [[ $file =~ (auth|security|crypto|token|password) ]] || [[ $file =~ \.(pem|key|cert)$ ]]; then
+          ((SECURITY_CHANGES++))
+        fi
+        
+        # Infrastructure patterns
+        if [[ $file =~ \.(yml|yaml|tf|dockerfile)$ ]] || [[ $file =~ ^(.github|.azure|deploy|k8s)/ ]]; then
+          ((INFRA_CHANGES++))
+        fi
+        
+        # Documentation
+        if [[ $file =~ \.(md|rst|txt)$ ]] || [[ $file =~ ^(docs|README) ]]; then
+          ((DOCS_CHANGES++))
+        fi
+        
+        # Tests
+        if [[ $file =~ (test|spec)\. ]] || [[ $file =~ ^(tests?|__tests__|spec)/ ]]; then
+          ((TEST_CHANGES++))
+        fi
+      done
+      
+      # Determine primary expertise needed
+      EXPERTISE_NEEDED=""
+      MAX_CHANGES=0
+      
+      if [ $FRONTEND_CHANGES -gt $MAX_CHANGES ]; then
+        EXPERTISE_NEEDED="frontend"
+        MAX_CHANGES=$FRONTEND_CHANGES
+      fi
+      if [ $BACKEND_CHANGES -gt $MAX_CHANGES ]; then
+        EXPERTISE_NEEDED="backend"
+        MAX_CHANGES=$BACKEND_CHANGES
+      fi
+      if [ $DATABASE_CHANGES -gt $MAX_CHANGES ]; then
+        EXPERTISE_NEEDED="database"
+        MAX_CHANGES=$DATABASE_CHANGES
+      fi
+      if [ $SECURITY_CHANGES -gt 0 ]; then
+        EXPERTISE_NEEDED="${EXPERTISE_NEEDED},security"
+      fi
+      if [ $INFRA_CHANGES -gt $MAX_CHANGES ]; then
+        EXPERTISE_NEEDED="infrastructure"
+        MAX_CHANGES=$INFRA_CHANGES
+      fi
+      
+      echo "EXPERTISE_NEEDED=$EXPERTISE_NEEDED"
+      echo "FRONTEND_CHANGES=$FRONTEND_CHANGES"
+      echo "BACKEND_CHANGES=$BACKEND_CHANGES"
+      echo "DATABASE_CHANGES=$DATABASE_CHANGES"
+      echo "SECURITY_CHANGES=$SECURITY_CHANGES"
+      echo "INFRA_CHANGES=$INFRA_CHANGES"
+      echo "DOCS_CHANGES=$DOCS_CHANGES"
+      echo "TEST_CHANGES=$TEST_CHANGES"
+      echo "TOTAL_FILES=$(echo "$FILES_CHANGED" | wc -l)"
+    outputs:
+      - EXPERTISE_NEEDED
+      - FRONTEND_CHANGES
+      - BACKEND_CHANGES
+      - DATABASE_CHANGES
+      - SECURITY_CHANGES
+      - INFRA_CHANGES
+      - DOCS_CHANGES
+      - TEST_CHANGES
+      - TOTAL_FILES
+
+  - id: calculate-review-complexity
+    name: Calculate Review Complexity
+    description: Determine review requirements based on changes
+    action: shell-command
+    command: |
+      # Calculate complexity score
+      COMPLEXITY_SCORE=0
+      
+      # File count factor
+      TOTAL_FILES=${steps.analyze-changed-files.TOTAL_FILES}
+      if [ $TOTAL_FILES -gt 50 ]; then
+        ((COMPLEXITY_SCORE+=3))
+      elif [ $TOTAL_FILES -gt 20 ]; then
+        ((COMPLEXITY_SCORE+=2))
+      elif [ $TOTAL_FILES -gt 5 ]; then
+        ((COMPLEXITY_SCORE+=1))
+      fi
+      
+      # Security changes always increase complexity
+      if [ ${steps.analyze-changed-files.SECURITY_CHANGES} -gt 0 ]; then
+        ((COMPLEXITY_SCORE+=2))
+      fi
+      
+      # Database changes increase complexity
+      if [ ${steps.analyze-changed-files.DATABASE_CHANGES} -gt 0 ]; then
+        ((COMPLEXITY_SCORE+=2))
+      fi
+      
+      # Infrastructure changes
+      if [ ${steps.analyze-changed-files.INFRA_CHANGES} -gt 0 ]; then
+        ((COMPLEXITY_SCORE+=1))
+      fi
+      
+      # Urgency factor
+      case "${inputs.URGENCY}" in
+        critical)
+          MIN_REVIEWERS=1
+          MAX_REVIEWERS=2
+          ;;
+        high)
+          MIN_REVIEWERS=1
+          MAX_REVIEWERS=3
+          ;;
+        normal)
+          MIN_REVIEWERS=2
+          MAX_REVIEWERS=3
+          ;;
+        low)
+          MIN_REVIEWERS=2
+          MAX_REVIEWERS=4
+          ;;
+      esac
+      
+      # Adjust based on complexity
+      if [ $COMPLEXITY_SCORE -ge 5 ]; then
+        REVIEW_LEVEL="high"
+        ((MIN_REVIEWERS++))
+      elif [ $COMPLEXITY_SCORE -ge 3 ]; then
+        REVIEW_LEVEL="medium"
+      else
+        REVIEW_LEVEL="low"
+      fi
+      
+      # PR type adjustments
+      if [ "${inputs.PR_TYPE}" = "hotfix" ]; then
+        MIN_REVIEWERS=1
+        REVIEW_LEVEL="expedited"
+      fi
+      
+      echo "COMPLEXITY_SCORE=$COMPLEXITY_SCORE"
+      echo "REVIEW_LEVEL=$REVIEW_LEVEL"
+      echo "MIN_REVIEWERS=$MIN_REVIEWERS"
+      echo "MAX_REVIEWERS=$MAX_REVIEWERS"
+    outputs:
+      - COMPLEXITY_SCORE
+      - REVIEW_LEVEL
+      - MIN_REVIEWERS
+      - MAX_REVIEWERS
+
+  - id: select-reviewers
+    name: Select Reviewers
+    description: Choose appropriate reviewers based on analysis
+    action: shell-command
+    command: |
+      # Get reviewer pools from config
+      REVIEWER_CONFIG='${steps.get-factory-settings.REVIEWER_CONFIG}'
+      
+      # Define reviewer expertise mapping (would come from settings in real implementation)
+      declare -A REVIEWER_EXPERTISE
+      REVIEWER_EXPERTISE["user1@company.com"]="frontend,ui"
+      REVIEWER_EXPERTISE["user2@company.com"]="backend,api"
+      REVIEWER_EXPERTISE["user3@company.com"]="database,backend"
+      REVIEWER_EXPERTISE["user4@company.com"]="security,infrastructure"
+      REVIEWER_EXPERTISE["user5@company.com"]="frontend,testing"
+      REVIEWER_EXPERTISE["lead@company.com"]="all"
+      
+      # Start with required reviewers based on config
+      SELECTED_REVIEWERS=""
+      
+      # Add expertise-based reviewers
+      EXPERTISE="${steps.analyze-changed-files.EXPERTISE_NEEDED}"
+      for reviewer in "${!REVIEWER_EXPERTISE[@]}"; do
+        reviewer_skills="${REVIEWER_EXPERTISE[$reviewer]}"
+        if [[ $reviewer_skills == *"all"* ]] || [[ $EXPERTISE == *"$reviewer_skills"* ]]; then
+          SELECTED_REVIEWERS="$SELECTED_REVIEWERS,$reviewer"
+        fi
+      done
+      
+      # Add required reviewers for specific conditions
+      if [ "${steps.analyze-changed-files.SECURITY_CHANGES}" -gt 0 ]; then
+        SELECTED_REVIEWERS="$SELECTED_REVIEWERS,user4@company.com"
+      fi
+      
+      if [ "${inputs.PR_TYPE}" = "hotfix" ] || [ "${inputs.URGENCY}" = "critical" ]; then
+        SELECTED_REVIEWERS="$SELECTED_REVIEWERS,lead@company.com"
+      fi
+      
+      # Remove duplicates and format
+      SELECTED_REVIEWERS=$(echo "$SELECTED_REVIEWERS" | tr ',' '\n' | sort -u | grep -v '^$' | head -${steps.calculate-review-complexity.MAX_REVIEWERS})
+      
+      # Ensure minimum reviewers
+      REVIEWER_COUNT=$(echo "$SELECTED_REVIEWERS" | wc -l)
+      if [ $REVIEWER_COUNT -lt ${steps.calculate-review-complexity.MIN_REVIEWERS} ]; then
+        # Add default reviewers
+        DEFAULT_REVIEWERS=$(echo "$REVIEWER_CONFIG" | jq -r '.required_reviewers.default[]' 2>/dev/null || echo "lead@company.com")
+        SELECTED_REVIEWERS="$SELECTED_REVIEWERS\n$DEFAULT_REVIEWERS"
+      fi
+      
+      # Format as JSON array
+      REVIEWER_LIST=$(echo "$SELECTED_REVIEWERS" | sort -u | grep -v '^$' | jq -R . | jq -s .)
+      
+      echo "REVIEWER_LIST<<EOF"
+      echo "$REVIEWER_LIST"
+      echo "EOF"
+    outputs:
+      - REVIEWER_LIST
+
+  - id: generate-review-guidelines
+    name: Generate Review Guidelines
+    description: Create specific review focus areas
+    action: set-variable
+    variable: REVIEW_GUIDELINES
+    value: |
+      ## Review Guidelines for PR #${inputs.PR_NUMBER}
+      
+      ### Review Level: ${steps.calculate-review-complexity.REVIEW_LEVEL}
+      **Minimum Reviewers Required**: ${steps.calculate-review-complexity.MIN_REVIEWERS}
+      
+      ### Focus Areas:
+      ${steps.analyze-changed-files.SECURITY_CHANGES gt 0 ? '- **Security**: Carefully review authentication, authorization, and data handling\n' : ''}${steps.analyze-changed-files.DATABASE_CHANGES gt 0 ? '- **Database**: Check migrations, query performance, and data integrity\n' : ''}${steps.analyze-changed-files.INFRA_CHANGES gt 0 ? '- **Infrastructure**: Validate deployment configs and CI/CD changes\n' : ''}${steps.analyze-changed-files.FRONTEND_CHANGES gt 0 ? '- **Frontend**: Review UI/UX consistency and accessibility\n' : ''}${steps.analyze-changed-files.BACKEND_CHANGES gt 0 ? '- **Backend**: Check API contracts, error handling, and performance\n' : ''}
+      
+      ### Change Summary:
+      - Total files changed: ${steps.analyze-changed-files.TOTAL_FILES}
+      - Primary expertise needed: ${steps.analyze-changed-files.EXPERTISE_NEEDED}
+      - Complexity score: ${steps.calculate-review-complexity.COMPLEXITY_SCORE}/10
+      
+      ### Special Considerations:
+      ${inputs.PR_TYPE eq 'hotfix' ? '- This is a hotfix - expedited review process applies\n' : ''}${inputs.URGENCY eq 'critical' ? '- Critical urgency - please prioritize this review\n' : ''}${steps.analyze-changed-files.TEST_CHANGES eq 0 and steps.analyze-changed-files.TOTAL_FILES gt 5 ? '- No test changes detected - ensure adequate test coverage\n' : ''}
+
+outputs:
+  - name: SELECTED_REVIEWERS
+    value: "${steps.select-reviewers.REVIEWER_LIST}"
+    description: List of selected reviewers
+  - name: MIN_REVIEWERS
+    value: "${steps.calculate-review-complexity.MIN_REVIEWERS}"
+    description: Minimum number of reviewers required
+  - name: REVIEW_LEVEL
+    value: "${steps.calculate-review-complexity.REVIEW_LEVEL}"
+    description: Recommended review level
+  - name: REVIEW_GUIDELINES
+    value: "${context.REVIEW_GUIDELINES}"
+    description: Specific review guidelines
+  - name: EXPERTISE_NEEDED
+    value: "${steps.analyze-changed-files.EXPERTISE_NEEDED}"
+    description: Primary expertise areas needed
+
+successCriteria:
+  - Reviewers selected based on expertise
+  - Minimum reviewer count determined
+  - Review guidelines generated
+  - Complexity assessed
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: use-defaults
+      action: set-variable
+      variable: SELECTED_REVIEWERS
+      value: '["lead@company.com", "user1@company.com"]'
+  notifications:
+    - type: log
+      target: warn

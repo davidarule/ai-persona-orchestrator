@@ -1,0 +1,288 @@
+# persona-ui-ux-designer-workflow.yaml
+metadata:
+  id: persona-ui-ux-designer-workflow
+  name: UI/UX Designer Workflow - User interface and experience design
+  version: 1.0.0
+  type: persona
+  description: Defines how UI/UX Designer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - ui-ux-designer
+    - design
+    - user-experience
+    - prototyping
+  persona_info:
+    type: ui-ux-designer
+    first_name: Ursula
+    last_name: Bot
+    email: ursula.bot@company.com
+    role: UI/UX Designer
+    skills:
+      - User Research
+      - Wireframing
+      - Prototyping
+      - Visual Design
+      - Interaction Design
+      - Design Systems
+      - Usability Testing
+      - Accessibility Design
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, design-task]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, design, prototype, test, review]
+    description: Action to perform
+    required: false
+    default: analyze
+  - name: DESIGN_TYPE
+    type: enum
+    values: [web, mobile, desktop, cross-platform]
+    description: Type of design
+    required: false
+    default: web
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Design tools access
+    required: true
+  - description: User research data available
+    required: false
+
+steps:
+  - id: analyze-design-requirements
+    name: Analyze Design Requirements
+    description: Analyze UI/UX design requirements
+    action: shell-command
+    command: |
+      # Analyze design requirements
+      echo "Analyzing design requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Check user research availability
+      USER_RESEARCH=$(check_user_research_data ${inputs.WORK_ITEM_ID})
+      
+      # Determine design complexity
+      DESIGN_COMPLEXITY=$(assess_design_complexity)
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "design-task")
+          echo "RECOMMENDED_ACTION=create-design"
+          ;;
+        "user-story")
+          echo "RECOMMENDED_ACTION=design-user-flow"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=design-feature-ui"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-design-work"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - USER_RESEARCH
+      - DESIGN_COMPLEXITY
+
+  - id: user-research
+    name: User Research
+    description: Conduct user research
+    action: shell-command
+    command: |
+      # User research
+      conduct_user_interviews
+      create_user_personas
+      map_user_journeys
+      identify_pain_points
+      define_user_needs
+    outputs:
+      - USER_RESEARCH_FINDINGS
+
+  - id: route-to-workflow
+    name: Route to Design Workflow
+    description: Execute appropriate design workflow
+    action: conditional
+    condition: "${steps.analyze-design-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'create-design'"
+        steps:
+          - action: shell-command
+            command: |
+              # Create design
+              create_wireframes
+              develop_mockups
+              design_visual_elements
+              create_design_specifications
+      
+      - condition: "eq 'design-user-flow'"
+        steps:
+          - action: shell-command
+            command: |
+              # Design user flow
+              map_user_flows
+              create_information_architecture
+              design_navigation
+              optimize_user_journey
+      
+      - condition: "eq 'design-feature-ui'"
+        steps:
+          - action: execute-workflow
+            workflow: wf0-feature-development
+            inputs:
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              FEATURE_NAME: ui-design-${inputs.WORK_ITEM_ID}
+
+  - id: wireframing
+    name: Wireframing
+    description: Create wireframes
+    action: shell-command
+    command: |
+      # Wireframing
+      create_low_fidelity_wireframes
+      design_layout_structure
+      establish_content_hierarchy
+      define_interaction_patterns
+      create_responsive_layouts
+    outputs:
+      - WIREFRAMES
+
+  - id: visual-design
+    name: Visual Design
+    description: Create visual designs
+    action: shell-command
+    command: |
+      # Visual design
+      apply_brand_guidelines
+      select_color_palette
+      choose_typography
+      design_icons_graphics
+      create_visual_mockups
+    outputs:
+      - VISUAL_DESIGNS
+
+  - id: prototyping
+    name: Prototyping
+    description: Create interactive prototypes
+    action: shell-command
+    command: |
+      # Prototyping
+      create_interactive_prototype
+      add_animations_transitions
+      simulate_user_interactions
+      create_clickable_mockups
+      test_prototype_flow
+    outputs:
+      - PROTOTYPE
+
+  - id: design-system
+    name: Design System
+    description: Maintain design system
+    action: shell-command
+    command: |
+      # Design system
+      create_component_library
+      document_design_patterns
+      establish_design_tokens
+      maintain_style_guide
+      ensure_consistency
+    outputs:
+      - DESIGN_SYSTEM_UPDATES
+
+  - id: usability-testing
+    name: Usability Testing
+    description: Conduct usability testing
+    action: shell-command
+    command: |
+      # Usability testing
+      plan_usability_tests
+      recruit_test_participants
+      conduct_testing_sessions
+      analyze_test_results
+      create_improvement_recommendations
+    outputs:
+      - USABILITY_TEST_RESULTS
+
+  - id: accessibility-design
+    name: Accessibility Design
+    Description: Ensure accessibility
+    action: shell-command
+    command: |
+      # Accessibility design
+      check_wcag_compliance
+      design_for_screen_readers
+      ensure_keyboard_navigation
+      optimize_color_contrast
+      add_accessibility_features
+    outputs:
+      - ACCESSIBILITY_REVIEW
+
+  - id: design-handoff
+    name: Design Handoff
+    description: Prepare design handoff
+    action: shell-command
+    command: |
+      # Design handoff
+      export_design_assets
+      create_design_specifications
+      document_interactions
+      prepare_style_guide
+      setup_developer_handoff
+    outputs:
+      - DESIGN_HANDOFF_PACKAGE
+
+  - id: create-implementation-tasks
+    name: Create Implementation Tasks
+    description: Create tasks for design implementation
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: Task
+        title: "Implement UI design for ${inputs.WORK_ITEM_ID}"
+        assignedTo: frontend-developer
+        parent: ${inputs.WORK_ITEM_ID}
+        description: "Design specs: ${steps.design-handoff.DESIGN_HANDOFF_PACKAGE}"
+      - type: Task
+        title: "Review design implementation"
+        assignedTo: ui-ux-designer
+        parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Design work result
+  - name: DESIGNS
+    value: "${steps.visual-design.VISUAL_DESIGNS}"
+    description: Visual designs
+  - name: PROTOTYPE
+    value: "${steps.prototyping.PROTOTYPE}"
+    description: Interactive prototype
+  - name: HANDOFF_PACKAGE
+    value: "${steps.design-handoff.DESIGN_HANDOFF_PACKAGE}"
+    description: Design handoff package
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - User research completed
+  - Designs created and approved
+  - Prototype tested
+  - Accessibility ensured
+  - Handoff prepared
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in UI/UX designer workflow: ${error.message}"

@@ -1,0 +1,349 @@
+metadata:
+  id: wf15-factory-settings-lookup
+  name: Factory Settings Lookup Workflow - Retrieve project configuration and settings
+  version: 1.0.0
+  type: support
+  description: Retrieve and manage project configuration, settings, and metadata
+  author: AI Personas Team
+  tags:
+    - settings
+    - configuration
+    - lookup
+    - support
+    - wf15
+  averageDuration: 1-2 minutes
+
+inputs:
+  - name: SETTING_TYPE
+    type: enum
+    values: [reviewers, branch_policies, personas, build_config, project_info, all]
+    description: Type of settings to retrieve
+    required: true
+    default: all
+  - name: PROJECT_NAME
+    type: string
+    description: Azure DevOps project name
+    required: false
+  - name: FORMAT
+    type: enum
+    values: [json, yaml, env]
+    description: Output format
+    required: false
+    default: json
+
+prerequisites:
+  - description: Access to settings files
+    required: true
+  - description: Azure DevOps connection
+    required: false
+
+steps:
+  - id: load-local-settings
+    name: Load Local Settings
+    description: Load settings.json and factory configuration
+    action: shell-command
+    command: |
+      # Load main settings file
+      SETTINGS_FILE="/opt/ai-personas/settings.json"
+      FACTORY_SETTINGS_FILE="/opt/ai-personas/.azuredevops/factory-settings.json"
+      
+      if [ -f "$SETTINGS_FILE" ]; then
+        MAIN_SETTINGS=$(cat "$SETTINGS_FILE")
+        echo "MAIN_SETTINGS<<EOF"
+        echo "$MAIN_SETTINGS"
+        echo "EOF"
+      else
+        echo "MAIN_SETTINGS={}"
+      fi
+      
+      if [ -f "$FACTORY_SETTINGS_FILE" ]; then
+        FACTORY_SETTINGS=$(cat "$FACTORY_SETTINGS_FILE")
+        echo "FACTORY_SETTINGS<<EOF"
+        echo "$FACTORY_SETTINGS"
+        echo "EOF"
+      else
+        echo "FACTORY_SETTINGS={}"
+      fi
+    outputs:
+      - MAIN_SETTINGS
+      - FACTORY_SETTINGS
+
+  - id: get-reviewers-config
+    name: Get Reviewers Configuration
+    description: Retrieve reviewer settings
+    action: conditional
+    condition: "${inputs.SETTING_TYPE eq 'reviewers' or inputs.SETTING_TYPE eq 'all'}"
+    steps:
+      - action: shell-command
+        command: |
+          # Extract reviewer configuration
+          REVIEWERS=$(echo "${steps.load-local-settings.FACTORY_SETTINGS}" | jq -r '.required_reviewers // {}')
+          
+          # Get team members from Azure DevOps if available
+          if [ -n "${inputs.PROJECT_NAME}" ]; then
+            # Would call Azure DevOps API here
+            TEAM_MEMBERS='{"team": ["user1@company.com", "user2@company.com"]}'
+          else
+            TEAM_MEMBERS='{}'
+          fi
+          
+          # Merge configurations
+          REVIEWER_CONFIG=$(jq -n \
+            --argjson reviewers "$REVIEWERS" \
+            --argjson team "$TEAM_MEMBERS" \
+            '{
+              required_reviewers: $reviewers,
+              team_members: $team,
+              policies: {
+                min_reviewers: 2,
+                require_team_member: true,
+                auto_complete_allowed: false
+              }
+            }')
+          
+          echo "REVIEWER_CONFIG<<EOF"
+          echo "$REVIEWER_CONFIG"
+          echo "EOF"
+        outputs:
+          - REVIEWER_CONFIG
+
+  - id: get-branch-policies
+    name: Get Branch Policies
+    description: Retrieve branch protection rules
+    action: conditional
+    condition: "${inputs.SETTING_TYPE eq 'branch_policies' or inputs.SETTING_TYPE eq 'all'}"
+    steps:
+      - action: shell-command
+        command: |
+          # Define default branch policies
+          BRANCH_POLICIES=$(jq -n '{
+            main: {
+              require_pr: true,
+              require_review: true,
+              require_build: true,
+              allow_force_push: false,
+              allow_deletion: false,
+              enforce_admins: true
+            },
+            develop: {
+              require_pr: true,
+              require_review: false,
+              require_build: true,
+              allow_force_push: false,
+              allow_deletion: false
+            },
+            feature: {
+              require_pr: false,
+              require_review: false,
+              require_build: false,
+              allow_force_push: true,
+              allow_deletion: true
+            }
+          }')
+          
+          echo "BRANCH_POLICIES<<EOF"
+          echo "$BRANCH_POLICIES"
+          echo "EOF"
+        outputs:
+          - BRANCH_POLICIES
+
+  - id: get-personas-config
+    name: Get Personas Configuration
+    description: Retrieve AI personas settings
+    action: conditional
+    condition: "${inputs.SETTING_TYPE eq 'personas' or inputs.SETTING_TYPE eq 'all'}"
+    steps:
+      - action: shell-command
+        command: |
+          # Get persona configurations
+          PERSONAS_CONFIG=$(jq -n '{
+            steve: {
+              name: "Steve Bot",
+              role: "System/Security Architect",
+              enabled: true,
+              triggers: ["security", "architecture", "design"],
+              capabilities: ["document_generation", "security_analysis", "pr_creation"]
+            },
+            kav: {
+              name: "Kav Bot",
+              role: "Security Test Engineer",
+              enabled: true,
+              triggers: ["security-test", "sast", "dast"],
+              capabilities: ["security_testing", "vulnerability_scanning"]
+            },
+            lachlan: {
+              name: "Lachlan Bot",
+              role: "DevSecOps Engineer",
+              enabled: false,
+              triggers: ["devsecops", "pipeline", "automation"],
+              capabilities: ["pipeline_creation", "automation"]
+            }
+          }')
+          
+          echo "PERSONAS_CONFIG<<EOF"
+          echo "$PERSONAS_CONFIG"
+          echo "EOF"
+        outputs:
+          - PERSONAS_CONFIG
+
+  - id: get-build-config
+    name: Get Build Configuration
+    description: Retrieve build and CI/CD settings
+    action: conditional
+    condition: "${inputs.SETTING_TYPE eq 'build_config' or inputs.SETTING_TYPE eq 'all'}"
+    steps:
+      - action: shell-command
+        command: |
+          # Get build configuration
+          BUILD_CONFIG=$(jq -n '{
+            pipelines: {
+              ci: {
+                trigger: ["main", "develop", "feature/*"],
+                steps: ["restore", "build", "test", "publish"],
+                timeout: 60
+              },
+              cd: {
+                trigger: ["main"],
+                environments: ["dev", "staging", "prod"],
+                approval_required: true
+              }
+            },
+            build_tools: {
+              node: "16.x",
+              python: "3.9",
+              dotnet: "6.0"
+            },
+            test_config: {
+              unit_tests: true,
+              integration_tests: true,
+              coverage_threshold: 80
+            }
+          }')
+          
+          echo "BUILD_CONFIG<<EOF"
+          echo "$BUILD_CONFIG"
+          echo "EOF"
+        outputs:
+          - BUILD_CONFIG
+
+  - id: get-project-info
+    name: Get Project Information
+    description: Retrieve Azure DevOps project metadata
+    action: conditional
+    condition: "${inputs.SETTING_TYPE eq 'project_info' or inputs.SETTING_TYPE eq 'all'}"
+    steps:
+      - action: shell-command
+        command: |
+          # Extract project info from settings
+          ORG_URL=$(echo "${steps.load-local-settings.MAIN_SETTINGS}" | jq -r '.organization // "data6"')
+          PROJECTS=$(echo "${steps.load-local-settings.MAIN_SETTINGS}" | jq -r '.projects // []')
+          
+          PROJECT_INFO=$(jq -n \
+            --arg org "$ORG_URL" \
+            --argjson projects "$PROJECTS" \
+            '{
+              organization: $org,
+              base_url: "https://\($org).visualstudio.com/",
+              projects: $projects,
+              default_project: ($projects | if length > 0 then .[0] else "AI-Personas-Test-Sandbox" end),
+              api_version: "7.0"
+            }')
+          
+          echo "PROJECT_INFO<<EOF"
+          echo "$PROJECT_INFO"
+          echo "EOF"
+        outputs:
+          - PROJECT_INFO
+
+  - id: merge-all-settings
+    name: Merge All Settings
+    description: Combine all settings into single output
+    action: shell-command
+    command: |
+      # Merge all settings based on type
+      if [ "${inputs.SETTING_TYPE}" = "all" ]; then
+        ALL_SETTINGS=$(jq -n \
+          --argjson main '${steps.load-local-settings.MAIN_SETTINGS}' \
+          --argjson factory '${steps.load-local-settings.FACTORY_SETTINGS}' \
+          --argjson reviewers '${steps.get-reviewers-config.REVIEWER_CONFIG}' \
+          --argjson branches '${steps.get-branch-policies.BRANCH_POLICIES}' \
+          --argjson personas '${steps.get-personas-config.PERSONAS_CONFIG}' \
+          --argjson build '${steps.get-build-config.BUILD_CONFIG}' \
+          --argjson project '${steps.get-project-info.PROJECT_INFO}' \
+          '{
+            main_settings: $main,
+            factory_settings: $factory,
+            reviewers: $reviewers,
+            branch_policies: $branches,
+            personas: $personas,
+            build_config: $build,
+            project_info: $project
+          }')
+      else
+        # Return specific setting type
+        case "${inputs.SETTING_TYPE}" in
+          reviewers)
+            ALL_SETTINGS="${steps.get-reviewers-config.REVIEWER_CONFIG}"
+            ;;
+          branch_policies)
+            ALL_SETTINGS="${steps.get-branch-policies.BRANCH_POLICIES}"
+            ;;
+          personas)
+            ALL_SETTINGS="${steps.get-personas-config.PERSONAS_CONFIG}"
+            ;;
+          build_config)
+            ALL_SETTINGS="${steps.get-build-config.BUILD_CONFIG}"
+            ;;
+          project_info)
+            ALL_SETTINGS="${steps.get-project-info.PROJECT_INFO}"
+            ;;
+        esac
+      fi
+      
+      # Format output based on requested format
+      case "${inputs.FORMAT}" in
+        yaml)
+          echo "FORMATTED_OUTPUT<<EOF"
+          echo "$ALL_SETTINGS" | jq -r 'to_entries | map("\(.key): \(.value)") | .[]'
+          echo "EOF"
+          ;;
+        env)
+          echo "FORMATTED_OUTPUT<<EOF"
+          echo "$ALL_SETTINGS" | jq -r 'paths(scalars) as $p | "\($p | join("_") | ascii_upcase)=\(getpath($p))"'
+          echo "EOF"
+          ;;
+        *)
+          echo "FORMATTED_OUTPUT<<EOF"
+          echo "$ALL_SETTINGS"
+          echo "EOF"
+          ;;
+      esac
+    outputs:
+      - FORMATTED_OUTPUT
+
+outputs:
+  - name: SETTINGS
+    value: "${steps.merge-all-settings.FORMATTED_OUTPUT}"
+    description: Requested settings in specified format
+  - name: SETTING_TYPE
+    value: "${inputs.SETTING_TYPE}"
+    description: Type of settings retrieved
+  - name: FORMAT
+    value: "${inputs.FORMAT}"
+    description: Output format used
+
+successCriteria:
+  - Settings loaded successfully
+  - Requested format applied
+  - Output generated
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: return-defaults
+      action: set-variable
+      variable: SETTINGS
+      value: '{"error": "Failed to load settings", "defaults_applied": true}'
+  notifications:
+    - type: log
+      target: error

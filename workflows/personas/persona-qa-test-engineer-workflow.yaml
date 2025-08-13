@@ -1,0 +1,306 @@
+# persona-qa-test-engineer-workflow.yaml
+metadata:
+  id: persona-qa-test-engineer-workflow
+  name: QA/Test Engineer Workflow - Quality assurance and testing
+  version: 1.0.0
+  type: persona
+  description: Defines how QA/Test Engineer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - qa-test-engineer
+    - testing
+    - quality-assurance
+    - automation
+  persona_info:
+    type: qa-test-engineer
+    first_name: Quinn
+    last_name: Bot
+    email: quinn.bot@company.com
+    role: QA/Test Engineer
+    skills:
+      - Test Planning
+      - Test Automation
+      - Manual Testing
+      - Performance Testing
+      - Security Testing
+      - API Testing
+      - Mobile Testing
+      - Bug Tracking
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, test-case]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, test, review, plan, automate, verify]
+    description: Action to perform
+    required: false
+    default: analyze
+  - name: TEST_TYPE
+    type: enum
+    values: [unit, integration, e2e, performance, security, manual]
+    description: Type of testing
+    required: false
+    default: integration
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Test environment available
+    required: true
+  - description: Test data prepared
+    required: false
+
+steps:
+  - id: analyze-testing-requirements
+    name: Analyze Testing Requirements
+    description: Determine testing approach
+    action: shell-command
+    command: |
+      # Analyze testing requirements
+      echo "Analyzing testing requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Determine test scope
+      TEST_SCOPE=$(determine_test_scope ${inputs.WORK_ITEM_ID})
+      
+      # Check if automation needed
+      AUTOMATION_NEEDED=$(check_automation_feasibility)
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "bug")
+          echo "RECOMMENDED_ACTION=verify-bug-fix"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=test-new-feature"
+          ;;
+        "test-case")
+          echo "RECOMMENDED_ACTION=execute-test-case"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-testing"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - TEST_SCOPE
+      - AUTOMATION_NEEDED
+
+  - id: setup-test-environment
+    name: Setup Test Environment
+    description: Prepare testing environment
+    action: shell-command
+    command: |
+      # Setup test environment
+      configure_test_database
+      setup_test_servers
+      prepare_test_data
+      configure_test_tools
+    outputs:
+      - TEST_ENV_READY
+
+  - id: route-to-workflow
+    name: Route to Testing Workflow
+    description: Execute appropriate testing workflow
+    action: conditional
+    condition: "${steps.analyze-testing-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'verify-bug-fix'"
+        steps:
+          - action: shell-command
+            command: |
+              # Reproduce bug
+              reproduce_bug_scenario
+              document_reproduction_steps
+          - action: shell-command
+            command: |
+              # Verify fix
+              run_regression_tests
+              verify_bug_resolution
+      
+      - condition: "eq 'test-new-feature'"
+        steps:
+          - action: shell-command
+            command: |
+              # Test new feature
+              create_test_scenarios
+              execute_functional_tests
+              run_integration_tests
+
+  - id: execute-automated-tests
+    name: Execute Automated Tests
+    description: Run automated test suites
+    action: conditional
+    condition: "${steps.analyze-testing-requirements.AUTOMATION_NEEDED}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Run automated tests
+              run_selenium_tests
+              run_api_tests
+              run_cypress_tests
+              generate_test_report
+            outputs:
+              - AUTOMATED_TEST_RESULTS
+
+  - id: perform-manual-testing
+    name: Perform Manual Testing
+    description: Execute manual test cases
+    action: conditional
+    condition: "${inputs.TEST_TYPE}"
+    branches:
+      - condition: "eq 'manual'"
+        steps:
+          - action: shell-command
+            command: |
+              # Manual testing
+              execute_exploratory_testing
+              perform_usability_testing
+              document_test_results
+            outputs:
+              - MANUAL_TEST_RESULTS
+
+  - id: performance-testing
+    name: Performance Testing
+    description: Run performance tests
+    action: conditional
+    condition: "${inputs.TEST_TYPE}"
+    branches:
+      - condition: "eq 'performance'"
+        steps:
+          - action: shell-command
+            command: |
+              # Performance testing
+              run_load_tests
+              run_stress_tests
+              analyze_performance_metrics
+              identify_bottlenecks
+            outputs:
+              - PERFORMANCE_RESULTS
+
+  - id: security-testing
+    name: Security Testing
+    description: Run security tests
+    action: conditional
+    condition: "${inputs.TEST_TYPE}"
+    branches:
+      - condition: "eq 'security'"
+        steps:
+          - action: shell-command
+            command: |
+              # Security testing
+              run_owasp_scan
+              check_vulnerabilities
+              test_authentication
+              verify_authorization
+            outputs:
+              - SECURITY_RESULTS
+
+  - id: log-defects
+    name: Log Defects
+    description: Create bug work items for failures
+    action: conditional
+    condition: "${context.defects_found}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: azure-devops
+            operation: create-work-items
+            inputs:
+              - type: Bug
+                title: "Defect found in ${inputs.WORK_ITEM_ID}"
+                severity: P2
+                assignedTo: developer-engineer
+
+  - id: generate-test-report
+    name: Generate Test Report
+    description: Create comprehensive test report
+    action: shell-command
+    command: |
+      # Generate test report
+      compile_test_results
+      calculate_test_metrics
+      generate_coverage_report
+      create_test_summary
+    outputs:
+      - TEST_REPORT
+
+  - id: update-test-status
+    name: Update Test Status
+    description: Update work item with test results
+    action: execute-workflow
+    workflow: wf12-work-item-update
+    inputs:
+      WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+      UPDATE_TYPE: status
+      NEW_STATE: "${context.test_passed ? 'Passed' : 'Failed'}"
+
+  - id: create-followup-tasks
+    name: Create Follow-up Tasks
+    description: Create tasks based on test results
+    action: conditional
+    condition: "${context.test_passed}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: azure-devops
+            operation: create-work-item
+            inputs:
+              type: Task
+              title: "Deploy ${inputs.WORK_ITEM_ID} - QA Approved"
+              assignedTo: devsecops-engineer
+              parent: ${inputs.WORK_ITEM_ID}
+      - condition: "eq 'false'"
+        steps:
+          - action: azure-devops
+            operation: create-work-item
+            inputs:
+              type: Task
+              title: "Fix test failures for ${inputs.WORK_ITEM_ID}"
+              assignedTo: developer-engineer
+              parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Testing result
+  - name: TEST_REPORT
+    value: "${steps.generate-test-report.TEST_REPORT}"
+    description: Comprehensive test report
+  - name: DEFECTS_FOUND
+    value: "${context.defects_count}"
+    description: Number of defects found
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Test artifacts
+
+successCriteria:
+  - Test environment configured
+  - Tests executed successfully
+  - Results documented
+  - Defects logged
+  - Status updated
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in QA workflow: ${error.message}"
+    - id: mark-blocked
+      action: azure-devops
+      operation: update-work-item
+      inputs:
+        id: ${inputs.WORK_ITEM_ID}
+        state: Blocked
+        reason: "Testing blocked due to error"

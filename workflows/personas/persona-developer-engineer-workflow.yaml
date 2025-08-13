@@ -1,0 +1,219 @@
+# persona-developer-engineer-workflow.yaml
+metadata:
+  id: persona-developer-engineer-workflow
+  name: Developer/Software Engineer Workflow - General software development
+  version: 1.0.0
+  type: persona
+  description: Defines how Developer/Software Engineer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - developer-engineer
+    - development
+    - coding
+  persona_info:
+    type: developer-engineer
+    first_name: David
+    last_name: Bot
+    email: david.bot@company.com
+    role: Developer/Software Engineer
+    skills:
+      - Full Stack Development
+      - Code Quality
+      - Testing
+      - Version Control
+      - API Development
+      - Database Operations
+      - Debugging
+      - Documentation
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, implement, review, plan, test]
+    description: Action to perform
+    required: false
+    default: analyze
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Appropriate permissions
+    required: true
+  - description: Development environment setup
+    required: true
+
+steps:
+  - id: analyze-work-item
+    name: Analyze Work Item
+    description: Determine development approach
+    action: shell-command
+    command: |
+      # Analyze work item
+      echo "Analyzing work item ${inputs.WORK_ITEM_ID}"
+      
+      # Determine work type and action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "feature"|"user-story")
+          echo "RECOMMENDED_ACTION=implement-feature"
+          ;;
+        "bug")
+          echo "RECOMMENDED_ACTION=fix-bug"
+          ;;
+        "task")
+          echo "RECOMMENDED_ACTION=implement-task"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-development"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - DEVELOPMENT_APPROACH
+
+  - id: setup-development
+    name: Setup Development Environment
+    description: Prepare development environment
+    action: shell-command
+    command: |
+      # Setup development environment
+      git fetch origin
+      npm install || yarn install || pip install -r requirements.txt
+      
+      # Setup IDE
+      configure_vscode_settings
+    outputs:
+      - ENVIRONMENT_READY
+
+  - id: route-to-workflow
+    name: Route to Development Workflow
+    description: Execute appropriate development workflow
+    action: conditional
+    condition: "${steps.analyze-work-item.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'implement-feature'"
+        steps:
+          - action: execute-workflow
+            workflow: wf0-feature-development
+            inputs:
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              FEATURE_NAME: feature-${inputs.WORK_ITEM_ID}
+          - action: execute-workflow
+            workflow: wf3-branch-creation
+            inputs:
+              WORK_TYPE: feature
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+      
+      - condition: "eq 'fix-bug'"
+        steps:
+          - action: execute-workflow
+            workflow: wf1-bug-fix
+            inputs:
+              BUG_ID: ${inputs.WORK_ITEM_ID}
+              BUG_SEVERITY: P2
+      
+      - condition: "eq 'implement-task'"
+        steps:
+          - action: execute-workflow
+            workflow: wf3-branch-creation
+            inputs:
+              WORK_TYPE: task
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+
+  - id: implement-code
+    name: Implement Code
+    description: Write implementation code
+    action: shell-command
+    command: |
+      # Implement code
+      implement_business_logic
+      write_unit_tests
+      update_documentation
+    outputs:
+      - CODE_IMPLEMENTED
+      - TESTS_WRITTEN
+
+  - id: code-quality-check
+    name: Code Quality Check
+    description: Ensure code quality
+    action: shell-command
+    command: |
+      # Quality checks
+      run_linter
+      run_formatter
+      check_code_coverage
+      run_sonarqube_scan
+    outputs:
+      - QUALITY_PASSED
+
+  - id: commit-changes
+    name: Commit Changes
+    description: Commit code changes
+    action: execute-workflow
+    workflow: wf4-code-commit
+    inputs:
+      BRANCH_NAME: ${context.branch_name}
+      COMMIT_TYPE: feat
+      COMMIT_MESSAGE: "Implement ${inputs.WORK_ITEM_ID}"
+
+  - id: create-pull-request
+    name: Create Pull Request
+    description: Submit code for review
+    action: conditional
+    condition: "${steps.code-quality-check.QUALITY_PASSED}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: execute-workflow
+            workflow: wf13-pr-readiness-check
+            inputs:
+              BRANCH_NAME: ${context.branch_name}
+          - action: execute-workflow
+            workflow: wf5-pull-request-creation
+            inputs:
+              BRANCH_NAME: ${context.branch_name}
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+
+  - id: handoff-for-testing
+    name: Handoff for Testing
+    description: Create testing tasks
+    action: azure-devops
+    operation: create-work-item
+    inputs:
+      type: Task
+      title: "Test implementation for ${inputs.WORK_ITEM_ID}"
+      assignedTo: qa-test-engineer
+      parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Development work result
+  - name: PR_NUMBER
+    value: "${context.pr_number}"
+    description: Pull request number
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Code implemented successfully
+  - Tests passing
+  - Code quality checks passed
+  - Pull request created
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in development workflow: ${error.message}"

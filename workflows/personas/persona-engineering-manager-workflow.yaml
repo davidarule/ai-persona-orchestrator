@@ -1,0 +1,279 @@
+# persona-engineering-manager-workflow.yaml
+metadata:
+  id: persona-engineering-manager-workflow
+  name: Engineering Manager Workflow - Team leadership and project management
+  version: 1.0.0
+  type: persona
+  description: Defines how Engineering Manager operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - engineering-manager
+    - leadership
+    - project-management
+    - team-management
+  persona_info:
+    type: engineering-manager
+    first_name: Emily
+    last_name: Bot
+    email: emily.bot@company.com
+    role: Engineering Manager
+    skills:
+      - Team Leadership
+      - Project Management
+      - Resource Planning
+      - Performance Management
+      - Strategic Planning
+      - Stakeholder Management
+      - Process Improvement
+      - Budget Management
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, project, team-issue]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, plan, review, approve, assign, escalate]
+    description: Action to perform
+    required: false
+    default: analyze
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Team roster access
+    required: true
+  - description: Project management tools access
+    required: true
+
+steps:
+  - id: analyze-management-context
+    name: Analyze Management Context
+    description: Analyze management requirements
+    action: shell-command
+    command: |
+      # Analyze management context
+      echo "Analyzing management context for ${inputs.WORK_ITEM_ID}"
+      
+      # Check team capacity
+      TEAM_CAPACITY=$(check_team_capacity)
+      
+      # Check project priority
+      PROJECT_PRIORITY=$(determine_project_priority ${inputs.WORK_ITEM_ID})
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "project")
+          echo "RECOMMENDED_ACTION=plan-project"
+          ;;
+        "team-issue")
+          echo "RECOMMENDED_ACTION=resolve-team-issue"
+          ;;
+        "epic")
+          echo "RECOMMENDED_ACTION=resource-planning"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-management"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - TEAM_CAPACITY
+      - PROJECT_PRIORITY
+
+  - id: team-assessment
+    name: Team Assessment
+    description: Assess team capabilities and availability
+    action: shell-command
+    command: |
+      # Team assessment
+      analyze_team_skills
+      check_team_availability
+      identify_skill_gaps
+      assess_workload_distribution
+    outputs:
+      - TEAM_ASSESSMENT
+
+  - id: route-to-workflow
+    name: Route to Management Workflow
+    description: Execute appropriate management workflow
+    action: conditional
+    condition: "${steps.analyze-management-context.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'plan-project'"
+        steps:
+          - action: shell-command
+            command: |
+              # Plan project
+              define_project_scope
+              create_project_timeline
+              allocate_resources
+              identify_risks
+      
+      - condition: "eq 'resolve-team-issue'"
+        steps:
+          - action: shell-command
+            command: |
+              # Resolve team issue
+              analyze_issue
+              facilitate_discussion
+              implement_solution
+              follow_up
+      
+      - condition: "eq 'resource-planning'"
+        steps:
+          - action: shell-command
+            command: |
+              # Resource planning
+              assess_resource_needs
+              balance_workload
+              plan_capacity
+              adjust_timelines
+
+  - id: work-assignment
+    name: Work Assignment
+    description: Assign work to team members
+    action: shell-command
+    command: |
+      # Work assignment
+      match_skills_to_tasks
+      consider_career_development
+      balance_workload
+      set_clear_expectations
+    outputs:
+      - ASSIGNMENTS_MADE
+
+  - id: create-team-tasks
+    name: Create Team Tasks
+    description: Create and assign tasks to team
+    action: parallel
+    steps:
+      - action: azure-devops
+        operation: create-work-item
+        inputs:
+          type: Task
+          title: "Backend implementation for ${inputs.WORK_ITEM_ID}"
+          assignedTo: backend-developer
+          parent: ${inputs.WORK_ITEM_ID}
+      - action: azure-devops
+        operation: create-work-item
+        inputs:
+          type: Task
+          title: "Frontend implementation for ${inputs.WORK_ITEM_ID}"
+          assignedTo: frontend-developer
+          parent: ${inputs.WORK_ITEM_ID}
+      - action: azure-devops
+        operation: create-work-item
+        inputs:
+          type: Task
+          title: "Testing for ${inputs.WORK_ITEM_ID}"
+          assignedTo: qa-test-engineer
+          parent: ${inputs.WORK_ITEM_ID}
+
+  - id: project-monitoring
+    name: Project Monitoring
+    description: Monitor project progress
+    action: shell-command
+    command: |
+      # Project monitoring
+      track_progress
+      identify_blockers
+      assess_risks
+      update_stakeholders
+    outputs:
+      - PROJECT_STATUS
+
+  - id: performance-review
+    name: Performance Review
+    description: Review team performance
+    action: shell-command
+    command: |
+      # Performance review
+      review_individual_performance
+      assess_team_dynamics
+      identify_improvement_areas
+      provide_feedback
+    outputs:
+      - PERFORMANCE_METRICS
+
+  - id: stakeholder-communication
+    name: Stakeholder Communication
+    description: Communicate with stakeholders
+    action: shell-command
+    command: |
+      # Stakeholder communication
+      prepare_status_reports
+      conduct_stakeholder_meetings
+      manage_expectations
+      escalate_issues_if_needed
+    outputs:
+      - STAKEHOLDER_UPDATES
+
+  - id: process-improvement
+    name: Process Improvement
+    description: Identify and implement process improvements
+    action: shell-command
+    command: |
+      # Process improvement
+      analyze_current_processes
+      identify_inefficiencies
+      propose_improvements
+      implement_changes
+    outputs:
+      - PROCESS_IMPROVEMENTS
+
+  - id: approval-gates
+    name: Approval Gates
+    description: Review and approve critical decisions
+    action: conditional
+    condition: "${context.approval_required}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: azure-devops
+            operation: create-approval
+            inputs:
+              title: "Approval required for ${inputs.WORK_ITEM_ID}"
+              approvers: ["engineering-manager", "product-owner"]
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Management action result
+  - name: TEAM_ASSIGNMENTS
+    value: "${steps.work-assignment.ASSIGNMENTS_MADE}"
+    description: Team assignments made
+  - name: PROJECT_STATUS
+    value: "${steps.project-monitoring.PROJECT_STATUS}"
+    description: Project status
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Work properly assigned
+  - Team capacity optimized
+  - Stakeholders informed
+  - Progress tracked
+  - Risks identified and managed
+
+errorHandling:
+  strategy: escalate
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in engineering manager workflow: ${error.message}"
+    - id: escalate-issue
+      action: azure-devops
+      operation: create-work-item
+      inputs:
+        type: Issue
+        title: "Management escalation required"
+        priority: 1

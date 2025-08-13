@@ -1,0 +1,247 @@
+metadata:
+  id: wf12-work-item-update
+  name: Work Item Update Workflow - Update Azure DevOps work items
+  version: 1.0.0
+  type: support
+  description: Updates Azure DevOps work items
+  author: AI Personas Team
+  tags:
+    - work-item
+    - azure-devops
+    - support
+    - wf12
+  averageDuration: 1-2 minutes
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item ID to update
+    required: false
+  - name: PR_NUMBER
+    type: number
+    description: PR number to extract work items from
+    required: false
+  - name: STATUS
+    type: enum
+    values: [Active, Resolved, Closed, In Progress, Ready for Review, Testing]
+    description: New status for work item
+    required: false
+  - name: COMMENT
+    type: string
+    description: Comment to add to work item
+    required: false
+  - name: MERGE_COMMIT
+    type: string
+    description: Merge commit to link
+    required: false
+  - name: FIELDS
+    type: object
+    description: Additional fields to update
+    required: false
+
+prerequisites:
+  - description: Azure DevOps access configured
+    required: true
+  - description: Work item exists
+    required: true
+
+steps:
+  - id: get-work-items
+    name: Get Work Items
+    description: Determine which work items to update
+    action: conditional
+    condition: "${not inputs.WORK_ITEM_ID and inputs.PR_NUMBER}"
+    steps:
+      - id: get-from-pr
+        action: azure-devops
+        operation: get-pr-work-items
+        inputs:
+          pr_id: "${inputs.PR_NUMBER}"
+        outputs:
+          - WORK_ITEM_IDS
+    else:
+      - id: use-provided-id
+        action: set-variable
+        variable: WORK_ITEM_IDS
+        value: ["${inputs.WORK_ITEM_ID}"]
+
+  - id: update-work-items
+    name: Update Work Items
+    description: Update each work item
+    action: for-loop
+    items: "${context.WORK_ITEM_IDS}"
+    steps:
+      - id: get-current-state
+        name: Get Current State
+        action: azure-devops
+        operation: get-work-item
+        inputs:
+          work_item_id: "${item}"
+        outputs:
+          - CURRENT_STATE
+          - WORK_ITEM_TYPE
+          - ASSIGNED_TO
+      
+      - id: prepare-update
+        name: Prepare Update
+        action: set-variable
+        variable: UPDATE_PAYLOAD
+        value: |
+          fields:
+            State: ${inputs.STATUS or context.CURRENT_STATE}
+            ${inputs.MERGE_COMMIT ? 'Microsoft.VSTS.Build.IntegrationBuild' : ''}: ${inputs.MERGE_COMMIT}
+            ${inputs.PR_NUMBER ? 'Custom.PRNumber' : ''}: ${inputs.PR_NUMBER}
+            ${inputs.FIELDS ? context.merge_objects(inputs.FIELDS) : ''}
+      
+      - id: apply-update
+        name: Apply Update
+        action: azure-devops
+        operation: update-work-item
+        inputs:
+          work_item_id: "${item}"
+          updates: "${context.UPDATE_PAYLOAD}"
+        outputs:
+          - UPDATE_RESULT
+      
+      - id: add-comment
+        name: Add Comment
+        action: conditional
+        condition: "${inputs.COMMENT or inputs.MERGE_COMMIT or inputs.PR_NUMBER}"
+        steps:
+          - action: azure-devops
+            operation: add-work-item-comment
+            inputs:
+              work_item_id: "${item}"
+              comment: |
+                ${inputs.COMMENT}
+                ${inputs.PR_NUMBER ? 'Related PR: #' + inputs.PR_NUMBER : ''}
+                ${inputs.MERGE_COMMIT ? 'Merged in: ' + inputs.MERGE_COMMIT : ''}
+                ${inputs.STATUS ? 'Status changed to: ' + inputs.STATUS : ''}
+                
+                _Updated by AI Workflow at ${context.timestamp}_
+      
+      - id: handle-state-transitions
+        name: Handle State Transitions
+        action: conditional
+        condition: "${inputs.STATUS}"
+        steps:
+          - id: resolved-actions
+            action: conditional
+            condition: "${inputs.STATUS eq 'Resolved'}"
+            steps:
+              - action: set-variable
+                variable: RESOLUTION_FIELDS
+                value:
+                  Microsoft.VSTS.Common.ResolvedDate: "${context.current_date}"
+                  Microsoft.VSTS.Common.ResolvedBy: "${context.current_user}"
+                  Microsoft.VSTS.Common.ResolvedReason: "Fixed"
+              
+              - action: azure-devops
+                operation: update-work-item
+                inputs:
+                  work_item_id: "${item}"
+                  updates: "${context.RESOLUTION_FIELDS}"
+          
+          - id: closed-actions
+            action: conditional
+            condition: "${inputs.STATUS eq 'Closed'}"
+            steps:
+              - action: set-variable
+                variable: CLOSURE_FIELDS
+                value:
+                  Microsoft.VSTS.Common.ClosedDate: "${context.current_date}"
+                  Microsoft.VSTS.Common.ClosedBy: "${context.current_user}"
+              
+              - action: azure-devops
+                operation: update-work-item
+                inputs:
+                  work_item_id: "${item}"
+                  updates: "${context.CLOSURE_FIELDS}"
+
+  - id: update-related-items
+    name: Update Related Items
+    description: Update parent/child work items if needed
+    action: conditional
+    condition: "${inputs.STATUS eq 'Resolved' or inputs.STATUS eq 'Closed'}"
+    steps:
+      - id: get-relations
+        action: azure-devops
+        operation: get-work-item-relations
+        inputs:
+          work_item_id: "${context.WORK_ITEM_IDS[0]}"
+        outputs:
+          - PARENT_IDS
+          - CHILD_IDS
+      
+      - id: check-children
+        action: conditional
+        condition: "${context.CHILD_IDS.length > 0}"
+        steps:
+          - action: azure-devops
+            operation: check-children-status
+            inputs:
+              parent_id: "${context.WORK_ITEM_IDS[0]}"
+              child_ids: "${context.CHILD_IDS}"
+            outputs:
+              - ALL_CHILDREN_COMPLETE
+          
+          - action: conditional
+            condition: "${context.ALL_CHILDREN_COMPLETE}"
+            steps:
+              - action: azure-devops
+                operation: add-work-item-comment
+                inputs:
+                  work_item_id: "${context.WORK_ITEM_IDS[0]}"
+                  comment: "All child work items are complete."
+
+  - id: send-notifications
+    name: Send Notifications
+    description: Notify stakeholders of updates
+    action: conditional
+    condition: "${inputs.STATUS eq 'Resolved' or inputs.STATUS eq 'Closed'}"
+    steps:
+      - action: azure-devops
+        operation: get-work-item-watchers
+        inputs:
+          work_item_id: "${context.WORK_ITEM_IDS[0]}"
+        outputs:
+          - WATCHERS
+      
+      - action: azure-devops
+        operation: send-notification
+        inputs:
+          to: "${context.WATCHERS}"
+          subject: "Work Item ${context.WORK_ITEM_IDS[0]} - ${inputs.STATUS}"
+          body: |
+            Work item ${context.WORK_ITEM_IDS[0]} has been updated to ${inputs.STATUS}.
+            
+            ${inputs.COMMENT}
+            
+            View work item: ${context.work_item_url}
+
+outputs:
+  - name: UPDATED_ITEMS
+    value: "${context.WORK_ITEM_IDS}"
+    description: List of updated work item IDs
+  - name: UPDATE_COUNT
+    value: "${context.WORK_ITEM_IDS.length}"
+    description: Number of items updated
+  - name: STATUS
+    value: "success"
+    description: Update status
+
+successCriteria:
+  - All work items updated successfully
+  - Comments added where specified
+  - State transitions handled properly
+  - Notifications sent
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-failure
+      action: log
+      message: "Failed to update work item: ${context.error}"
+  notifications:
+    - type: log
+      target: error

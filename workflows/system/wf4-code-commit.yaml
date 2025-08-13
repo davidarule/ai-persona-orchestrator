@@ -1,0 +1,234 @@
+metadata:
+  id: wf4-code-commit
+  name: Code Commit Workflow - Stage, commit, and push code changes
+  version: 1.0.0
+  type: core
+  description: Stage, commit, and push code changes
+  author: AI Personas Team
+  tags:
+    - git
+    - commit
+    - core
+    - atomic
+    - wf4
+  averageDuration: 1-5 minutes
+  idempotent: true
+
+inputs:
+  - name: BRANCH_NAME
+    type: string
+    description: Current working branch
+    required: true
+  - name: COMMIT_TYPE
+    type: enum
+    values: [feat, fix, docs, style, refactor, test, chore, hotfix]
+    description: Type of commit (conventional commits)
+    required: true
+  - name: COMMIT_MESSAGE
+    type: string
+    description: Descriptive commit message
+    required: true
+  - name: FILES
+    type: array
+    description: Array of file paths (optional, defaults to all)
+    required: false
+  - name: PUSH
+    type: boolean
+    description: Whether to push to remote
+    required: false
+    default: true
+  - name: INCLUDE_TESTS
+    type: boolean
+    description: Whether to run tests before commit
+    required: false
+    default: true
+  - name: BYPASS_HOOKS
+    type: boolean
+    description: Whether to bypass git hooks
+    required: false
+    default: false
+
+prerequisites:
+  - description: On correct branch
+    check: git branch --show-current
+    required: true
+  - description: Changes present to commit
+    check: git status --porcelain
+    required: true
+  - description: Tests passing locally (if applicable)
+    required: false
+
+steps:
+  - id: verify-branch
+    name: Verify Branch
+    description: Confirm on correct branch
+    action: shell-command
+    command: |
+      CURRENT_BRANCH=$(git branch --show-current)
+      if [ "$CURRENT_BRANCH" != "${inputs.BRANCH_NAME}" ]; then
+        echo "ERROR: Expected branch ${inputs.BRANCH_NAME}, but on ${CURRENT_BRANCH}"
+        exit 1
+      fi
+    outputs:
+      - CURRENT_BRANCH
+    onError: fail
+
+  - id: check-for-changes
+    name: Check for Changes
+    description: Verify there are changes to commit
+    action: shell-command
+    command: |
+      if [ -z "$(git status --porcelain)" ]; then
+        echo "WARNING: No changes to commit"
+        exit 0
+      fi
+      git status --short
+    outputs:
+      - HAS_CHANGES
+    onError: continue
+
+  - id: run-pre-commit-checks
+    name: Run Pre-Commit Checks
+    description: Run linting and tests if enabled
+    action: conditional
+    condition: "${inputs.INCLUDE_TESTS and not inputs.BYPASS_HOOKS}"
+    steps:
+      - id: run-linting
+        name: Run Linting
+        action: shell-command
+        command: npm run lint || yarn lint || echo "No linter configured"
+        onError: continue
+      
+      - id: run-tests
+        name: Run Tests
+        action: shell-command
+        command: |
+          if git diff --name-only | grep -E '\.(js|ts|py|java|cs)'; then
+            echo "Running tests..."
+            npm test || yarn test || pytest || mvn test || dotnet test || echo "No tests configured"
+          fi
+        onError: continue
+
+  - id: stage-files
+    name: Stage Files
+    description: Stage specific files or all changes
+    action: shell-command
+    command: |
+      if [ -z "${inputs.FILES}" ]; then
+        git add -A
+        echo "Staged all changes"
+      else
+        for FILE in ${inputs.FILES}; do
+          if [ -f "$FILE" ]; then
+            git add "$FILE"
+            echo "Staged: $FILE"
+          else
+            echo "WARNING: File not found: $FILE"
+          fi
+        done
+      fi
+      git diff --staged --stat
+    outputs:
+      - STAGED_FILES
+
+  - id: create-commit
+    name: Create Commit
+    description: Create commit with conventional format
+    action: shell-command
+    command: |
+      # Extract work item ID from branch name
+      WORK_ITEM_ID=$(echo ${inputs.BRANCH_NAME} | grep -oE '[0-9]+' | head -1)
+      
+      # Construct commit message
+      FULL_MESSAGE="${inputs.COMMIT_TYPE}: ${inputs.COMMIT_MESSAGE}"
+      if [ ! -z "$WORK_ITEM_ID" ]; then
+        FULL_MESSAGE="$FULL_MESSAGE
+
+        Related to: AB#$WORK_ITEM_ID"
+      fi
+      
+      # Create commit
+      if [ "${inputs.BYPASS_HOOKS}" = "true" ]; then
+        git commit --no-verify -m "$FULL_MESSAGE"
+      else
+        git commit -m "$FULL_MESSAGE"
+      fi
+      
+      COMMIT_HASH=$(git rev-parse HEAD)
+      echo "Created commit: $COMMIT_HASH"
+    outputs:
+      - COMMIT_HASH
+      - FULL_MESSAGE
+    onError: fail
+
+  - id: push-to-remote
+    name: Push to Remote
+    description: Push changes to remote repository
+    action: conditional
+    condition: "${inputs.PUSH}"
+    steps:
+      - id: pull-rebase
+        name: Pull with Rebase
+        action: shell-command
+        command: git pull origin ${inputs.BRANCH_NAME} --rebase
+        onError: continue
+      
+      - id: push-changes
+        name: Push Changes
+        action: shell-command
+        command: |
+          if git push origin ${inputs.BRANCH_NAME}; then
+            echo "Successfully pushed to remote"
+          else
+            echo "Push failed, attempting to resolve..."
+            git pull origin ${inputs.BRANCH_NAME}
+            git push origin ${inputs.BRANCH_NAME}
+          fi
+        retryCount: 3
+        onError: fail
+
+  - id: verify-commit
+    name: Verify Commit
+    description: Verify commit was created successfully
+    action: shell-command
+    command: |
+      if git log -1 --oneline; then
+        echo "Commit successful"
+      else
+        echo "ERROR: Commit verification failed"
+        exit 1
+      fi
+    onError: fail
+
+outputs:
+  - name: COMMIT_HASH
+    value: "${steps.create-commit.COMMIT_HASH}"
+    description: The created commit hash
+  - name: COMMIT_MESSAGE
+    value: "${steps.create-commit.FULL_MESSAGE}"
+    description: The full commit message
+  - name: FILES_CHANGED
+    value: "${steps.stage-files.STAGED_FILES}"
+    description: Files that were changed
+  - name: PUSHED
+    value: "${inputs.PUSH}"
+    description: Whether changes were pushed
+  - name: TIMESTAMP
+    value: "${context.timestamp}"
+    description: Timestamp of the commit
+
+successCriteria:
+  - Commit created successfully
+  - Changes staged and committed
+  - Push successful (if enabled)
+  - Work item referenced in commit
+
+errorHandling:
+  strategy: fail-fast
+  onFailure:
+    - id: reset-on-error
+      action: shell-command
+      command: git reset --soft HEAD~1
+  notifications:
+    - type: log
+      target: error

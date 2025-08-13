@@ -1,0 +1,238 @@
+# persona-technical-writer-workflow.yaml
+metadata:
+  id: persona-technical-writer-workflow
+  name: Technical Writer Workflow - Documentation creation and maintenance
+  version: 1.0.0
+  type: persona
+  description: Defines how Technical Writer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - technical-writer
+    - documentation
+    - content-creation
+  persona_info:
+    type: technical-writer
+    first_name: Teresa
+    last_name: Bot
+    email: teresa.bot@company.com
+    role: Technical Writer
+    skills:
+      - Technical Documentation
+      - API Documentation
+      - User Guides
+      - Release Notes
+      - Content Management
+      - Markdown/AsciiDoc
+      - Documentation Tools
+      - Information Architecture
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, documentation]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, create, review, update, publish]
+    description: Action to perform
+    required: false
+    default: analyze
+  - name: DOC_TYPE
+    type: enum
+    values: [api, user-guide, release-notes, technical-spec, readme]
+    description: Type of documentation
+    required: false
+    default: user-guide
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Access to documentation repository
+    required: true
+  - description: Subject matter expert available
+    required: false
+
+steps:
+  - id: analyze-documentation-needs
+    name: Analyze Documentation Needs
+    description: Determine documentation requirements
+    action: shell-command
+    command: |
+      # Analyze documentation needs
+      echo "Analyzing documentation needs for ${inputs.WORK_ITEM_ID}"
+      
+      # Check existing documentation
+      DOCS_EXIST=$(check_existing_docs ${inputs.WORK_ITEM_ID})
+      
+      # Determine documentation scope
+      DOC_SCOPE=$(determine_doc_scope ${inputs.WORK_ITEM_TYPE})
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "feature")
+          echo "RECOMMENDED_ACTION=document-new-feature"
+          ;;
+        "api")
+          echo "RECOMMENDED_ACTION=create-api-docs"
+          ;;
+        "documentation")
+          echo "RECOMMENDED_ACTION=update-documentation"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-documentation"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - DOC_SCOPE
+      - DOCS_EXIST
+
+  - id: gather-information
+    name: Gather Information
+    description: Collect information from SMEs
+    action: shell-command
+    command: |
+      # Gather information
+      interview_subject_matter_experts
+      review_technical_specifications
+      analyze_code_comments
+      collect_screenshots
+    outputs:
+      - INFORMATION_GATHERED
+
+  - id: route-to-workflow
+    name: Route to Documentation Workflow
+    description: Execute appropriate documentation workflow
+    action: conditional
+    condition: "${steps.analyze-documentation-needs.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'document-new-feature'"
+        steps:
+          - action: shell-command
+            command: |
+              # Document new feature
+              create_feature_documentation
+              add_usage_examples
+              create_tutorials
+      
+      - condition: "eq 'create-api-docs'"
+        steps:
+          - action: shell-command
+            command: |
+              # Create API documentation
+              generate_api_reference
+              create_api_examples
+              document_authentication
+      
+      - condition: "eq 'update-documentation'"
+        steps:
+          - action: shell-command
+            command: |
+              # Update existing documentation
+              identify_outdated_content
+              update_documentation
+              verify_accuracy
+
+  - id: create-documentation
+    name: Create Documentation
+    description: Write documentation content
+    action: shell-command
+    command: |
+      # Create documentation
+      write_content
+      add_diagrams_and_images
+      create_code_examples
+      format_documentation
+    outputs:
+      - DOCUMENTATION_CREATED
+
+  - id: api-documentation
+    name: API Documentation
+    description: Generate API documentation
+    action: conditional
+    condition: "${inputs.DOC_TYPE}"
+    branches:
+      - condition: "eq 'api'"
+        steps:
+          - action: shell-command
+            command: |
+              # Generate API docs
+              parse_swagger_spec
+              generate_api_reference
+              create_postman_examples
+            outputs:
+              - API_DOCS
+
+  - id: review-documentation
+    name: Review Documentation
+    description: Review and validate documentation
+    action: shell-command
+    command: |
+      # Review documentation
+      check_technical_accuracy
+      verify_completeness
+      check_grammar_spelling
+      validate_links_references
+    outputs:
+      - REVIEW_COMPLETE
+
+  - id: publish-documentation
+    name: Publish Documentation
+    description: Publish to documentation platform
+    action: shell-command
+    command: |
+      # Publish documentation
+      generate_static_site
+      deploy_to_docs_portal
+      update_search_index
+      notify_stakeholders
+    outputs:
+      - DOCS_PUBLISHED
+
+  - id: create-review-tasks
+    name: Create Review Tasks
+    description: Create review tasks for SMEs
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: Task
+        title: "Review documentation for ${inputs.WORK_ITEM_ID}"
+        assignedTo: software-architect
+        parent: ${inputs.WORK_ITEM_ID}
+      - type: Task
+        title: "Technical accuracy review"
+        assignedTo: developer-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Documentation result
+  - name: DOCUMENTATION
+    value: "${steps.create-documentation.DOCUMENTATION_CREATED}"
+    description: Created documentation
+  - name: PUBLISH_URL
+    value: "${steps.publish-documentation.DOCS_PUBLISHED}"
+    description: Published documentation URL
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Documentation created
+  - Content reviewed
+  - Documentation published
+  - Stakeholders notified
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in technical writer workflow: ${error.message}"

@@ -1,0 +1,258 @@
+metadata:
+  id: wf6-pull-request-review
+  name: Pull Request Review Workflow (As Reviewer) - Review and provide feedback on pull requests (as reviewer)
+  version: 1.0.0
+  type: core
+  description: Review and provide feedback on pull requests
+  author: AI Personas Team
+  tags:
+    - pull-request
+    - review
+    - core
+    - atomic
+    - wf6
+  averageDuration: 15-60 minutes
+  role: reviewer
+
+inputs:
+  - name: PR_NUMBER
+    type: number
+    description: Pull request to review
+    required: true
+  - name: REVIEW_TYPE
+    type: enum
+    values: [full, quick, security, architecture]
+    description: Type of review to perform
+    required: true
+    default: full
+  - name: AUTO_APPROVE_THRESHOLD
+    type: number
+    description: Lines of change for auto-approval
+    required: false
+    default: 10
+
+prerequisites:
+  - description: Assigned as reviewer or voluntary review
+    required: true
+  - description: Access to repository and PR
+    required: true
+  - description: Local environment ready for testing
+    required: false
+
+steps:
+  - id: fetch-pr-information
+    name: Fetch PR Information
+    description: Get PR details and metadata
+    action: azure-devops
+    operation: get-pr-details
+    inputs:
+      pr_id: "${inputs.PR_NUMBER}"
+    outputs:
+      - PR_TITLE
+      - SOURCE_BRANCH
+      - TARGET_BRANCH
+      - AUTHOR
+      - WORK_ITEMS
+
+  - id: analyze-changes
+    name: Analyze Changes
+    description: Get change statistics
+    action: azure-devops
+    operation: get-pr-stats
+    inputs:
+      pr_id: "${inputs.PR_NUMBER}"
+    outputs:
+      - FILES_CHANGED
+      - LINES_ADDED
+      - LINES_DELETED
+      - TOTAL_CHANGES
+
+  - id: determine-quick-review
+    name: Determine Quick Review Eligibility
+    description: Check if eligible for quick review
+    action: set-variable
+    variable: QUICK_REVIEW
+    value: "${inputs.REVIEW_TYPE eq 'quick' and steps.analyze-changes.LINES_ADDED lt inputs.AUTO_APPROVE_THRESHOLD}"
+
+  - id: pull-and-test-locally
+    name: Pull and Test Locally
+    description: Fetch PR branch and run tests
+    action: parallel
+    steps:
+      - id: checkout-branch
+        name: Checkout PR Branch
+        action: git-operation
+        operation: fetch-and-checkout
+        inputs:
+          branch: "${steps.fetch-pr-information.SOURCE_BRANCH}"
+          remote: origin
+      
+      - id: run-linting
+        name: Run Linting
+        action: shell-command
+        command: npm run lint || yarn lint || pylint . || echo "No linter"
+        onError: continue
+        outputs:
+          - LINT_RESULT
+      
+      - id: run-tests
+        name: Run Tests
+        action: shell-command
+        command: npm test || yarn test || pytest || mvn test || dotnet test || echo "No tests"
+        onError: continue
+        outputs:
+          - TEST_RESULT
+      
+      - id: security-scan
+        name: Security Scan
+        action: shell-command
+        command: npm audit || yarn audit || safety check || echo "No security scanner"
+        onError: continue
+        outputs:
+          - SECURITY_RESULT
+      
+      - id: build-verification
+        name: Build Verification
+        action: shell-command
+        command: npm run build || yarn build || make build || mvn compile || dotnet build || echo "No build"
+        onError: continue
+        outputs:
+          - BUILD_RESULT
+
+  - id: perform-code-review
+    name: Perform Code Review
+    description: Review code against checklist
+    action: set-variable
+    variable: REVIEW_CHECKLIST
+    value: |
+      code_quality:
+        clean_code: ${context.code_clean}
+        naming: ${context.naming_good}
+        complexity: ${context.complexity_ok}
+        duplication: ${context.no_duplication}
+      functionality:
+        requirements: ${context.meets_requirements}
+        edge_cases: ${context.handles_edge_cases}
+        error_handling: ${context.proper_error_handling}
+      security:
+        auth: ${context.auth_correct}
+        input_validation: ${context.inputs_validated}
+        secrets: ${context.no_hardcoded_secrets}
+      performance:
+        efficiency: ${context.code_efficient}
+        scaling: ${context.will_scale}
+        caching: ${context.appropriate_caching}
+      testing:
+        coverage: ${context.adequate_coverage}
+        test_quality: ${context.tests_meaningful}
+      documentation:
+        comments: ${context.complex_logic_commented}
+        api_docs: ${context.apis_documented}
+        readme: ${context.readme_updated}
+
+  - id: add-review-comments
+    name: Add Review Comments
+    description: Add inline and general comments
+    action: conditional
+    condition: "${context.issues_found}"
+    steps:
+      - id: add-inline-comments
+        name: Add Inline Comments
+        action: azure-devops
+        operation: create-pr-thread
+        inputs:
+          pr_id: "${inputs.PR_NUMBER}"
+          comments: "${context.inline_comments}"
+          thread_type: suggestion
+      
+      - id: add-general-comment
+        name: Add General Comment
+        action: azure-devops
+        operation: create-pr-thread
+        inputs:
+          pr_id: "${inputs.PR_NUMBER}"
+          content: "${context.general_feedback}"
+
+  - id: determine-review-outcome
+    name: Determine Review Outcome
+    description: Decide on review decision
+    action: set-variable
+    variable: REVIEW_DECISION
+    value: |
+      if ${context.QUICK_REVIEW} and ${steps.analyze-changes.LINES_ADDED} < 10:
+        decision: approve
+        comments: "Small change, looks good."
+      elif ${context.critical_issues} > 0:
+        decision: reject
+        comments: "Found critical issues that need to be addressed."
+      elif ${context.minor_issues} > 0:
+        decision: wait
+        comments: "Some suggestions for improvement."
+      else:
+        decision: approve
+        comments: "LGTM! Well structured and tested."
+
+  - id: submit-review
+    name: Submit Review
+    description: Submit the review vote
+    action: azure-devops
+    operation: update-pr-reviewer
+    inputs:
+      pr_id: "${inputs.PR_NUMBER}"
+      vote: "${context.REVIEW_DECISION.decision}"
+      reviewer: "${context.current_user}"
+
+  - id: add-summary-comment
+    name: Add Summary Comment
+    description: Add review summary
+    action: azure-devops
+    operation: create-pr-thread
+    inputs:
+      pr_id: "${inputs.PR_NUMBER}"
+      content: |
+        ## Review Summary
+        
+        ${context.REVIEW_DECISION.comments}
+        
+        **Decision**: ${context.REVIEW_DECISION.decision}
+        **Review Type**: ${inputs.REVIEW_TYPE}
+        **Time Spent**: ${context.review_duration} minutes
+        
+        ### Automated Check Results:
+        - Linting: ${steps.pull-and-test-locally.LINT_RESULT}
+        - Tests: ${steps.pull-and-test-locally.TEST_RESULT}
+        - Security: ${steps.pull-and-test-locally.SECURITY_RESULT}
+        - Build: ${steps.pull-and-test-locally.BUILD_RESULT}
+
+outputs:
+  - name: REVIEW_DECISION
+    value: "${context.REVIEW_DECISION.decision}"
+    description: Review decision (approve/wait/reject)
+  - name: PR_NUMBER
+    value: "${inputs.PR_NUMBER}"
+    description: Reviewed PR number
+  - name: REVIEW_TYPE
+    value: "${inputs.REVIEW_TYPE}"
+    description: Type of review performed
+  - name: ISSUES_FOUND
+    value: "${context.total_issues}"
+    description: Number of issues found
+
+successCriteria:
+  - PR reviewed thoroughly
+  - Appropriate feedback provided
+  - Review vote submitted
+  - Summary comment added
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: add-error-comment
+      action: azure-devops
+      operation: create-pr-thread
+      inputs:
+        pr_id: "${inputs.PR_NUMBER}"
+        content: "Review workflow encountered an error. Manual review may be needed."
+  notifications:
+    - type: log
+      target: error

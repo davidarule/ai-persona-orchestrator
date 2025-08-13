@@ -1,0 +1,232 @@
+metadata:
+  id: wf2-hotfix
+  name: Hotfix Workflow - Emergency production fix process
+  version: 1.0.0
+  type: master
+  description: Emergency production fix process
+  author: AI Personas Team
+  tags:
+    - hotfix
+    - emergency
+    - production
+    - master
+    - orchestration
+    - wf2
+  averageDuration: 4 hours maximum
+  sla: 4h
+  authorityRequired: true
+
+inputs:
+  - name: INCIDENT_ID
+    type: string
+    description: Production incident ID
+    required: true
+    pattern: "^[A-Z0-9-]+$"
+  - name: SEVERITY
+    type: enum
+    values: [P1]
+    description: Severity (hotfix only for P1)
+    required: true
+    default: P1
+  - name: ROLLBACK_FIRST
+    type: boolean
+    description: Whether to rollback first
+    required: true
+    default: false
+  - name: APPROVER
+    type: string
+    description: Email of emergency approver
+    required: true
+    pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+
+prerequisites:
+  - description: Production incident confirmed
+    required: true
+  - description: Rollback decision made
+    required: true
+  - description: Emergency approver notified
+    required: true
+  - description: War room channel created
+    required: true
+
+steps:
+  - id: immediate-response
+    name: Immediate Response
+    description: Notify teams and optionally rollback
+    action: parallel
+    steps:
+      - id: notify-teams
+        name: Notify Teams
+        action: azure-devops
+        operation: notify-channels
+        inputs:
+          channels: ["#war-room", "#engineering", "#leadership"]
+          message: "P1 Hotfix initiated for ${inputs.INCIDENT_ID}"
+      
+      - id: rollback-if-needed
+        name: Rollback if Needed
+        action: conditional
+        condition: "${inputs.ROLLBACK_FIRST}"
+        steps:
+          - id: execute-rollback
+            action: execute-workflow
+            workflow: wf11-rollback
+            inputs:
+              TARGET: last_known_good
+              REASON: "Emergency rollback for ${inputs.INCIDENT_ID}"
+
+  - id: create-hotfix-branch
+    name: Create Hotfix Branch
+    description: Create emergency hotfix branch from main
+    action: git-operation
+    operation: create-hotfix-branch
+    inputs:
+      base: main
+      branch: "hotfix/${inputs.INCIDENT_ID}-emergency"
+    outputs:
+      - BRANCH_NAME
+
+  - id: implement-fix
+    name: Implement Fix
+    description: Commit emergency fix
+    action: execute-workflow
+    workflow: wf4-code-commit
+    inputs:
+      BRANCH_NAME: "${steps.create-hotfix-branch.BRANCH_NAME}"
+      COMMIT_TYPE: hotfix
+      BYPASS_HOOKS: true
+      MESSAGE: "hotfix(${inputs.INCIDENT_ID}): Emergency fix for production issue"
+
+  - id: emergency-testing
+    name: Emergency Testing
+    description: Run minimal critical tests
+    action: parallel
+    timeout: 30m
+    steps:
+      - id: unit-tests
+        name: Unit Tests
+        action: shell-command
+        command: "npm test -- --testNamePattern='smoke|critical'"
+        onError: fail
+      
+      - id: integration-tests
+        name: Integration Tests
+        action: shell-command
+        command: "npm run test:integration -- --critical-only"
+        onError: fail
+      
+      - id: manual-verification
+        name: Manual Verification
+        action: wait
+        duration: 5m
+
+  - id: emergency-pr-review
+    name: Emergency PR and Review
+    description: Create and fast-track PR review
+    action: execute-workflow
+    workflow: wf5-pull-request-creation
+    inputs:
+      BRANCH_NAME: "${steps.create-hotfix-branch.BRANCH_NAME}"
+      WORK_ITEM_ID: "${inputs.INCIDENT_ID}"
+      PR_TYPE: hotfix
+      EMERGENCY: true
+      REQUIRED_REVIEWERS: ["${inputs.APPROVER}"]
+      BYPASS_POLICIES: true
+    outputs:
+      - PR_NUMBER
+      - PR_URL
+
+  - id: emergency-merge
+    name: Emergency Merge
+    description: Merge hotfix immediately
+    action: execute-workflow
+    workflow: wf8-merge
+    inputs:
+      PR_NUMBER: "${steps.emergency-pr-review.PR_NUMBER}"
+      MERGE_STRATEGY: rebase
+      BYPASS_CHECKS: true
+      EMERGENCY: true
+    outputs:
+      - MERGE_COMMIT
+
+  - id: deploy-hotfix
+    name: Deploy Hotfix
+    description: Deploy to production immediately
+    action: azure-devops
+    operation: trigger-deployment
+    inputs:
+      environment: production
+      commit: "${steps.emergency-merge.MERGE_COMMIT}"
+      emergency: true
+      skip_stages: ["staging", "canary"]
+
+  - id: verify-hotfix
+    name: Verify Hotfix
+    description: Verify the hotfix resolved the incident
+    action: execute-workflow
+    workflow: wf9-post-merge-monitoring
+    inputs:
+      MERGE_COMMIT: "${steps.emergency-merge.MERGE_COMMIT}"
+      MONITOR_DURATION: 1h
+      ALERT_THRESHOLD: critical
+      INCIDENT_ID: "${inputs.INCIDENT_ID}"
+    outputs:
+      - VERIFICATION_STATUS
+
+  - id: backport-to-branches
+    name: Backport to Active Branches
+    description: Backport hotfix to active feature branches
+    action: git-operation
+    operation: cherry-pick
+    inputs:
+      commit: "${steps.emergency-merge.MERGE_COMMIT}"
+      target_branches: ["develop", "release/*"]
+      create_pr: true
+
+outputs:
+  - name: HOTFIX_BRANCH
+    value: "${steps.create-hotfix-branch.BRANCH_NAME}"
+    description: Emergency hotfix branch
+  - name: PR_NUMBER
+    value: "${steps.emergency-pr-review.PR_NUMBER}"
+    description: Emergency PR number
+  - name: MERGE_COMMIT
+    value: "${steps.emergency-merge.MERGE_COMMIT}"
+    description: Hotfix merge commit
+  - name: VERIFICATION_STATUS
+    value: "${steps.verify-hotfix.VERIFICATION_STATUS}"
+    description: Hotfix verification status
+  - name: RESOLUTION_TIME
+    value: "${context.execution_duration}"
+    description: Time to resolve incident
+
+successCriteria:
+  - Production incident resolved
+  - Hotfix deployed successfully
+  - No new issues introduced
+  - SLA met (< 4 hours)
+  - Incident report filed
+
+errorHandling:
+  strategy: fail-fast
+  onFailure:
+    - id: emergency-rollback
+      action: execute-workflow
+      workflow: wf11-rollback
+      inputs:
+        TARGET: "${steps.emergency-merge.MERGE_COMMIT}"
+        EMERGENCY: true
+        REASON: "Hotfix failed - emergency rollback"
+    - id: escalate
+      action: azure-devops
+      operation: escalate-incident
+      inputs:
+        incident: "${inputs.INCIDENT_ID}"
+        level: executive
+  notifications:
+    - type: log
+      target: error
+    - type: slack
+      target: "#war-room"
+    - type: email
+      target: "${inputs.APPROVER}"

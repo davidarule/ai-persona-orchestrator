@@ -1,0 +1,126 @@
+metadata:
+  id: wf3-branch-creation
+  name: Branch Creation Workflow - Create properly named branches for development work
+  version: 1.0.0
+  type: core
+  description: Creates feature/bug/hotfix branches with standardized naming conventions
+  author: AI Personas Team
+  tags:
+    - git
+    - branching
+    - core
+    - wf3
+  averageDuration: 1-2 minutes
+
+inputs:
+  - name: WORK_TYPE
+    type: enum
+    values: [feature, bug, hotfix]
+    description: Type of work for branch naming
+    required: true
+  - name: WORK_ITEM_ID
+    type: string
+    pattern: "^[A-Z0-9-]+$"
+    description: Azure DevOps work item ID
+    required: true
+  - name: DESCRIPTION
+    type: string
+    pattern: "^[a-z0-9-]+$"
+    description: Brief description for branch name (lowercase, hyphens only)
+    required: true
+
+prerequisites:
+  - description: Git repository initialized
+    check: git rev-parse --git-dir
+    required: true
+  - description: On main/master branch
+    check: git branch --show-current
+    required: false
+  - description: No uncommitted changes
+    check: git status --porcelain
+    required: true
+
+steps:
+  - id: validate-base-branch
+    name: Validate Base Branch
+    action: shell-command
+    command: git branch --show-current
+    outputs:
+      - CURRENT_BRANCH
+    onError: fail
+
+  - id: pull-latest
+    name: Pull Latest Changes
+    action: git-operation
+    operation: pull
+    inputs:
+      branch: "${steps.validate-base-branch.CURRENT_BRANCH}"
+    onError: fail
+
+  - id: generate-branch-name
+    name: Generate Branch Name
+    action: shell-command
+    command: |
+      BRANCH_NAME="${inputs.WORK_TYPE}/${inputs.WORK_ITEM_ID}-${inputs.DESCRIPTION}"
+      echo "BRANCH_NAME=$BRANCH_NAME"
+    outputs:
+      - BRANCH_NAME
+
+  - id: create-branch
+    name: Create New Branch
+    action: git-operation
+    operation: create-branch
+    inputs:
+      branch: "${steps.generate-branch-name.BRANCH_NAME}"
+      from: "${steps.validate-base-branch.CURRENT_BRANCH}"
+    onError: fail
+
+  - id: checkout-branch
+    name: Switch to New Branch
+    action: git-operation
+    operation: checkout
+    inputs:
+      branch: "${steps.generate-branch-name.BRANCH_NAME}"
+    onError: fail
+
+  - id: verify-branch
+    name: Verify Branch Creation
+    action: shell-command
+    command: git branch --show-current
+    outputs:
+      - NEW_BRANCH
+    onError: fail
+
+  - id: log-success
+    name: Log Success
+    action: log
+    message: "Successfully created and checked out branch: ${context.BRANCH_NAME}"
+    level: info
+
+outputs:
+  - name: BRANCH_NAME
+    value: "${steps.generate-branch-name.BRANCH_NAME}"
+    description: The created branch name
+  - name: BASE_BRANCH
+    value: "${steps.validate-base-branch.CURRENT_BRANCH}"
+    description: The base branch used for creation
+  - name: STATUS
+    value: "completed"
+    description: Workflow completion status
+
+successCriteria:
+  - Branch created successfully
+  - Checked out to new branch
+  - Branch follows naming convention
+
+errorHandling:
+  strategy: fail-fast
+  onFailure:
+    - id: cleanup-on-error
+      action: git-operation
+      operation: checkout
+      inputs:
+        branch: "${steps.validate-base-branch.CURRENT_BRANCH}"
+  notifications:
+    - type: log
+      target: error

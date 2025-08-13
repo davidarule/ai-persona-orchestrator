@@ -1,0 +1,278 @@
+# persona-security-architect-workflow.yaml
+metadata:
+  id: persona-security-architect-workflow
+  name: Security Architect Workflow - Security architecture and risk management
+  version: 1.0.0
+  type: persona
+  description: Defines how Security Architect operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - security-architect
+    - threat-modeling
+    - risk-management
+    - security-design
+  persona_info:
+    type: security-architect
+    first_name: Sophia
+    last_name: Bot
+    email: sophia.bot@company.com
+    role: Security Architect
+    skills:
+      - Security Architecture
+      - Threat Modeling
+      - Risk Assessment
+      - Security Frameworks
+      - Identity Management
+      - Encryption
+      - Zero Trust Architecture
+      - Compliance
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, security-design, threat-model]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, design, assess, review, validate]
+    description: Action to perform
+    required: false
+    default: analyze
+  - name: RISK_LEVEL
+    type: enum
+    values: [critical, high, medium, low]
+    description: Risk level
+    required: false
+    default: medium
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Security frameworks access
+    required: true
+  - description: Threat intelligence access
+    required: true
+
+steps:
+  - id: analyze-security-requirements
+    name: Analyze Security Requirements
+    description: Analyze security architecture requirements
+    action: shell-command
+    command: |
+      # Analyze security requirements
+      echo "Analyzing security requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Assess risk level
+      RISK_ASSESSMENT=$(perform_risk_assessment ${inputs.WORK_ITEM_ID})
+      
+      # Check compliance requirements
+      COMPLIANCE_REQS=$(check_compliance_requirements)
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "security-design")
+          echo "RECOMMENDED_ACTION=design-security-architecture"
+          ;;
+        "threat-model")
+          echo "RECOMMENDED_ACTION=create-threat-model"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=security-architecture-review"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-security-architecture"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - RISK_ASSESSMENT
+      - COMPLIANCE_REQS
+
+  - id: threat-modeling
+    name: Threat Modeling
+    description: Create comprehensive threat model
+    action: shell-command
+    command: |
+      # Threat modeling
+      identify_assets
+      identify_threat_actors
+      enumerate_threats
+      assess_vulnerabilities
+      calculate_risk_scores
+      prioritize_mitigations
+    outputs:
+      - THREAT_MODEL
+
+  - id: route-to-workflow
+    name: Route to Security Architecture Workflow
+    description: Execute appropriate security architecture workflow
+    action: conditional
+    condition: "${steps.analyze-security-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'design-security-architecture'"
+        steps:
+          - action: shell-command
+            command: |
+              # Design security architecture
+              design_security_layers
+              implement_defense_in_depth
+              design_zero_trust_architecture
+              establish_security_zones
+      
+      - condition: "eq 'create-threat-model'"
+        steps:
+          - action: shell-command
+            command: |
+              # Create threat model
+              use_stride_methodology
+              create_data_flow_diagrams
+              identify_trust_boundaries
+              document_threats_mitigations
+      
+      - condition: "eq 'security-architecture-review'"
+        steps:
+          - action: execute-workflow
+            workflow: wf6-pull-request-review
+            inputs:
+              PR_NUMBER: ${context.pr_number}
+              REVIEW_TYPE: security-architecture
+
+  - id: security-architecture-design
+    name: Security Architecture Design
+    description: Design comprehensive security architecture
+    action: shell-command
+    command: |
+      # Security architecture design
+      design_authentication_architecture
+      design_authorization_framework
+      implement_encryption_strategy
+      design_key_management
+      establish_security_patterns
+    outputs:
+      - SECURITY_ARCHITECTURE
+
+  - id: identity-management
+    name: Identity Management Design
+    description: Design identity and access management
+    action: shell-command
+    command: |
+      # Identity management
+      design_identity_provider
+      implement_single_sign_on
+      design_multi_factor_auth
+      establish_rbac_model
+      implement_privileged_access
+    outputs:
+      - IAM_DESIGN
+
+  - id: data-protection
+    name: Data Protection Design
+    description: Design data protection measures
+    action: shell-command
+    command: |
+      # Data protection
+      classify_data
+      design_encryption_at_rest
+      design_encryption_in_transit
+      implement_data_loss_prevention
+      establish_data_governance
+    outputs:
+      - DATA_PROTECTION_DESIGN
+
+  - id: compliance-framework
+    name: Compliance Framework
+    description: Establish compliance framework
+    action: shell-command
+    command: |
+      # Compliance framework
+      map_compliance_requirements
+      implement_controls
+      create_compliance_matrix
+      establish_audit_trails
+      generate_compliance_reports
+    outputs:
+      - COMPLIANCE_FRAMEWORK
+
+  - id: security-controls
+    name: Security Controls
+    description: Define security controls
+    action: shell-command
+    command: |
+      # Security controls
+      implement_preventive_controls
+      implement_detective_controls
+      implement_corrective_controls
+      establish_monitoring
+      create_incident_response_plan
+    outputs:
+      - SECURITY_CONTROLS
+
+  - id: risk-management
+    name: Risk Management
+    description: Perform risk management
+    action: shell-command
+    command: |
+      # Risk management
+      identify_risks
+      assess_risk_impact
+      calculate_risk_scores
+      develop_mitigation_strategies
+      create_risk_register
+    outputs:
+      - RISK_REGISTER
+
+  - id: create-security-tasks
+    name: Create Security Tasks
+    description: Create security implementation tasks
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: Task
+        title: "Implement security architecture for ${inputs.WORK_ITEM_ID}"
+        assignedTo: security-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+        priority: ${inputs.RISK_LEVEL == 'critical' ? 1 : 2}
+      - type: Task
+        title: "Security testing for ${inputs.WORK_ITEM_ID}"
+        assignedTo: qa-test-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Security architecture result
+  - name: THREAT_MODEL
+    value: "${steps.threat-modeling.THREAT_MODEL}"
+    description: Threat model
+  - name: SECURITY_ARCHITECTURE
+    value: "${steps.security-architecture-design.SECURITY_ARCHITECTURE}"
+    description: Security architecture design
+  - name: RISK_REGISTER
+    value: "${steps.risk-management.RISK_REGISTER}"
+    description: Risk register
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Security architecture designed
+  - Threat model created
+  - Risks assessed and mitigated
+  - Compliance requirements met
+  - Security controls defined
+
+errorHandling:
+  strategy: escalate
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in security architect workflow: ${error.message}"
+    - id: alert-security-team
+      action: shell-command
+      command: "alert_security_leadership '${error.message}'"

@@ -1,0 +1,162 @@
+metadata:
+  id: wf1-bug-fix
+  name: Bug Fix Workflow - End-to-end bug fixing process
+  version: 1.0.0
+  type: master
+  description: End-to-end bug fixing process
+  author: AI Personas Team
+  tags:
+    - bug
+    - fix
+    - master
+    - orchestration
+    - wf1
+  averageDuration: 1-3 days
+
+inputs:
+  - name: BUG_ID
+    type: string
+    description: Azure DevOps Bug ID
+    required: true
+    pattern: "^[A-Z0-9-]+$"
+  - name: BUG_SEVERITY
+    type: enum
+    values: [P1, P2, P3]
+    description: Bug severity level
+    required: true
+  - name: BUG_DESCRIPTION
+    type: string
+    description: Brief description
+    required: true
+    pattern: "^[a-z0-9-]+$"
+
+prerequisites:
+  - description: Bug verified and reproducible
+    required: true
+  - description: Root cause identified
+    required: true
+  - description: Test case exists to verify fix
+    required: true
+
+steps:
+  - id: initialize-bug-fix
+    name: Initialize Bug Fix
+    description: Create bug fix branch
+    action: execute-workflow
+    workflow: wf3-branch-creation
+    inputs:
+      WORK_TYPE: bug
+      WORK_ITEM_ID: "${inputs.BUG_ID}"
+      DESCRIPTION: "${inputs.BUG_DESCRIPTION}"
+    outputs:
+      - BRANCH_NAME
+      - STATUS
+
+  - id: implement-fix
+    name: Implement Fix
+    description: Commit bug fix with tests
+    action: execute-workflow
+    workflow: wf4-code-commit
+    inputs:
+      BRANCH_NAME: "${steps.initialize-bug-fix.BRANCH_NAME}"
+      COMMIT_TYPE: fix
+      INCLUDE_TESTS: true
+
+  - id: verify-fix-locally
+    name: Verify Fix Locally
+    description: Run tests to verify bug is fixed
+    action: shell-command
+    command: "npm test -- --testNamePattern='${inputs.BUG_ID}' || pytest tests/test_bug_${inputs.BUG_ID}.py"
+    onError: fail
+
+  - id: create-pull-request
+    name: Create Pull Request
+    description: Create PR for bug fix
+    action: execute-workflow
+    workflow: wf5-pull-request-creation
+    inputs:
+      BRANCH_NAME: "${steps.initialize-bug-fix.BRANCH_NAME}"
+      WORK_ITEM_ID: "${inputs.BUG_ID}"
+      PR_TYPE: bugfix
+      EXPEDITE: "${inputs.BUG_SEVERITY eq 'P1'}"
+    outputs:
+      - PR_NUMBER
+      - PR_URL
+
+  - id: fast-track-review
+    name: Fast-Track Review (if P1)
+    description: Expedite review for P1 bugs
+    action: conditional
+    condition: "${inputs.BUG_SEVERITY eq 'P1'}"
+    steps:
+      - id: notify-emergency-reviewers
+        action: azure-devops
+        operation: notify-reviewers
+        inputs:
+          group: emergency_reviewers
+          sla: 2h
+          message: "P1 Bug Fix requires urgent review: PR #${steps.create-pull-request.PR_NUMBER}"
+
+  - id: merge-and-verify
+    name: Merge and Verify
+    description: Merge the bug fix
+    action: execute-workflow
+    workflow: wf8-merge
+    inputs:
+      PR_NUMBER: "${steps.create-pull-request.PR_NUMBER}"
+      MERGE_STRATEGY: squash
+      DELETE_BRANCH: true
+    outputs:
+      - MERGE_COMMIT
+      - STATUS
+
+  - id: production-verification
+    name: Production Verification
+    description: Monitor bug fix in production
+    action: execute-workflow
+    workflow: wf9-post-merge-monitoring
+    inputs:
+      MERGE_COMMIT: "${steps.merge-and-verify.MERGE_COMMIT}"
+      MONITOR_DURATION: "${inputs.BUG_SEVERITY eq 'P1' ? '4h' : '24h'}"
+      VERIFY_BUG_FIXED: true
+      BUG_ID: "${inputs.BUG_ID}"
+    outputs:
+      - VERIFICATION_STATUS
+
+outputs:
+  - name: BUG_FIX_BRANCH
+    value: "${steps.initialize-bug-fix.BRANCH_NAME}"
+    description: Branch name used
+  - name: PR_NUMBER
+    value: "${steps.create-pull-request.PR_NUMBER}"
+    description: Pull request number
+  - name: MERGE_COMMIT
+    value: "${steps.merge-and-verify.MERGE_COMMIT}"
+    description: Merge commit SHA
+  - name: VERIFICATION_STATUS
+    value: "${steps.production-verification.VERIFICATION_STATUS}"
+    description: Bug verification status (fixed | not_fixed | partially_fixed)
+
+successCriteria:
+  - Bug reproduced before fix
+  - Fix implemented with tests
+  - Bug not reproducible after fix
+  - No regression in related areas
+  - Bug status updated to "Resolved"
+
+errorHandling:
+  strategy: fail-fast
+  onFailure:
+    - id: revert-if-merged
+      action: conditional
+      condition: "${steps.merge-and-verify.STATUS eq 'completed'}"
+      steps:
+        - id: execute-rollback
+          action: execute-workflow
+          workflow: wf11-rollback
+          inputs:
+            COMMIT: "${steps.merge-and-verify.MERGE_COMMIT}"
+            REASON: "Bug fix verification failed"
+  notifications:
+    - type: azure-devops
+      target: "${inputs.BUG_ID}"

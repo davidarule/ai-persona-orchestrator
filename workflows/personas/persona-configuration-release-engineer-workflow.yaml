@@ -1,0 +1,294 @@
+# persona-configuration-release-engineer-workflow.yaml
+metadata:
+  id: persona-configuration-release-engineer-workflow
+  name: Configuration & Release Engineer Workflow - Release management and deployment
+  version: 1.0.0
+  type: persona
+  description: Defines how Configuration & Release Engineer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - configuration-release-engineer
+    - deployment
+    - release-management
+    - ci-cd
+  persona_info:
+    type: configuration-release-engineer
+    first_name: Carl
+    last_name: Bot
+    email: carl.bot@company.com
+    role: Configuration & Release Engineer
+    skills:
+      - Release Management
+      - CI/CD Pipelines
+      - Configuration Management
+      - Deployment Automation
+      - Version Control
+      - Build Management
+      - Environment Management
+      - Release Coordination
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, release, deployment]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, configure, deploy, release, rollback]
+    description: Action to perform
+    required: false
+    default: analyze
+  - name: ENVIRONMENT
+    type: enum
+    values: [dev, test, staging, production]
+    description: Target environment
+    required: false
+    default: test
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: CI/CD pipeline access
+    required: true
+  - description: Deployment permissions
+    required: true
+
+steps:
+  - id: analyze-release-requirements
+    name: Analyze Release Requirements
+    description: Analyze release and deployment requirements
+    action: shell-command
+    command: |
+      # Analyze release requirements
+      echo "Analyzing release requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Check release readiness
+      RELEASE_READY=$(check_release_readiness ${inputs.WORK_ITEM_ID})
+      
+      # Determine deployment strategy
+      DEPLOYMENT_STRATEGY=$(determine_deployment_strategy)
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "release")
+          echo "RECOMMENDED_ACTION=prepare-release"
+          ;;
+        "deployment")
+          echo "RECOMMENDED_ACTION=execute-deployment"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=configure-pipeline"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-configuration"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - RELEASE_READY
+      - DEPLOYMENT_STRATEGY
+
+  - id: release-planning
+    name: Release Planning
+    description: Plan release activities
+    action: shell-command
+    command: |
+      # Release planning
+      identify_release_components
+      create_release_schedule
+      coordinate_with_teams
+      prepare_release_notes
+      plan_rollback_strategy
+    outputs:
+      - RELEASE_PLAN
+
+  - id: route-to-workflow
+    name: Route to Release Workflow
+    description: Execute appropriate release workflow
+    action: conditional
+    condition: "${steps.analyze-release-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'prepare-release'"
+        steps:
+          - action: shell-command
+            command: |
+              # Prepare release
+              create_release_branch
+              tag_release_version
+              generate_release_artifacts
+              prepare_deployment_packages
+          - action: execute-workflow
+            workflow: wf8-merge
+            inputs:
+              PR_NUMBER: ${context.release_pr}
+              MERGE_STRATEGY: merge
+      
+      - condition: "eq 'execute-deployment'"
+        steps:
+          - action: shell-command
+            command: |
+              # Execute deployment
+              validate_deployment_prerequisites
+              execute_deployment_scripts
+              verify_deployment_success
+              update_deployment_records
+      
+      - condition: "eq 'configure-pipeline'"
+        steps:
+          - action: execute-workflow
+            workflow: wf3-branch-creation
+            inputs:
+              WORK_TYPE: feature
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              DESCRIPTION: pipeline-config
+
+  - id: pipeline-configuration
+    name: Pipeline Configuration
+    description: Configure CI/CD pipelines
+    action: shell-command
+    command: |
+      # Pipeline configuration
+      setup_build_pipeline
+      configure_test_pipeline
+      setup_deployment_pipeline
+      implement_quality_gates
+      configure_notifications
+    outputs:
+      - PIPELINE_CONFIGURED
+
+  - id: build-management
+    name: Build Management
+    description: Manage build processes
+    action: shell-command
+    command: |
+      # Build management
+      configure_build_tools
+      setup_artifact_repository
+      implement_versioning
+      manage_dependencies
+      optimize_build_performance
+    outputs:
+      - BUILD_CONFIGURED
+
+  - id: environment-management
+    name: Environment Management
+    description: Manage deployment environments
+    action: shell-command
+    command: |
+      # Environment management
+      provision_environments
+      configure_environment_variables
+      manage_secrets
+      setup_monitoring
+      maintain_environment_consistency
+    outputs:
+      - ENVIRONMENTS_READY
+
+  - id: deployment-automation
+    name: Deployment Automation
+    description: Automate deployment processes
+    action: shell-command
+    command: |
+      # Deployment automation
+      create_deployment_scripts
+      implement_blue_green_deployment
+      setup_canary_releases
+      configure_feature_flags
+      implement_auto_rollback
+    outputs:
+      - DEPLOYMENT_AUTOMATED
+
+  - id: configuration-management
+    name: Configuration Management
+    description: Manage configurations
+    action: shell-command
+    command: |
+      # Configuration management
+      manage_application_configs
+      implement_config_templates
+      setup_config_versioning
+      manage_environment_configs
+      implement_config_validation
+    outputs:
+      - CONFIGURATIONS_MANAGED
+
+  - id: release-coordination
+    name: Release Coordination
+    description: Coordinate release activities
+    action: shell-command
+    command: |
+      # Release coordination
+      coordinate_with_stakeholders
+      schedule_maintenance_windows
+      communicate_release_status
+      manage_release_approvals
+      document_release_process
+    outputs:
+      - RELEASE_COORDINATED
+
+  - id: post-deployment-validation
+    name: Post-deployment Validation
+    description: Validate deployment success
+    action: execute-workflow
+    workflow: wf9-post-merge-monitoring
+    inputs:
+      MERGE_COMMIT: ${context.deployment_commit}
+      MONITOR_DURATION: 4h
+      ALERT_THRESHOLD: high
+
+  - id: create-release-tasks
+    name: Create Release Tasks
+    description: Create release-related tasks
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: Task
+        title: "Validate deployment for ${inputs.WORK_ITEM_ID}"
+        assignedTo: qa-test-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+      - type: Task
+        title: "Monitor post-deployment metrics"
+        assignedTo: site-reliability-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Release engineering result
+  - name: RELEASE_VERSION
+    value: "${context.release_version}"
+    description: Release version
+  - name: DEPLOYMENT_STATUS
+    value: "${context.deployment_status}"
+    description: Deployment status
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Release prepared successfully
+  - Pipeline configured
+  - Deployment successful
+  - Validation passed
+  - Documentation updated
+
+errorHandling:
+  strategy: rollback
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in release engineer workflow: ${error.message}"
+    - id: trigger-rollback
+      action: execute-workflow
+      workflow: wf11-rollback
+      inputs:
+        TARGET_COMMIT: ${context.deployment_commit}
+        ROLLBACK_TO: last_known_good
+        ENVIRONMENT: ${inputs.ENVIRONMENT}
+        REASON: "Deployment failure"

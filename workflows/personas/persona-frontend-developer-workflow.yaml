@@ -1,0 +1,271 @@
+# persona-frontend-developer-workflow.yaml
+metadata:
+  id: persona-frontend-developer-workflow
+  name: Front End Developer Workflow - UI/UX implementation and frontend development
+  version: 1.0.0
+  type: persona
+  description: Defines how Front End Developer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - frontend-developer
+    - ui
+    - ux
+    - javascript
+    - react
+  persona_info:
+    type: frontend-developer
+    first_name: Fiona
+    last_name: Bot
+    email: fiona.bot@company.com
+    role: Front End Developer
+    skills:
+      - React/Angular/Vue
+      - HTML/CSS/JavaScript
+      - Responsive Design
+      - State Management
+      - Component Development
+      - Performance Optimization
+      - Accessibility
+      - Cross-browser Compatibility
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, ui-bug]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, implement, review, plan, style, test]
+    description: Action to perform
+    required: false
+    default: analyze
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Design mockups available
+    required: false
+  - description: Frontend environment setup
+    required: true
+
+steps:
+  - id: analyze-ui-requirements
+    name: Analyze UI Requirements
+    description: Analyze frontend requirements
+    action: shell-command
+    command: |
+      # Analyze UI requirements
+      echo "Analyzing UI requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Check for design files
+      DESIGN_AVAILABLE=$(check_for_design_files ${inputs.WORK_ITEM_ID})
+      
+      # Determine framework
+      FRAMEWORK=$(detect_frontend_framework)
+      
+      # Set action based on work type
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "ui-bug")
+          echo "RECOMMENDED_ACTION=fix-ui-bug"
+          ;;
+        "feature"|"user-story")
+          echo "RECOMMENDED_ACTION=implement-ui-feature"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-ui-work"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - FRAMEWORK
+      - DESIGN_AVAILABLE
+
+  - id: setup-frontend-env
+    name: Setup Frontend Environment
+    description: Prepare frontend development environment
+    action: shell-command
+    command: |
+      # Setup frontend environment
+      npm install || yarn install || pnpm install
+      
+      # Install dev dependencies
+      install_storybook
+      setup_testing_library
+      configure_eslint_prettier
+    outputs:
+      - FRONTEND_ENV_READY
+
+  - id: route-to-workflow
+    name: Route to Appropriate Workflow
+    description: Execute appropriate frontend workflow
+    action: conditional
+    condition: "${steps.analyze-ui-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'implement-ui-feature'"
+        steps:
+          - action: execute-workflow
+            workflow: wf0-feature-development
+            inputs:
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              FEATURE_NAME: ui-${inputs.WORK_ITEM_ID}
+          - action: execute-workflow
+            workflow: wf3-branch-creation
+            inputs:
+              WORK_TYPE: feature
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              DESCRIPTION: frontend-feature
+      
+      - condition: "eq 'fix-ui-bug'"
+        steps:
+          - action: execute-workflow
+            workflow: wf1-bug-fix
+            inputs:
+              BUG_ID: ${inputs.WORK_ITEM_ID}
+              BUG_SEVERITY: P3
+
+  - id: implement-components
+    name: Implement UI Components
+    description: Create React/Vue/Angular components
+    action: shell-command
+    command: |
+      # Implement components
+      generate_component_boilerplate
+      implement_component_logic
+      add_component_styling
+      create_component_tests
+    outputs:
+      - COMPONENTS_CREATED
+
+  - id: styling-implementation
+    name: Implement Styling
+    description: Apply CSS and responsive design
+    action: shell-command
+    command: |
+      # Implement styling
+      apply_design_system
+      implement_responsive_design
+      add_animations
+      optimize_css
+    outputs:
+      - STYLING_COMPLETE
+
+  - id: accessibility-check
+    name: Accessibility Check
+    description: Ensure accessibility compliance
+    action: shell-command
+    command: |
+      # Check accessibility
+      run_axe_devtools
+      check_wcag_compliance
+      test_keyboard_navigation
+      verify_screen_reader_compatibility
+    outputs:
+      - A11Y_PASSED
+
+  - id: frontend-testing
+    name: Frontend Testing
+    description: Run frontend tests
+    action: shell-command
+    command: |
+      # Run tests
+      npm test
+      run_cypress_tests
+      run_visual_regression_tests
+    outputs:
+      - TESTS_PASSED
+
+  - id: performance-optimization
+    name: Performance Optimization
+    description: Optimize frontend performance
+    action: shell-command
+    command: |
+      # Optimize performance
+      run_lighthouse_audit
+      optimize_bundle_size
+      implement_lazy_loading
+      setup_code_splitting
+    outputs:
+      - PERFORMANCE_OPTIMIZED
+
+  - id: commit-frontend-changes
+    name: Commit Frontend Changes
+    description: Commit UI implementation
+    action: execute-workflow
+    workflow: wf4-code-commit
+    inputs:
+      BRANCH_NAME: ${context.branch_name}
+      COMMIT_TYPE: feat
+      COMMIT_MESSAGE: "Implement UI for ${inputs.WORK_ITEM_ID}"
+
+  - id: create-pr-for-review
+    name: Create PR for Review
+    description: Submit frontend code for review
+    action: conditional
+    condition: "${steps.frontend-testing.TESTS_PASSED}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: execute-workflow
+            workflow: wf13-pr-readiness-check
+            inputs:
+              BRANCH_NAME: ${context.branch_name}
+          - action: execute-workflow
+            workflow: wf5-pull-request-creation
+            inputs:
+              BRANCH_NAME: ${context.branch_name}
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              PR_TYPE: feature
+
+  - id: handoff-tasks
+    name: Create Handoff Tasks
+    description: Create tasks for other teams
+    action: parallel
+    steps:
+      - action: azure-devops
+        operation: create-work-item
+        inputs:
+          type: Task
+          title: "Backend API integration for ${inputs.WORK_ITEM_ID}"
+          assignedTo: backend-developer
+          parent: ${inputs.WORK_ITEM_ID}
+      - action: azure-devops
+        operation: create-work-item
+        inputs:
+          type: Task
+          title: "UX review for ${inputs.WORK_ITEM_ID}"
+          assignedTo: ui-ux-designer
+          parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Frontend development result
+  - name: COMPONENTS
+    value: "${steps.implement-components.COMPONENTS_CREATED}"
+    description: Created components
+  - name: PERFORMANCE_METRICS
+    value: "${steps.performance-optimization.PERFORMANCE_OPTIMIZED}"
+    description: Performance metrics
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - UI components implemented
+  - Styling applied correctly
+  - Accessibility checks passed
+  - Performance optimized
+  - Tests passing
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in frontend workflow: ${error.message}"

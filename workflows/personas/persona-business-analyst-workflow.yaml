@@ -1,0 +1,248 @@
+# persona-business-analyst-workflow.yaml
+metadata:
+  id: persona-business-analyst-workflow
+  name: Business Analyst Workflow - Business requirements analysis and process improvement
+  version: 1.0.0
+  type: persona
+  description: Defines how Business Analyst operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - business-analyst
+    - requirements
+    - process-analysis
+    - data-analysis
+  persona_info:
+    type: business-analyst
+    first_name: Brian
+    last_name: Bot
+    email: brian.bot@company.com
+    role: Business Analyst
+    skills:
+      - Requirements Gathering
+      - Process Mapping
+      - Data Analysis
+      - Stakeholder Management
+      - Business Case Development
+      - Gap Analysis
+      - User Acceptance Testing
+      - Documentation
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, requirement, process]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, gather, document, validate, optimize]
+    description: Action to perform
+    required: false
+    default: analyze
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Stakeholder access
+    required: true
+  - description: Business documentation access
+    required: true
+
+steps:
+  - id: analyze-business-context
+    name: Analyze Business Context
+    description: Understand business context and requirements
+    action: shell-command
+    command: |
+      # Analyze business context
+      echo "Analyzing business context for ${inputs.WORK_ITEM_ID}"
+      
+      # Check business impact
+      BUSINESS_IMPACT=$(assess_business_impact ${inputs.WORK_ITEM_ID})
+      
+      # Identify stakeholders
+      STAKEHOLDERS=$(identify_stakeholders ${inputs.WORK_ITEM_ID})
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "requirement")
+          echo "RECOMMENDED_ACTION=gather-requirements"
+          ;;
+        "process")
+          echo "RECOMMENDED_ACTION=analyze-process"
+          ;;
+        "epic")
+          echo "RECOMMENDED_ACTION=develop-business-case"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-analysis"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - BUSINESS_IMPACT
+      - STAKEHOLDERS
+
+  - id: stakeholder-engagement
+    name: Stakeholder Engagement
+    description: Engage with stakeholders
+    action: shell-command
+    command: |
+      # Stakeholder engagement
+      schedule_stakeholder_interviews
+      conduct_workshops
+      gather_feedback
+      document_requirements
+    outputs:
+      - STAKEHOLDER_REQUIREMENTS
+
+  - id: route-to-workflow
+    name: Route to Analysis Workflow
+    description: Execute appropriate analysis workflow
+    action: conditional
+    condition: "${steps.analyze-business-context.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'gather-requirements'"
+        steps:
+          - action: shell-command
+            command: |
+              # Gather requirements
+              conduct_requirement_sessions
+              document_functional_requirements
+              document_non_functional_requirements
+              create_requirement_traceability_matrix
+      
+      - condition: "eq 'analyze-process'"
+        steps:
+          - action: shell-command
+            command: |
+              # Analyze process
+              map_current_process
+              identify_bottlenecks
+              propose_improvements
+              calculate_roi
+      
+      - condition: "eq 'develop-business-case'"
+        steps:
+          - action: shell-command
+            command: |
+              # Develop business case
+              analyze_costs_benefits
+              assess_risks
+              create_business_case_document
+              prepare_executive_summary
+
+  - id: data-analysis
+    name: Data Analysis
+    description: Perform data analysis
+    action: shell-command
+    command: |
+      # Data analysis
+      collect_relevant_data
+      analyze_data_patterns
+      create_visualizations
+      generate_insights
+    outputs:
+      - DATA_INSIGHTS
+
+  - id: gap-analysis
+    name: Gap Analysis
+    description: Perform gap analysis
+    action: shell-command
+    command: |
+      # Gap analysis
+      analyze_current_state
+      define_future_state
+      identify_gaps
+      propose_solutions
+    outputs:
+      - GAP_ANALYSIS_REPORT
+
+  - id: create-user-stories
+    name: Create User Stories
+    description: Transform requirements into user stories
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: User Story
+        title: "User story from requirement ${inputs.WORK_ITEM_ID}"
+        parent: ${inputs.WORK_ITEM_ID}
+        description: "${steps.stakeholder-engagement.STAKEHOLDER_REQUIREMENTS}"
+
+  - id: validation-planning
+    name: Validation Planning
+    description: Plan validation activities
+    action: shell-command
+    command: |
+      # Validation planning
+      create_test_scenarios
+      define_acceptance_criteria
+      plan_uat_activities
+    outputs:
+      - VALIDATION_PLAN
+
+  - id: documentation
+    name: Documentation
+    description: Create business documentation
+    action: shell-command
+    command: |
+      # Documentation
+      create_brd_document
+      update_process_documentation
+      create_user_guides
+      maintain_requirements_repository
+    outputs:
+      - BUSINESS_DOCUMENTATION
+
+  - id: handoff-to-teams
+    name: Handoff to Teams
+    description: Create tasks for implementation teams
+    action: parallel
+    steps:
+      - action: azure-devops
+        operation: create-work-item
+        inputs:
+          type: Task
+          title: "Technical design for ${inputs.WORK_ITEM_ID}"
+          assignedTo: software-architect
+          parent: ${inputs.WORK_ITEM_ID}
+      - action: azure-devops
+        operation: create-work-item
+        inputs:
+          type: Task
+          title: "Review requirements for ${inputs.WORK_ITEM_ID}"
+          assignedTo: product-owner
+          parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Business analysis result
+  - name: REQUIREMENTS
+    value: "${steps.stakeholder-engagement.STAKEHOLDER_REQUIREMENTS}"
+    description: Gathered requirements
+  - name: BUSINESS_CASE
+    value: "${context.business_case}"
+    description: Business case document
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Requirements gathered and documented
+  - Stakeholders engaged
+  - Analysis completed
+  - Documentation created
+  - Handoff tasks created
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in business analyst workflow: ${error.message}"

@@ -1,0 +1,609 @@
+# persona-test-engineer-workflow.yaml
+metadata:
+  id: persona-test-engineer-workflow
+  name: Test Engineer Workflow - Advanced testing and quality engineering
+  version: 1.0.0
+  type: persona
+  description: Defines how Test Engineer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - test-engineer
+    - testing
+    - automation
+    - quality-engineering
+  persona_info:
+    type: test-engineer
+    first_name: Thomas
+    last_name: Bot
+    email: thomas.bot@company.com
+    role: Test Engineer
+    skills:
+      - Test Automation
+      - Performance Testing
+      - Test Framework Development
+      - CI/CD Integration
+      - Test Data Management
+      - Cross-platform Testing
+      - Test Strategy
+      - Quality Metrics
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, test-suite]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, develop, execute, automate, validate]
+    description: Action to perform
+    required: false
+    default: analyze
+  - name: TEST_LEVEL
+    type: enum
+    values: [unit, integration, system, acceptance]
+    description: Level of testing
+    required: false
+    default: system
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Test environment configured
+    required: true
+  - description: Test tools available
+    required: true
+
+steps:
+  - id: analyze-test-requirements
+    name: Analyze Test Requirements
+    description: Analyze testing requirements
+    action: shell-command
+    command: |
+      # Analyze test requirements
+      echo "Analyzing test requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Determine test scope
+      TEST_SCOPE=$(determine_test_scope ${inputs.WORK_ITEM_ID})
+      
+      # Check automation feasibility
+      AUTOMATION_FEASIBLE=$(assess_automation_feasibility)
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "test-suite")
+          echo "RECOMMENDED_ACTION=develop-test-suite"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=create-test-strategy"
+          ;;
+        "bug")
+          echo "RECOMMENDED_ACTION=regression-testing"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-testing"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - TEST_SCOPE
+      - AUTOMATION_FEASIBLE
+
+  - id: test-strategy
+    name: Test Strategy Development
+    description: Develop comprehensive test strategy
+    action: shell-command
+    command: |
+      # Test strategy
+      define_test_objectives
+      identify_test_levels
+      plan_test_coverage
+      define_entry_exit_criteria
+      establish_test_metrics
+    outputs:
+      - TEST_STRATEGY
+
+  - id: route-to-workflow
+    name: Route to Test Workflow
+    description: Execute appropriate test workflow
+    action: conditional
+    condition: "${steps.analyze-test-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'develop-test-suite'"
+        steps:
+          - action: shell-command
+            command: |
+              # Develop test suite
+              design_test_architecture
+              create_test_cases
+              implement_test_fixtures
+              setup_test_data
+      
+      - condition: "eq 'create-test-strategy'"
+        steps:
+          - action: shell-command
+            command: |
+              # Create test strategy
+              analyze_requirements
+              identify_test_scenarios
+              prioritize_test_cases
+              plan_test_execution
+      
+      - condition: "eq 'regression-testing'"
+        steps:
+          - action: execute-workflow
+            workflow: wf13-pr-readiness-check
+            inputs:
+              BRANCH_NAME: ${context.branch_name}
+              CHECK_DEPTH: thorough
+
+  - id: test-automation-framework
+    name: Test Automation Framework
+    description: Develop test automation framework
+    action: shell-command
+    command: |
+      # Test automation framework
+      design_framework_architecture
+      implement_page_objects
+      create_test_utilities
+      setup_reporting_mechanism
+      integrate_with_ci_cd
+    outputs:
+      - AUTOMATION_FRAMEWORK
+
+  - id: test-development
+    name: Test Development
+    description: Develop test cases
+    action: shell-command
+    command: |
+      # Test development
+      write_test_cases
+      implement_test_scripts
+      create_test_data
+      setup_test_fixtures
+      implement_assertions
+    outputs:
+      - TEST_CASES
+
+  - id: performance-test-development
+    name: Performance Test Development
+    description: Develop performance tests
+    action: conditional
+    condition: "${context.performance_testing_required}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Performance test development
+              create_load_test_scripts
+              design_stress_test_scenarios
+              implement_endurance_tests
+              setup_monitoring
+              define_performance_criteria
+            outputs:
+              - PERFORMANCE_TESTS
+
+  - id: test-execution
+    name: Test Execution
+    description: Execute test cases
+    action: shell-command
+    command: |
+      # Test execution
+      setup_test_environment
+      execute_test_suite
+      monitor_test_execution
+      collect_test_results
+      analyze_failures
+    outputs:
+      - TEST_RESULTS
+
+  - id: test-data-management
+    name: Test Data Management
+    description: Manage test data
+    action: shell-command
+    command: |
+      # Test data management
+      generate_test_data
+      maintain_test_databases
+      implement_data_masking
+      manage_test_environments
+      cleanup_test_data
+    outputs:
+      - TEST_DATA_READY
+
+  - id: cross-platform-testing
+    name: Cross-platform Testing
+    description: Execute cross-platform tests
+    action: conditional
+    condition: "${context.cross_platform_required}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Cross-platform testing
+              setup_browser_matrix
+              configure_device_farm
+              execute_cross_browser_tests
+              test_mobile_platforms
+              verify_compatibility
+            outputs:
+              - CROSS_PLATFORM_RESULTS
+
+  - id: quality-metrics
+    name: Quality Metrics
+    description: Generate quality metrics
+    action: shell-command
+    command: |
+      # Quality metrics
+      calculate_test_coverage
+      measure_defect_density
+      track_test_effectiveness
+      analyze_test_trends
+      generate_quality_dashboard
+    outputs:
+      - QUALITY_METRICS
+
+  - id: create-defect-tasks
+    name: Create Defect Tasks
+    description: Create tasks for defects found
+    action: conditional
+    condition: "${steps.test-execution.TEST_RESULTS}"
+    branches:
+      - condition: "contains 'failures'"
+        steps:
+          - action: azure-devops
+            operation: create-work-items
+            inputs:
+              - type: Bug
+                title: "Test failure in ${inputs.WORK_ITEM_ID}"
+                assignedTo: developer-engineer
+                parent: ${inputs.WORK_ITEM_ID}
+                severity: P2
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Test engineering result
+  - name: TEST_SUITE
+    value: "${steps.test-development.TEST_CASES}"
+    description: Test cases developed
+  - name: TEST_RESULTS
+    value: "${steps.test-execution.TEST_RESULTS}"
+    description: Test execution results
+  - name: QUALITY_METRICS
+    value: "${steps.quality-metrics.QUALITY_METRICS}"
+    description: Quality metrics
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Test strategy defined
+  - Test cases developed
+  - Tests executed successfully
+  - Quality metrics generated
+  - Defects logged
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in test engineer workflow: ${error.message}"
+    - id: mark-test-incomplete
+      action: azure-devops
+      operation: update-work-item
+      inputs:
+        id: ${inputs.WORK_ITEM_ID}
+        state: "Testing Incomplete"# persona-test-engineer-workflow.yaml
+metadata:
+  id: persona-test-engineer-workflow
+  name: Test Engineer Workflow - Advanced testing and quality engineering
+  version: 1.0.0
+  type: persona
+  description: Defines how Test Engineer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - test-engineer
+    - testing
+    - automation
+    - quality-engineering
+  persona_info:
+    type: test-engineer
+    first_name: Thomas
+    last_name: Bot
+    email: thomas.bot@company.com
+    role: Test Engineer
+    skills:
+      - Test Automation
+      - Performance Testing
+      - Test Framework Development
+      - CI/CD Integration
+      - Test Data Management
+      - Cross-platform Testing
+      - Test Strategy
+      - Quality Metrics
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, test-suite]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, develop, execute, automate, validate]
+    description: Action to perform
+    required: false
+    default: analyze
+  - name: TEST_LEVEL
+    type: enum
+    values: [unit, integration, system, acceptance]
+    description: Level of testing
+    required: false
+    default: system
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Test environment configured
+    required: true
+  - description: Test tools available
+    required: true
+
+steps:
+  - id: analyze-test-requirements
+    name: Analyze Test Requirements
+    description: Analyze testing requirements
+    action: shell-command
+    command: |
+      # Analyze test requirements
+      echo "Analyzing test requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Determine test scope
+      TEST_SCOPE=$(determine_test_scope ${inputs.WORK_ITEM_ID})
+      
+      # Check automation feasibility
+      AUTOMATION_FEASIBLE=$(assess_automation_feasibility)
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "test-suite")
+          echo "RECOMMENDED_ACTION=develop-test-suite"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=create-test-strategy"
+          ;;
+        "bug")
+          echo "RECOMMENDED_ACTION=regression-testing"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-testing"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - TEST_SCOPE
+      - AUTOMATION_FEASIBLE
+
+  - id: test-strategy
+    name: Test Strategy Development
+    description: Develop comprehensive test strategy
+    action: shell-command
+    command: |
+      # Test strategy
+      define_test_objectives
+      identify_test_levels
+      plan_test_coverage
+      define_entry_exit_criteria
+      establish_test_metrics
+    outputs:
+      - TEST_STRATEGY
+
+  - id: route-to-workflow
+    name: Route to Test Workflow
+    description: Execute appropriate test workflow
+    action: conditional
+    condition: "${steps.analyze-test-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'develop-test-suite'"
+        steps:
+          - action: shell-command
+            command: |
+              # Develop test suite
+              design_test_architecture
+              create_test_cases
+              implement_test_fixtures
+              setup_test_data
+      
+      - condition: "eq 'create-test-strategy'"
+        steps:
+          - action: shell-command
+            command: |
+              # Create test strategy
+              analyze_requirements
+              identify_test_scenarios
+              prioritize_test_cases
+              plan_test_execution
+      
+      - condition: "eq 'regression-testing'"
+        steps:
+          - action: execute-workflow
+            workflow: wf13-pr-readiness-check
+            inputs:
+              BRANCH_NAME: ${context.branch_name}
+              CHECK_DEPTH: thorough
+
+  - id: test-automation-framework
+    name: Test Automation Framework
+    description: Develop test automation framework
+    action: shell-command
+    command: |
+      # Test automation framework
+      design_framework_architecture
+      implement_page_objects
+      create_test_utilities
+      setup_reporting_mechanism
+      integrate_with_ci_cd
+    outputs:
+      - AUTOMATION_FRAMEWORK
+
+  - id: test-development
+    name: Test Development
+    description: Develop test cases
+    action: shell-command
+    command: |
+      # Test development
+      write_test_cases
+      implement_test_scripts
+      create_test_data
+      setup_test_fixtures
+      implement_assertions
+    outputs:
+      - TEST_CASES
+
+  - id: performance-test-development
+    name: Performance Test Development
+    description: Develop performance tests
+    action: conditional
+    condition: "${context.performance_testing_required}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Performance test development
+              create_load_test_scripts
+              design_stress_test_scenarios
+              implement_endurance_tests
+              setup_monitoring
+              define_performance_criteria
+            outputs:
+              - PERFORMANCE_TESTS
+
+  - id: test-execution
+    name: Test Execution
+    description: Execute test cases
+    action: shell-command
+    command: |
+      # Test execution
+      setup_test_environment
+      execute_test_suite
+      monitor_test_execution
+      collect_test_results
+      analyze_failures
+    outputs:
+      - TEST_RESULTS
+
+  - id: test-data-management
+    name: Test Data Management
+    description: Manage test data
+    action: shell-command
+    command: |
+      # Test data management
+      generate_test_data
+      maintain_test_databases
+      implement_data_masking
+      manage_test_environments
+      cleanup_test_data
+    outputs:
+      - TEST_DATA_READY
+
+  - id: cross-platform-testing
+    name: Cross-platform Testing
+    description: Execute cross-platform tests
+    action: conditional
+    condition: "${context.cross_platform_required}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Cross-platform testing
+              setup_browser_matrix
+              configure_device_farm
+              execute_cross_browser_tests
+              test_mobile_platforms
+              verify_compatibility
+            outputs:
+              - CROSS_PLATFORM_RESULTS
+
+  - id: quality-metrics
+    name: Quality Metrics
+    description: Generate quality metrics
+    action: shell-command
+    command: |
+      # Quality metrics
+      calculate_test_coverage
+      measure_defect_density
+      track_test_effectiveness
+      analyze_test_trends
+      generate_quality_dashboard
+    outputs:
+      - QUALITY_METRICS
+
+  - id: create-defect-tasks
+    name: Create Defect Tasks
+    description: Create tasks for defects found
+    action: conditional
+    condition: "${steps.test-execution.TEST_RESULTS}"
+    branches:
+      - condition: "contains 'failures'"
+        steps:
+          - action: azure-devops
+            operation: create-work-items
+            inputs:
+              - type: Bug
+                title: "Test failure in ${inputs.WORK_ITEM_ID}"
+                assignedTo: developer-engineer
+                parent: ${inputs.WORK_ITEM_ID}
+                severity: P2
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Test engineering result
+  - name: TEST_SUITE
+    value: "${steps.test-development.TEST_CASES}"
+    description: Test cases developed
+  - name: TEST_RESULTS
+    value: "${steps.test-execution.TEST_RESULTS}"
+    description: Test execution results
+  - name: QUALITY_METRICS
+    value: "${steps.quality-metrics.QUALITY_METRICS}"
+    description: Quality metrics
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Test strategy defined
+  - Test cases developed
+  - Tests executed successfully
+  - Quality metrics generated
+  - Defects logged
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in test engineer workflow: ${error.message}"
+    - id: mark-test-incomplete
+      action: azure-devops
+      operation: update-work-item
+      inputs:
+        id: ${inputs.WORK_ITEM_ID}
+        state: "Testing Incomplete"

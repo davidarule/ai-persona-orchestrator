@@ -1,0 +1,258 @@
+metadata:
+  id: wf7-pull-request-response
+  name: Pull Request Response Workflow (As Author) - Respond to PR feedback and update PR (as author)
+  version: 1.0.0
+  type: core
+  description: Respond to PR feedback and update code
+  author: AI Personas Team
+  tags:
+    - pull-request
+    - response
+    - core
+    - atomic
+    - wf7
+  averageDuration: 30-120 minutes
+  role: author
+
+inputs:
+  - name: PR_NUMBER
+    type: number
+    description: Pull request to respond to
+    required: true
+  - name: RESPONSE_TYPE
+    type: enum
+    values: [address_feedback, request_clarification, defend_approach, compromise]
+    description: Type of response
+    required: true
+    default: address_feedback
+
+prerequisites:
+  - description: PR has review feedback
+    required: true
+  - description: Author has access to PR
+    required: true
+  - description: Local environment ready
+    required: true
+
+steps:
+  - id: get-pr-details
+    name: Get PR Details
+    description: Get PR information including source branch
+    action: azure-devops
+    operation: get-pr-details
+    inputs:
+      pr_id: "${inputs.PR_NUMBER}"
+    outputs:
+      - SOURCE_BRANCH
+      - TARGET_BRANCH
+      - PR_STATUS
+      
+  - id: get-pr-feedback
+    name: Get PR Feedback
+    description: Retrieve all review comments and status
+    action: azure-devops
+    operation: get-pr-threads
+    inputs:
+      pr_id: "${inputs.PR_NUMBER}"
+    outputs:
+      - REVIEW_THREADS
+      - UNRESOLVED_COUNT
+      - REVIEWER_VOTES
+
+  - id: analyze-feedback
+    name: Analyze Feedback
+    description: Categorize and prioritize feedback
+    action: shell-command
+    command: |
+      # Analyze the feedback data
+      FEEDBACK_DATA='${steps.get-pr-feedback.REVIEW_THREADS}'
+      
+      # Count different types of feedback
+      CRITICAL_COUNT=$(echo "$FEEDBACK_DATA" | jq '[.[] | select(.type == "critical")] | length')
+      SUGGESTION_COUNT=$(echo "$FEEDBACK_DATA" | jq '[.[] | select(.type == "suggestion")] | length')
+      QUESTION_COUNT=$(echo "$FEEDBACK_DATA" | jq '[.[] | select(.type == "question")] | length')
+      
+      echo "CRITICAL_ISSUES=$CRITICAL_COUNT"
+      echo "SUGGESTIONS=$SUGGESTION_COUNT"
+      echo "QUESTIONS=$QUESTION_COUNT"
+    outputs:
+      - CRITICAL_ISSUES
+      - SUGGESTIONS
+      - QUESTIONS
+
+  - id: checkout-pr-branch
+    name: Checkout PR Branch
+    description: Switch to the PR branch
+    action: git-operation
+    operation: checkout
+    inputs:
+      branch: "${steps.get-pr-details.SOURCE_BRANCH}"
+
+  - id: address-critical-issues
+    name: Address Critical Issues
+    description: Fix critical problems first
+    action: conditional
+    condition: "${steps.analyze-feedback.CRITICAL_ISSUES gt '0'}"
+    steps:
+      - id: implement-fixes
+        name: Implement Fixes
+        action: shell-command
+        command: echo "Implementing critical fixes based on feedback"
+      
+      - id: commit-fixes
+        name: Commit Fixes
+        action: execute-workflow
+        workflow: wf4-code-commit
+        inputs:
+          BRANCH_NAME: "${steps.get-pr-details.SOURCE_BRANCH}"
+          COMMIT_TYPE: fix
+          COMMIT_MESSAGE: "Address review feedback: critical issues"
+          PUSH: true
+
+  - id: respond-to-comments
+    name: Respond to Comments
+    description: Reply to reviewer comments
+    action: for-loop
+    items: "${steps.get-pr-feedback.REVIEW_THREADS}"
+    steps:
+      - id: check-thread-active
+        name: Check if Thread is Active
+        action: conditional
+        condition: "${item.status eq 'active'}"
+        steps:
+          - id: respond-to-critical
+            name: Respond to Critical Issue
+            action: conditional
+            condition: "${item.type eq 'critical'}"
+            steps:
+              - action: azure-devops
+                operation: reply-to-thread
+                inputs:
+                  pr_id: "${inputs.PR_NUMBER}"
+                  thread_id: "${item.id}"
+                  content: "Fixed in commit ${steps.commit-fixes.COMMIT_SHA}"
+                  status: "resolved"
+          
+          - id: respond-to-suggestion
+            name: Respond to Suggestion
+            action: conditional
+            condition: "${item.type eq 'suggestion'}"
+            steps:
+              - action: azure-devops
+                operation: reply-to-thread
+                inputs:
+                  pr_id: "${inputs.PR_NUMBER}"
+                  thread_id: "${item.id}"
+                  content: "Good suggestion, implemented"
+                  status: "${item.requires_fix ? 'resolved' : 'active'}"
+          
+          - id: respond-to-question
+            name: Respond to Question
+            action: conditional
+            condition: "${item.type eq 'question'}"
+            steps:
+              - action: azure-devops
+                operation: reply-to-thread
+                inputs:
+                  pr_id: "${inputs.PR_NUMBER}"
+                  thread_id: "${item.id}"
+                  content: "Clarification: Please see updated documentation and tests"
+                  status: "active"
+          
+          - id: respond-to-other
+            name: Respond to Other Comments
+            action: conditional
+            condition: "${item.type ne 'critical' and item.type ne 'suggestion' and item.type ne 'question'}"
+            steps:
+              - action: azure-devops
+                operation: reply-to-thread
+                inputs:
+                  pr_id: "${inputs.PR_NUMBER}"
+                  thread_id: "${item.id}"
+                  content: "Acknowledged"
+                  status: "active"
+
+  - id: update-pr-description
+    name: Update PR Description
+    description: Update PR with changes made
+    action: azure-devops
+    operation: update-pr
+    inputs:
+      pr_id: "${inputs.PR_NUMBER}"
+      description_append: |
+        
+        ## Updates Based on Review Feedback
+        
+        - Addressed all critical issues
+        - Implemented suggested improvements
+        - Added requested tests/documentation
+        - Resolved review comments
+
+  - id: run-validation
+    name: Run Validation
+    description: Ensure changes still pass all checks
+    action: parallel
+    steps:
+      - id: run-tests
+        action: shell-command
+        command: npm test || yarn test || pytest
+        onError: fail
+      
+      - id: run-lint
+        action: shell-command
+        command: npm run lint || yarn lint
+        onError: fail
+      
+      - id: run-build
+        action: shell-command
+        command: npm run build || yarn build
+        onError: fail
+
+  - id: request-re-review
+    name: Request Re-review
+    description: Ask reviewers to look again
+    action: azure-devops
+    operation: reset-reviewer-votes
+    inputs:
+      pr_id: "${inputs.PR_NUMBER}"
+      message: |
+        @reviewers I've addressed all the feedback:
+        - ✅ Fixed ${steps.analyze-feedback.CRITICAL_ISSUES} critical issues
+        - ✅ Implemented ${steps.analyze-feedback.SUGGESTIONS} suggestions
+        - ✅ Answered ${steps.analyze-feedback.QUESTIONS} questions
+        - ✅ All tests passing
+        
+        Please re-review when you have a chance. Thanks!
+
+outputs:
+  - name: PR_NUMBER
+    value: "${inputs.PR_NUMBER}"
+    description: PR that was updated
+  - name: COMMITS_ADDED
+    value: "1"
+    description: Number of commits added
+  - name: COMMENTS_RESOLVED
+    value: "${steps.get-pr-feedback.UNRESOLVED_COUNT}"
+    description: Number of comments resolved
+  - name: STATUS
+    value: "${steps.get-pr-feedback.UNRESOLVED_COUNT eq '0' ? 'ready_for_merge' : 'needs_more_work'}"
+    description: Current PR status
+
+successCriteria:
+  - All critical issues addressed
+  - All reviewer comments responded to
+  - Tests still passing
+  - Re-review requested
+
+errorHandling:
+  strategy: fail-fast
+  onFailure:
+    - id: notify-author
+      action: azure-devops
+      operation: create-pr-thread
+      inputs:
+        pr_id: "${inputs.PR_NUMBER}"
+        content: "Failed to complete response workflow. Manual intervention needed."
+  notifications:
+    - type: log
+      target: error

@@ -1,0 +1,296 @@
+# persona-security-engineer-workflow.yaml
+metadata:
+  id: persona-security-engineer-workflow
+  name: Security Engineer Workflow - Security assessment and vulnerability management
+  version: 1.0.0
+  type: persona
+  description: Defines how Security Engineer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - security-engineer
+    - vulnerability-management
+    - penetration-testing
+    - security-assessment
+  persona_info:
+    type: security-engineer
+    first_name: Steven
+    last_name: Bot
+    email: steven.bot@company.com
+    role: Security Engineer
+    skills:
+      - Penetration Testing
+      - Vulnerability Assessment
+      - Security Auditing
+      - Incident Response
+      - Security Tools
+      - Threat Modeling
+      - Compliance
+      - Forensics
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, security-issue, vulnerability]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, assess, test, remediate, audit]
+    description: Action to perform
+    required: false
+    default: analyze
+  - name: THREAT_LEVEL
+    type: enum
+    values: [critical, high, medium, low]
+    description: Threat level
+    required: false
+    default: medium
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Security tools access
+    required: true
+  - description: System access for testing
+    required: true
+
+steps:
+  - id: analyze-security-context
+    name: Analyze Security Context
+    description: Analyze security requirements and threats
+    action: shell-command
+    command: |
+      # Analyze security context
+      echo "Analyzing security context for ${inputs.WORK_ITEM_ID}"
+      
+      # Check vulnerability status
+      VULN_STATUS=$(check_vulnerability_status)
+      
+      # Assess threat level
+      THREAT_ASSESSMENT=$(assess_threat_level ${inputs.WORK_ITEM_ID})
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "vulnerability")
+          echo "RECOMMENDED_ACTION=remediate-vulnerability"
+          ;;
+        "security-issue")
+          echo "RECOMMENDED_ACTION=investigate-security-issue"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=security-review"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-security-work"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - VULN_STATUS
+      - THREAT_ASSESSMENT
+
+  - id: threat-modeling
+    name: Threat Modeling
+    description: Perform threat modeling
+    action: shell-command
+    command: |
+      # Threat modeling
+      identify_assets
+      identify_threats
+      assess_vulnerabilities
+      calculate_risk_scores
+      prioritize_threats
+    outputs:
+      - THREAT_MODEL
+
+  - id: route-to-workflow
+    name: Route to Security Workflow
+    description: Execute appropriate security workflow
+    action: conditional
+    condition: "${steps.analyze-security-context.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'remediate-vulnerability'"
+        steps:
+          - action: conditional
+            condition: "${inputs.THREAT_LEVEL}"
+            branches:
+              - condition: "eq 'critical'"
+                steps:
+                  - action: execute-workflow
+                    workflow: wf2-hotfix
+                    inputs:
+                      INCIDENT_ID: ${inputs.WORK_ITEM_ID}
+                      SEVERITY: P1
+                      ROLLBACK_FIRST: false
+              - condition: "neq 'critical'"
+                steps:
+                  - action: execute-workflow
+                    workflow: wf1-bug-fix
+                    inputs:
+                      BUG_ID: ${inputs.WORK_ITEM_ID}
+                      BUG_SEVERITY: P2
+      
+      - condition: "eq 'investigate-security-issue'"
+        steps:
+          - action: shell-command
+            command: |
+              # Investigate security issue
+              collect_forensic_data
+              analyze_attack_vectors
+              identify_compromised_systems
+              determine_impact
+      
+      - condition: "eq 'security-review'"
+        steps:
+          - action: execute-workflow
+            workflow: wf6-pull-request-review
+            inputs:
+              PR_NUMBER: ${context.pr_number}
+              REVIEW_TYPE: security
+
+  - id: vulnerability-scanning
+    name: Vulnerability Scanning
+    description: Scan for vulnerabilities
+    action: shell-command
+    command: |
+      # Vulnerability scanning
+      run_nessus_scan
+      run_openvas_scan
+      run_qualys_scan
+      analyze_scan_results
+      prioritize_findings
+    outputs:
+      - SCAN_RESULTS
+
+  - id: penetration-testing
+    name: Penetration Testing
+    description: Perform penetration testing
+    action: conditional
+    condition: "${context.pentest_required}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Penetration testing
+              perform_reconnaissance
+              scan_for_vulnerabilities
+              attempt_exploitation
+              test_privilege_escalation
+              document_findings
+            outputs:
+              - PENTEST_REPORT
+
+  - id: security-auditing
+    name: Security Auditing
+    description: Perform security audit
+    action: shell-command
+    command: |
+      # Security auditing
+      review_access_controls
+      audit_configurations
+      check_compliance
+      review_security_policies
+      generate_audit_report
+    outputs:
+      - AUDIT_REPORT
+
+  - id: incident-response
+    name: Incident Response
+    description: Respond to security incidents
+    action: conditional
+    condition: "${inputs.WORK_ITEM_TYPE}"
+    branches:
+      - condition: "eq 'security-issue'"
+        steps:
+          - action: shell-command
+            command: |
+              # Incident response
+              contain_threat
+              eradicate_threat
+              recover_systems
+              document_incident
+              update_security_controls
+            outputs:
+              - INCIDENT_RESPONSE_REPORT
+
+  - id: security-hardening
+    name: Security Hardening
+    description: Harden system security
+    action: shell-command
+    command: |
+      # Security hardening
+      apply_security_patches
+      configure_firewalls
+      harden_configurations
+      implement_access_controls
+      enable_security_monitoring
+    outputs:
+      - HARDENING_COMPLETE
+
+  - id: compliance-check
+    name: Compliance Check
+    description: Check compliance requirements
+    action: shell-command
+    command: |
+      # Compliance check
+      check_pci_compliance
+      check_hipaa_compliance
+      check_gdpr_compliance
+      check_sox_compliance
+      generate_compliance_report
+    outputs:
+      - COMPLIANCE_STATUS
+
+  - id: create-remediation-tasks
+    name: Create Remediation Tasks
+    description: Create tasks for security remediation
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: Task
+        title: "Apply security patch for ${inputs.WORK_ITEM_ID}"
+        assignedTo: devsecops-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+        priority: ${inputs.THREAT_LEVEL == 'critical' ? 1 : 2}
+      - type: Task
+        title: "Update security monitoring"
+        assignedTo: site-reliability-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Security work result
+  - name: VULNERABILITIES
+    value: "${steps.vulnerability-scanning.SCAN_RESULTS}"
+    description: Vulnerability scan results
+  - name: COMPLIANCE
+    value: "${steps.compliance-check.COMPLIANCE_STATUS}"
+    description: Compliance status
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Vulnerabilities identified and prioritized
+  - Security issues investigated
+  - Remediation tasks created
+  - Compliance verified
+  - Security posture improved
+
+errorHandling:
+  strategy: escalate
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in security engineer workflow: ${error.message}"
+    - id: alert-security-team
+      action: shell-command
+      command: "alert_security_team '${error.message}'"
+      condition: "${inputs.THREAT_LEVEL == 'critical'}"

@@ -1,0 +1,291 @@
+# persona-cloud-engineer-workflow.yaml
+metadata:
+  id: persona-cloud-engineer-workflow
+  name: Cloud Engineer Workflow - Cloud infrastructure and services management
+  version: 1.0.0
+  type: persona
+  description: Defines how Cloud Engineer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - cloud-engineer
+    - infrastructure
+    - aws
+    - azure
+    - gcp
+  persona_info:
+    type: cloud-engineer
+    first_name: Claire
+    last_name: Bot
+    email: claire.bot@company.com
+    role: Cloud Engineer
+    skills:
+      - Cloud Architecture
+      - Infrastructure as Code
+      - Container Orchestration
+      - Serverless Computing
+      - Cloud Security
+      - Cost Optimization
+      - Multi-cloud Management
+      - Migration Planning
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, infrastructure, migration]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, provision, migrate, optimize, monitor]
+    description: Action to perform
+    required: false
+    default: analyze
+  - name: CLOUD_PROVIDER
+    type: enum
+    values: [aws, azure, gcp, multi-cloud]
+    description: Cloud provider
+    required: false
+    default: azure
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Cloud provider credentials
+    required: true
+  - description: Terraform/IaC access
+    required: true
+
+steps:
+  - id: analyze-cloud-requirements
+    name: Analyze Cloud Requirements
+    description: Analyze cloud infrastructure needs
+    action: shell-command
+    command: |
+      # Analyze cloud requirements
+      echo "Analyzing cloud requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Check infrastructure needs
+      INFRA_NEEDS=$(analyze_infrastructure_requirements ${inputs.WORK_ITEM_ID})
+      
+      # Check cost implications
+      COST_ESTIMATE=$(estimate_cloud_costs ${inputs.WORK_ITEM_ID})
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "infrastructure")
+          echo "RECOMMENDED_ACTION=provision-infrastructure"
+          ;;
+        "migration")
+          echo "RECOMMENDED_ACTION=cloud-migration"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=cloud-service-setup"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-cloud-work"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - INFRA_NEEDS
+      - COST_ESTIMATE
+
+  - id: cloud-architecture
+    name: Cloud Architecture Design
+    description: Design cloud architecture
+    action: shell-command
+    command: |
+      # Cloud architecture
+      design_network_topology
+      plan_compute_resources
+      design_storage_strategy
+      plan_database_architecture
+      design_security_architecture
+    outputs:
+      - ARCHITECTURE_DESIGN
+
+  - id: route-to-workflow
+    name: Route to Cloud Workflow
+    description: Execute appropriate cloud workflow
+    action: conditional
+    condition: "${steps.analyze-cloud-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'provision-infrastructure'"
+        steps:
+          - action: shell-command
+            command: |
+              # Provision infrastructure
+              write_terraform_code
+              validate_terraform
+              plan_infrastructure
+              apply_infrastructure
+          - action: execute-workflow
+            workflow: wf3-branch-creation
+            inputs:
+              WORK_TYPE: feature
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              DESCRIPTION: infrastructure
+      
+      - condition: "eq 'cloud-migration'"
+        steps:
+          - action: shell-command
+            command: |
+              # Cloud migration
+              assess_current_infrastructure
+              plan_migration_strategy
+              setup_migration_tools
+              execute_migration
+              validate_migration
+      
+      - condition: "eq 'cloud-service-setup'"
+        steps:
+          - action: execute-workflow
+            workflow: wf0-feature-development
+            inputs:
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              FEATURE_NAME: cloud-${inputs.WORK_ITEM_ID}
+
+  - id: infrastructure-as-code
+    name: Infrastructure as Code
+    description: Implement IaC
+    action: shell-command
+    command: |
+      # Infrastructure as Code
+      write_terraform_modules
+      create_cloudformation_templates
+      develop_arm_templates
+      implement_pulumi_code
+      version_control_infrastructure
+    outputs:
+      - IAC_CODE
+
+  - id: container-orchestration
+    name: Container Orchestration
+    description: Setup container orchestration
+    action: conditional
+    condition: "${context.containers_required}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Container orchestration
+              setup_kubernetes_cluster
+              configure_helm_charts
+              setup_service_mesh
+              implement_auto_scaling
+              configure_monitoring
+            outputs:
+              - K8S_CONFIGURED
+
+  - id: serverless-setup
+    name: Serverless Setup
+    description: Configure serverless services
+    action: conditional
+    condition: "${context.serverless_required}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Serverless setup
+              setup_lambda_functions
+              configure_api_gateway
+              setup_event_triggers
+              implement_step_functions
+            outputs:
+              - SERVERLESS_CONFIGURED
+
+  - id: cost-optimization
+    name: Cost Optimization
+    description: Optimize cloud costs
+    action: shell-command
+    command: |
+      # Cost optimization
+      analyze_current_costs
+      identify_unused_resources
+      implement_auto_shutdown
+      optimize_instance_sizing
+      setup_cost_alerts
+    outputs:
+      - COST_SAVINGS
+
+  - id: security-configuration
+    name: Security Configuration
+    description: Configure cloud security
+    action: shell-command
+    command: |
+      # Security configuration
+      setup_iam_policies
+      configure_network_security
+      enable_encryption
+      setup_compliance_monitoring
+      configure_backup_policies
+    outputs:
+      - SECURITY_CONFIGURED
+
+  - id: monitoring-setup
+    name: Monitoring Setup
+    description: Setup cloud monitoring
+    action: shell-command
+    command: |
+      # Monitoring setup
+      configure_cloudwatch
+      setup_azure_monitor
+      configure_stackdriver
+      create_dashboards
+      setup_alerting
+    outputs:
+      - MONITORING_CONFIGURED
+
+  - id: create-deployment-tasks
+    name: Create Deployment Tasks
+    description: Create cloud deployment tasks
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: Task
+        title: "Deploy infrastructure for ${inputs.WORK_ITEM_ID}"
+        assignedTo: devsecops-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+      - type: Task
+        title: "Validate cloud deployment"
+        assignedTo: qa-test-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Cloud engineering result
+  - name: INFRASTRUCTURE
+    value: "${steps.infrastructure-as-code.IAC_CODE}"
+    description: Infrastructure as code
+  - name: COST_ESTIMATE
+    value: "${steps.analyze-cloud-requirements.COST_ESTIMATE}"
+    description: Cost estimate
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Infrastructure provisioned successfully
+  - Services configured properly
+  - Security implemented
+  - Monitoring enabled
+  - Cost optimized
+
+errorHandling:
+  strategy: rollback
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in cloud engineer workflow: ${error.message}"
+    - id: rollback-infrastructure
+      action: shell-command
+      command: "terraform destroy -auto-approve"
+      condition: "${context.infrastructure_deployed}"

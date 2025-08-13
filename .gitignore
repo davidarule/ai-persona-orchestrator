@@ -73,3 +73,19 @@ htmlcov/
 
 # Docker volumes (if mounted locally)
 volumes/
+# Exclude all data directories
+data/elasticsearch/
+data/grafana/
+data/prometheus/
+data/postgres/
+data/neo4j/
+data/redis/
+data/zeebe/
+
+# Python virtual environment
+venv/
+*.pyc
+__pycache__/
+
+# Workflows directory should be included, but not data
+!workflows/

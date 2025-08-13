@@ -1,0 +1,310 @@
+# persona-devsecops-engineer-workflow.yaml
+metadata:
+  id: persona-devsecops-engineer-workflow
+  name: DevSecOps Engineer Workflow - Security-focused CI/CD and infrastructure automation
+  version: 1.0.0
+  type: persona
+  description: Defines how DevSecOps Engineer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - devsecops-engineer
+    - security
+    - ci-cd
+    - infrastructure
+  persona_info:
+    type: devsecops-engineer
+    first_name: Derek
+    last_name: Bot
+    email: derek.bot@company.com
+    role: DevSecOps Engineer
+    skills:
+      - CI/CD Pipeline Design
+      - Security Scanning
+      - Infrastructure as Code
+      - Container Security
+      - Vulnerability Management
+      - Compliance Automation
+      - Monitoring & Alerting
+      - Secret Management
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, security-issue]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, implement, review, plan, scan, deploy]
+    description: Action to perform
+    required: false
+    default: analyze
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Appropriate permissions
+    required: true
+  - description: Security tools configured
+    required: true
+  - description: CI/CD pipeline access
+    required: true
+
+steps:
+  - id: analyze-work-item
+    name: Analyze Work Item
+    description: Determine security and infrastructure requirements
+    action: shell-command
+    command: |
+      # Analyze work item for security implications
+      echo "Analyzing work item ${inputs.WORK_ITEM_ID} for security requirements"
+      
+      # Check for security flags
+      SECURITY_REQUIRED=$(az boards work-item show --id ${inputs.WORK_ITEM_ID} \
+        --query "fields.'Custom.SecurityReview'" -o tsv)
+      
+      # Determine infrastructure changes
+      INFRA_CHANGES=$(az boards work-item show --id ${inputs.WORK_ITEM_ID} \
+        --query "fields.'Custom.InfrastructureChanges'" -o tsv)
+      
+      # Set recommended action based on work type
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "security-issue")
+          echo "RECOMMENDED_ACTION=security-scan"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=setup-pipeline"
+          ;;
+        "bug")
+          if [ "$SECURITY_REQUIRED" == "true" ]; then
+            echo "RECOMMENDED_ACTION=security-fix"
+          else
+            echo "RECOMMENDED_ACTION=standard-fix"
+          fi
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-process"
+          ;;
+      esac
+    outputs:
+      - ANALYSIS_RESULT
+      - RECOMMENDED_ACTION
+      - SECURITY_REQUIRED
+      - INFRA_CHANGES
+
+  - id: security-scan
+    name: Run Security Scans
+    description: Perform comprehensive security scanning
+    action: conditional
+    condition: "${steps.analyze-work-item.SECURITY_REQUIRED}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Run security scanning tools
+              echo "Running security scans..."
+              
+              # Container scanning
+              trivy image scan --severity HIGH,CRITICAL
+              
+              # Code scanning
+              sonarqube-scanner
+              
+              # Secret detection
+              trufflehog --regex --entropy=True
+              
+              # SAST scanning
+              checkmarx scan
+            outputs:
+              - SCAN_RESULTS
+              - VULNERABILITIES_FOUND
+
+  - id: route-to-workflow
+    name: Route to Appropriate Workflow
+    description: Call the appropriate core workflow based on analysis
+    action: conditional
+    condition: "${steps.analyze-work-item.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'security-scan'"
+        steps:
+          - action: parallel
+            steps:
+              - action: execute-workflow
+                workflow: wf15-factory-settings-lookup
+                inputs:
+                  SETTING_TYPE: security_policies
+              - action: shell-command
+                command: |
+                  # Create security report
+                  generate_security_report "${inputs.WORK_ITEM_ID}"
+      
+      - condition: "eq 'setup-pipeline'"
+        steps:
+          - action: execute-workflow
+            workflow: wf0-feature-development
+            inputs:
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              FEATURE_NAME: "pipeline-${inputs.WORK_ITEM_ID}"
+          - action: shell-command
+            command: |
+              # Setup CI/CD pipeline
+              setup_jenkins_pipeline
+              configure_security_gates
+      
+      - condition: "eq 'security-fix'"
+        steps:
+          - action: execute-workflow
+            workflow: wf2-hotfix
+            inputs:
+              INCIDENT_ID: ${inputs.WORK_ITEM_ID}
+              SEVERITY: P1
+              ROLLBACK_FIRST: false
+      
+      - condition: "eq 'standard-fix'"
+        steps:
+          - action: execute-workflow
+            workflow: wf1-bug-fix
+            inputs:
+              BUG_ID: ${inputs.WORK_ITEM_ID}
+              BUG_SEVERITY: P2
+
+  - id: infrastructure-setup
+    name: Setup Infrastructure
+    description: Configure infrastructure as code
+    action: conditional
+    condition: "${steps.analyze-work-item.INFRA_CHANGES}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Setup infrastructure
+              terraform init
+              terraform plan -out=tfplan
+              
+              # Validate security policies
+              opa eval -d policies/ tfplan.json
+            outputs:
+              - INFRA_PLAN
+          - action: azure-devops
+            operation: create-approval
+            inputs:
+              title: "Infrastructure Change Approval"
+              approvers: ["security-architect", "engineering-manager"]
+
+  - id: container-security
+    name: Container Security Setup
+    description: Configure container security
+    action: conditional
+    condition: "${context.container_deployment}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Setup container security
+              setup_aqua_security
+              configure_falco
+              enable_twistlock_scanning
+
+  - id: monitoring-setup
+    name: Setup Monitoring
+    description: Configure security monitoring
+    action: shell-command
+    command: |
+      # Setup monitoring
+      configure_splunk_forwarding
+      setup_prometheus_alerts
+      enable_grafana_dashboards
+      
+      # Setup SIEM integration
+      configure_siem_correlation
+    outputs:
+      - MONITORING_CONFIGURED
+
+  - id: compliance-check
+    name: Compliance Verification
+    description: Verify compliance requirements
+    action: shell-command
+    command: |
+      # Check compliance
+      run_compliance_scan
+      verify_cis_benchmarks
+      check_pci_dss_requirements
+    outputs:
+      - COMPLIANCE_STATUS
+
+  - id: post-deployment
+    name: Post Deployment Actions
+    description: Actions after deployment
+    action: conditional
+    condition: "${context.deployment_complete}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: execute-workflow
+            workflow: wf9-post-merge-monitoring
+            inputs:
+              MERGE_COMMIT: ${context.merge_commit}
+              MONITOR_DURATION: 24h
+              ALERT_THRESHOLD: high
+
+  - id: handoff-tasks
+    name: Create Handoff Tasks
+    description: Create tasks for other teams
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: Task
+        title: "Security Testing Required"
+        assignedTo: qa-test-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+      - type: Task
+        title: "Security Documentation Update"
+        assignedTo: technical-writer
+        parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Result of DevSecOps work
+  - name: SECURITY_REPORT
+    value: "${steps.security-scan.SCAN_RESULTS}"
+    description: Security scan results
+  - name: COMPLIANCE_STATUS
+    value: "${steps.compliance-check.COMPLIANCE_STATUS}"
+    description: Compliance verification status
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Any artifacts created
+
+successCriteria:
+  - Security scans completed successfully
+  - No critical vulnerabilities found
+  - Infrastructure deployed securely
+  - Monitoring configured
+  - Compliance requirements met
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in DevSecOps workflow: ${error.message}"
+    - id: create-incident
+      action: azure-devops
+      operation: create-work-item
+      inputs:
+        type: Bug
+        title: "DevSecOps Pipeline Failure"
+        severity: P1
+    - id: rollback
+      action: execute-workflow
+      workflow: wf11-rollback
+      condition: "${context.deployment_started}"

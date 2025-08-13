@@ -1,0 +1,224 @@
+metadata:
+  id: wf8-merge
+  name: Merge Workflow - Complete PR merge into target branch
+  version: 1.0.0
+  type: core
+  description: Complete PR merge into target branch
+  author: AI Personas Team
+  tags:
+    - merge
+    - pull-request
+    - core
+    - atomic
+    - wf8
+  averageDuration: 5-10 minutes
+  idempotent: false
+
+inputs:
+  - name: PR_NUMBER
+    type: number
+    description: Pull request to merge
+    required: true
+  - name: MERGE_STRATEGY
+    type: enum
+    values: [squash, merge, rebase]
+    description: Merge strategy to use
+    required: true
+    default: squash
+  - name: DELETE_BRANCH
+    type: boolean
+    description: Delete source branch after merge
+    required: false
+    default: true
+  - name: BYPASS_POLICIES
+    type: boolean
+    description: Bypass branch policies (requires permission)
+    required: false
+    default: false
+  - name: BYPASS_CHECKS
+    type: boolean
+    description: Bypass status checks
+    required: false
+    default: false
+  - name: EMERGENCY
+    type: boolean
+    description: Emergency merge
+    required: false
+    default: false
+
+prerequisites:
+  - description: All required reviewers approved
+    required: true
+  - description: All checks passing
+    required: true
+  - description: No merge conflicts
+    required: true
+  - description: All comments resolved
+    required: false
+
+steps:
+  - id: validate-pr-status
+    name: Validate PR Status
+    description: Check if PR is ready to merge
+    action: azure-devops
+    operation: get-pr-details
+    inputs:
+      pr_id: "${inputs.PR_NUMBER}"
+    outputs:
+      - PR_STATUS
+      - MERGE_STATUS
+      - TARGET_BRANCH
+      - SOURCE_BRANCH
+      - PR_TITLE
+    onError: fail
+
+  - id: check-merge-readiness
+    name: Check Merge Readiness
+    description: Verify PR can be merged
+    action: conditional
+    condition: "${steps.validate-pr-status.PR_STATUS eq 'active'}"
+    steps:
+      - id: check-conflicts
+        action: conditional
+        condition: "${steps.validate-pr-status.MERGE_STATUS eq 'conflicts'}"
+        steps:
+          - action: execute-workflow
+            workflow: wf10-conflict-resolution
+            inputs:
+              PR_NUMBER: "${inputs.PR_NUMBER}"
+              AUTO_RESOLVE: true
+
+  - id: check-approvals
+    name: Check Approvals
+    description: Verify all required approvals
+    action: azure-devops
+    operation: check-pr-approvals
+    inputs:
+      pr_id: "${inputs.PR_NUMBER}"
+      bypass: "${inputs.BYPASS_POLICIES}"
+    outputs:
+      - APPROVED_COUNT
+      - REQUIRED_COUNT
+      - MISSING_APPROVERS
+    onError: "${inputs.BYPASS_POLICIES ? 'continue' : 'fail'}"
+
+  - id: check-build-status
+    name: Check Build Status
+    description: Verify build validation passed
+    action: azure-devops
+    operation: check-pr-policies
+    inputs:
+      pr_id: "${inputs.PR_NUMBER}"
+      policy_type: Build
+    outputs:
+      - BUILD_STATUS
+    onError: "${inputs.BYPASS_CHECKS ? 'continue' : 'fail'}"
+
+  - id: prepare-merge-message
+    name: Prepare Merge Message
+    description: Generate merge commit message
+    action: set-variable
+    variable: MERGE_MESSAGE
+    value: |
+      Merged PR #${inputs.PR_NUMBER}: ${steps.validate-pr-status.PR_TITLE}
+      
+      Source: ${steps.validate-pr-status.SOURCE_BRANCH}
+      Strategy: ${inputs.MERGE_STRATEGY}
+      
+      Related work items:
+      ${context.work_items}
+
+  - id: execute-merge
+    name: Execute Merge
+    description: Perform the merge operation
+    action: azure-devops
+    operation: complete-pr
+    inputs:
+      pr_id: "${inputs.PR_NUMBER}"
+      merge_strategy: "${inputs.MERGE_STRATEGY}"
+      merge_commit_message: "${context.MERGE_MESSAGE}"
+      delete_source_branch: "${inputs.DELETE_BRANCH}"
+      bypass_policies: "${inputs.BYPASS_POLICIES}"
+      bypass_reason: "${inputs.EMERGENCY ? 'Emergency merge' : ''}"
+    outputs:
+      - MERGE_COMMIT
+      - MERGE_STATUS
+    onError: fail
+
+  - id: verify-merge
+    name: Verify Merge
+    description: Confirm merge was successful
+    action: shell-command
+    command: |
+      # Verify merge commit exists
+      git fetch origin
+      if git rev-parse ${steps.execute-merge.MERGE_COMMIT} >/dev/null 2>&1; then
+        echo "Merge commit verified: ${steps.execute-merge.MERGE_COMMIT}"
+      else
+        echo "ERROR: Merge commit not found"
+        exit 1
+      fi
+    onError: fail
+
+  - id: update-work-items
+    name: Update Work Items
+    description: Update associated work items
+    action: execute-workflow
+    workflow: wf12-work-item-update
+    inputs:
+      PR_NUMBER: "${inputs.PR_NUMBER}"
+      STATUS: "Resolved"
+      MERGE_COMMIT: "${steps.execute-merge.MERGE_COMMIT}"
+
+  - id: cleanup-remote-branch
+    name: Cleanup Remote Branch
+    description: Delete remote branch if configured
+    action: conditional
+    condition: "${inputs.DELETE_BRANCH}"
+    steps:
+      - action: git-operation
+        operation: delete-remote-branch
+        inputs:
+          branch: "${steps.validate-pr-status.SOURCE_BRANCH}"
+        onError: continue
+
+outputs:
+  - name: MERGE_COMMIT
+    value: "${steps.execute-merge.MERGE_COMMIT}"
+    description: The merge commit SHA
+  - name: MERGE_STATUS
+    value: "${steps.execute-merge.MERGE_STATUS}"
+    description: Status of the merge operation
+  - name: SOURCE_BRANCH
+    value: "${steps.validate-pr-status.SOURCE_BRANCH}"
+    description: The merged source branch
+  - name: TARGET_BRANCH
+    value: "${steps.validate-pr-status.TARGET_BRANCH}"
+    description: The target branch
+  - name: STATUS
+    value: "completed"
+    description: Workflow completion status
+
+successCriteria:
+  - PR merged successfully
+  - Merge commit created
+  - Work items updated
+  - Source branch deleted (if configured)
+
+errorHandling:
+  strategy: fail-fast
+  onFailure:
+    - id: revert-merge
+      action: conditional
+      condition: "${steps.execute-merge.MERGE_STATUS eq 'completed'}"
+      steps:
+        - action: git-operation
+          operation: revert-commit
+          inputs:
+            commit: "${steps.execute-merge.MERGE_COMMIT}"
+            message: "Revert failed merge of PR #${inputs.PR_NUMBER}"
+  notifications:
+    - type: log
+      target: error
+    - type: azure-devops
+      target: "pr-${inputs.PR_NUMBER}"

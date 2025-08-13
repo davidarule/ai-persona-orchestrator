@@ -1,0 +1,235 @@
+# persona-requirements-analyst-workflow.yaml
+metadata:
+  id: persona-requirements-analyst-workflow
+  name: Requirements Analyst Workflow - Requirements engineering and management
+  version: 1.0.0
+  type: persona
+  description: Defines how Requirements Analyst operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - requirements-analyst
+    - requirements-engineering
+    - traceability
+  persona_info:
+    type: requirements-analyst
+    first_name: Rachel
+    last_name: Bot
+    email: rachel.bot@company.com
+    role: Requirements Analyst
+    skills:
+      - Requirements Elicitation
+      - Requirements Documentation
+      - Traceability Management
+      - Use Case Modeling
+      - Requirements Validation
+      - DOORS/Jama
+      - UML Modeling
+      - Stakeholder Analysis
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, user-story, requirement]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, elicit, document, validate, trace]
+    description: Action to perform
+    required: false
+    default: analyze
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: Requirements management tool access
+    required: true
+  - description: Stakeholder availability
+    required: false
+
+steps:
+  - id: analyze-requirements-context
+    name: Analyze Requirements Context
+    description: Understand requirements context and scope
+    action: shell-command
+    command: |
+      # Analyze requirements context
+      echo "Analyzing requirements context for ${inputs.WORK_ITEM_ID}"
+      
+      # Check requirement type
+      REQ_TYPE=$(determine_requirement_type ${inputs.WORK_ITEM_ID})
+      
+      # Check traceability
+      TRACEABILITY_NEEDED=$(check_traceability_requirements)
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "requirement")
+          echo "RECOMMENDED_ACTION=document-requirement"
+          ;;
+        "epic")
+          echo "RECOMMENDED_ACTION=decompose-requirements"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=create-specifications"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-requirements"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - REQ_TYPE
+      - TRACEABILITY_NEEDED
+
+  - id: elicit-requirements
+    name: Elicit Requirements
+    description: Gather detailed requirements
+    action: shell-command
+    command: |
+      # Elicit requirements
+      conduct_interviews
+      facilitate_workshops
+      observe_processes
+      analyze_documents
+      create_prototypes
+    outputs:
+      - ELICITED_REQUIREMENTS
+
+  - id: route-to-workflow
+    name: Route to Requirements Workflow
+    description: Execute appropriate requirements workflow
+    action: conditional
+    condition: "${steps.analyze-requirements-context.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'document-requirement'"
+        steps:
+          - action: shell-command
+            command: |
+              # Document requirement
+              create_requirement_specification
+              define_acceptance_criteria
+              add_to_requirements_repository
+      
+      - condition: "eq 'decompose-requirements'"
+        steps:
+          - action: shell-command
+            command: |
+              # Decompose requirements
+              break_down_high_level_requirements
+              create_requirement_hierarchy
+              establish_traceability_links
+      
+      - condition: "eq 'create-specifications'"
+        steps:
+          - action: execute-workflow
+            workflow: wf0-feature-development
+            inputs:
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              FEATURE_NAME: req-${inputs.WORK_ITEM_ID}
+
+  - id: create-use-cases
+    name: Create Use Cases
+    description: Develop use case documentation
+    action: shell-command
+    command: |
+      # Create use cases
+      identify_actors
+      define_use_case_scenarios
+      create_use_case_diagrams
+      document_preconditions_postconditions
+    outputs:
+      - USE_CASES
+
+  - id: requirements-modeling
+    name: Requirements Modeling
+    description: Create requirements models
+    action: shell-command
+    command: |
+      # Requirements modeling
+      create_uml_diagrams
+      develop_data_models
+      create_state_diagrams
+      generate_sequence_diagrams
+    outputs:
+      - REQUIREMENT_MODELS
+
+  - id: traceability-management
+    name: Traceability Management
+    description: Establish and maintain traceability
+    action: conditional
+    condition: "${steps.analyze-requirements-context.TRACEABILITY_NEEDED}"
+    branches:
+      - condition: "eq 'true'"
+        steps:
+          - action: shell-command
+            command: |
+              # Manage traceability
+              create_traceability_matrix
+              link_requirements_to_tests
+              link_requirements_to_design
+              maintain_requirement_baseline
+            outputs:
+              - TRACEABILITY_MATRIX
+
+  - id: validation
+    name: Requirements Validation
+    description: Validate requirements
+    action: shell-command
+    command: |
+      # Validate requirements
+      check_completeness
+      verify_consistency
+      assess_feasibility
+      confirm_testability
+      review_with_stakeholders
+    outputs:
+      - VALIDATION_RESULTS
+
+  - id: create-implementation-items
+    name: Create Implementation Items
+    description: Create work items for implementation
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: User Story
+        title: "Implement requirement ${inputs.WORK_ITEM_ID}"
+        assignedTo: developer-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+      - type: Task
+        title: "Create test cases for ${inputs.WORK_ITEM_ID}"
+        assignedTo: qa-test-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Requirements analysis result
+  - name: REQUIREMENTS_SPEC
+    value: "${steps.elicit-requirements.ELICITED_REQUIREMENTS}"
+    description: Requirements specification
+  - name: TRACEABILITY
+    value: "${steps.traceability-management.TRACEABILITY_MATRIX}"
+    description: Traceability matrix
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Requirements elicited and documented
+  - Use cases created
+  - Traceability established
+  - Requirements validated
+  - Implementation items created
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in requirements analyst workflow: ${error.message}"

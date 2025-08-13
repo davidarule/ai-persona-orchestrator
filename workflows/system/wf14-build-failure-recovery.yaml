@@ -1,0 +1,273 @@
+metadata:
+  id: wf14-build-failure-recovery
+  name: Build Failure Recovery Workflow - Diagnose and fix build failures
+  version: 1.0.0
+  type: support
+  description: Diagnose build failures and attempt automatic recovery
+  author: AI Personas Team
+  tags:
+    - build
+    - recovery
+    - support
+    - diagnostic
+    - wf14
+  averageDuration: 10-30 minutes
+
+inputs:
+  - name: BUILD_ID
+    type: string
+    description: Failed build ID
+    required: true
+  - name: PR_NUMBER
+    type: string
+    description: Associated PR number (if applicable)
+    required: false
+  - name: BRANCH_NAME
+    type: string
+    description: Branch with build failure
+    required: true
+  - name: AUTO_FIX
+    type: boolean
+    description: Attempt automatic fixes
+    required: false
+    default: true
+  - name: MAX_RETRY_ATTEMPTS
+    type: number
+    description: Maximum retry attempts
+    required: false
+    default: 3
+
+prerequisites:
+  - description: Access to build logs
+    required: true
+  - description: Repository access
+    required: true
+  - description: Build configuration knowledge
+    required: true
+
+steps:
+  - id: get-build-details
+    name: Get Build Details
+    description: Retrieve failed build information
+    action: azure-devops
+    operation: get-build-details
+    inputs:
+      build_id: "${inputs.BUILD_ID}"
+    outputs:
+      - BUILD_STATUS
+      - FAILURE_REASON
+      - BUILD_LOGS_URL
+      - BUILD_TIMELINE
+      - ERROR_SUMMARY
+
+  - id: analyze-failure
+    name: Analyze Build Failure
+    description: Determine root cause
+    action: shell-command
+    command: |
+      # Extract error patterns from logs
+      BUILD_LOG=$(curl -s "${steps.get-build-details.BUILD_LOGS_URL}")
+      
+      # Common failure patterns
+      DEPENDENCY_ERROR=$(echo "$BUILD_LOG" | grep -i "cannot find module\|dependency\|package not found" | head -5)
+      SYNTAX_ERROR=$(echo "$BUILD_LOG" | grep -i "syntax error\|unexpected token\|parsing error" | head -5)
+      TEST_FAILURE=$(echo "$BUILD_LOG" | grep -i "test failed\|assertion failed\|expected.*received" | head -5)
+      LINT_ERROR=$(echo "$BUILD_LOG" | grep -i "lint error\|eslint\|tslint\|style violation" | head -5)
+      TYPE_ERROR=$(echo "$BUILD_LOG" | grep -i "type error\|typescript\|cannot assign" | head -5)
+      
+      # Determine failure category
+      if [ -n "$DEPENDENCY_ERROR" ]; then
+        FAILURE_TYPE="dependency"
+      elif [ -n "$SYNTAX_ERROR" ]; then
+        FAILURE_TYPE="syntax"
+      elif [ -n "$TEST_FAILURE" ]; then
+        FAILURE_TYPE="test"
+      elif [ -n "$LINT_ERROR" ]; then
+        FAILURE_TYPE="lint"
+      elif [ -n "$TYPE_ERROR" ]; then
+        FAILURE_TYPE="type"
+      else
+        FAILURE_TYPE="unknown"
+      fi
+      
+      echo "FAILURE_TYPE=$FAILURE_TYPE"
+      echo "ERROR_DETAILS<<EOF"
+      echo "${DEPENDENCY_ERROR}${SYNTAX_ERROR}${TEST_FAILURE}${LINT_ERROR}${TYPE_ERROR}"
+      echo "EOF"
+    outputs:
+      - FAILURE_TYPE
+      - ERROR_DETAILS
+
+  - id: checkout-branch
+    name: Checkout Failed Branch
+    description: Switch to the branch with failures
+    action: git-operation
+    operation: checkout
+    inputs:
+      branch: "${inputs.BRANCH_NAME}"
+
+  - id: attempt-auto-fix
+    name: Attempt Automatic Fix
+    description: Try to fix based on failure type
+    action: conditional
+    condition: "${inputs.AUTO_FIX eq 'true'}"
+    steps:
+      - id: fix-dependencies
+        name: Fix Dependency Issues
+        action: conditional
+        condition: "${steps.analyze-failure.FAILURE_TYPE eq 'dependency'}"
+        steps:
+          - action: shell-command
+            command: |
+              # Clean and reinstall dependencies
+              rm -rf node_modules package-lock.json yarn.lock
+              
+              # Detect package manager
+              if [ -f "package.json" ]; then
+                if [ -f "yarn.lock" ]; then
+                  yarn install
+                else
+                  npm install
+                fi
+              fi
+              
+              # Clear build cache
+              npm run clean || yarn clean || true
+            outputs:
+              - FIX_APPLIED
+
+      - id: fix-lint-errors
+        name: Fix Lint Errors
+        action: conditional
+        condition: "${steps.analyze-failure.FAILURE_TYPE eq 'lint'}"
+        steps:
+          - action: shell-command
+            command: |
+              # Try auto-fix for lint errors
+              npm run lint:fix || yarn lint:fix || npx eslint . --fix || true
+              
+              # Check if fixes were applied
+              if [ -n "$(git status --porcelain)" ]; then
+                echo "FIX_APPLIED=true"
+              else
+                echo "FIX_APPLIED=false"
+              fi
+            outputs:
+              - FIX_APPLIED
+
+      - id: fix-type-errors
+        name: Fix Type Errors
+        action: conditional
+        condition: "${steps.analyze-failure.FAILURE_TYPE eq 'type'}"
+        steps:
+          - action: shell-command
+            command: |
+              # Update TypeScript definitions
+              npm install --save-dev @types/node @types/react @types/jest || true
+              
+              # Try to build with skipLibCheck
+              echo '{"compilerOptions":{"skipLibCheck":true}}' > tsconfig.fix.json
+              npx tsc --project tsconfig.fix.json || true
+              rm tsconfig.fix.json
+              
+              echo "FIX_APPLIED=partial"
+            outputs:
+              - FIX_APPLIED
+
+  - id: commit-fixes
+    name: Commit Fixes
+    description: Commit any automatic fixes
+    action: conditional
+    condition: "${steps.attempt-auto-fix.FIX_APPLIED}"
+    steps:
+      - action: shell-command
+        command: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "fix: Automated build failure recovery
+            
+            - Fixed ${steps.analyze-failure.FAILURE_TYPE} errors
+            - Build ID: ${inputs.BUILD_ID}
+            - Automated by Build Failure Recovery Workflow"
+            
+            git push origin ${inputs.BRANCH_NAME}
+            echo "FIXES_COMMITTED=true"
+          else
+            echo "FIXES_COMMITTED=false"
+          fi
+        outputs:
+          - FIXES_COMMITTED
+
+  - id: retry-build
+    name: Retry Build
+    description: Trigger new build after fixes
+    action: conditional
+    condition: "${steps.commit-fixes.FIXES_COMMITTED eq 'true'}"
+    steps:
+      - action: azure-devops
+        operation: queue-build
+        inputs:
+          branch: "${inputs.BRANCH_NAME}"
+          pr_number: "${inputs.PR_NUMBER}"
+        outputs:
+          - NEW_BUILD_ID
+          - BUILD_QUEUED
+
+  - id: generate-report
+    name: Generate Failure Report
+    description: Create detailed failure analysis
+    action: set-variable
+    variable: FAILURE_REPORT
+    value: |
+      ## Build Failure Analysis Report
+      
+      **Build ID**: ${inputs.BUILD_ID}
+      **Branch**: ${inputs.BRANCH_NAME}
+      **Failure Type**: ${steps.analyze-failure.FAILURE_TYPE}
+      
+      ### Error Details
+      \`\`\`
+      ${steps.analyze-failure.ERROR_DETAILS}
+      \`\`\`
+      
+      ### Actions Taken
+      - Automatic fix attempted: ${inputs.AUTO_FIX}
+      - Fix applied: ${steps.attempt-auto-fix.FIX_APPLIED}
+      - Changes committed: ${steps.commit-fixes.FIXES_COMMITTED}
+      - New build queued: ${steps.retry-build.BUILD_QUEUED}
+      
+      ### Recommendations
+      ${steps.analyze-failure.FAILURE_TYPE eq 'unknown' ? '- Manual investigation required\n- Check build configuration\n- Review recent changes' : '- Monitor new build\n- Update documentation if needed'}
+
+outputs:
+  - name: FAILURE_TYPE
+    value: "${steps.analyze-failure.FAILURE_TYPE}"
+    description: Type of build failure
+  - name: FIX_APPLIED
+    value: "${steps.attempt-auto-fix.FIX_APPLIED}"
+    description: Whether automatic fix was applied
+  - name: NEW_BUILD_ID
+    value: "${steps.retry-build.NEW_BUILD_ID}"
+    description: ID of retry build (if triggered)
+  - name: FAILURE_REPORT
+    value: "${context.FAILURE_REPORT}"
+    description: Detailed failure analysis
+
+successCriteria:
+  - Build failure diagnosed
+  - Root cause identified
+  - Fix attempted (if auto-fix enabled)
+  - Report generated
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: log-recovery-failure
+      action: log
+      message: "Build recovery failed for ${inputs.BUILD_ID}"
+      level: error
+  notifications:
+    - type: log
+      target: error
+    - type: azure-devops
+      target: build-${inputs.BUILD_ID}

@@ -1,0 +1,307 @@
+# persona-integration-engineer-workflow.yaml
+metadata:
+  id: persona-integration-engineer-workflow
+  name: Integration Engineer Workflow - System integration and middleware development
+  version: 1.0.0
+  type: persona
+  description: Defines how Integration Engineer operates and makes decisions
+  author: AI Personas System
+  tags:
+    - persona
+    - integration-engineer
+    - middleware
+    - api-integration
+    - etl
+  persona_info:
+    type: integration-engineer
+    first_name: Ivan
+    last_name: Bot
+    email: ivan.bot@company.com
+    role: Integration Engineer
+    skills:
+      - System Integration
+      - API Development
+      - Message Queuing
+      - ETL Processes
+      - Middleware Development
+      - Protocol Translation
+      - Data Mapping
+      - Integration Testing
+
+inputs:
+  - name: WORK_ITEM_ID
+    type: string
+    description: Work item to process
+    required: true
+  - name: WORK_ITEM_TYPE
+    type: enum
+    values: [task, bug, feature, epic, integration, interface]
+    description: Type of work item
+    required: true
+  - name: ACTION
+    type: enum
+    values: [analyze, design, implement, test, monitor]
+    description: Action to perform
+    required: false
+    default: analyze
+  - name: INTEGRATION_TYPE
+    type: enum
+    values: [api, message-queue, file-transfer, database, real-time]
+    description: Type of integration
+    required: false
+    default: api
+
+prerequisites:
+  - description: Access to work item
+    required: true
+  - description: System access for integration
+    required: true
+  - description: Integration tools access
+    required: true
+
+steps:
+  - id: analyze-integration-requirements
+    name: Analyze Integration Requirements
+    description: Analyze system integration requirements
+    action: shell-command
+    command: |
+      # Analyze integration requirements
+      echo "Analyzing integration requirements for ${inputs.WORK_ITEM_ID}"
+      
+      # Identify integration points
+      INTEGRATION_POINTS=$(identify_integration_points ${inputs.WORK_ITEM_ID})
+      
+      # Determine data flow
+      DATA_FLOW=$(analyze_data_flow)
+      
+      # Determine action
+      case "${inputs.WORK_ITEM_TYPE}" in
+        "integration")
+          echo "RECOMMENDED_ACTION=implement-integration"
+          ;;
+        "interface")
+          echo "RECOMMENDED_ACTION=design-interface"
+          ;;
+        "feature")
+          echo "RECOMMENDED_ACTION=integration-planning"
+          ;;
+        *)
+          echo "RECOMMENDED_ACTION=standard-integration-work"
+          ;;
+      esac
+    outputs:
+      - RECOMMENDED_ACTION
+      - INTEGRATION_POINTS
+      - DATA_FLOW
+
+  - id: integration-design
+    name: Integration Design
+    description: Design integration architecture
+    action: shell-command
+    command: |
+      # Integration design
+      design_integration_architecture
+      define_data_models
+      specify_protocols
+      design_error_handling
+      plan_scalability
+    outputs:
+      - INTEGRATION_DESIGN
+
+  - id: route-to-workflow
+    name: Route to Integration Workflow
+    description: Execute appropriate integration workflow
+    action: conditional
+    condition: "${steps.analyze-integration-requirements.RECOMMENDED_ACTION}"
+    branches:
+      - condition: "eq 'implement-integration'"
+        steps:
+          - action: shell-command
+            command: |
+              # Implement integration
+              develop_integration_components
+              implement_data_mapping
+              setup_message_routing
+              configure_transformation
+          - action: execute-workflow
+            workflow: wf3-branch-creation
+            inputs:
+              WORK_TYPE: feature
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              DESCRIPTION: integration
+      
+      - condition: "eq 'design-interface'"
+        steps:
+          - action: shell-command
+            command: |
+              # Design interface
+              define_interface_contract
+              specify_data_formats
+              establish_protocols
+              document_interface
+      
+      - condition: "eq 'integration-planning'"
+        steps:
+          - action: execute-workflow
+            workflow: wf0-feature-development
+            inputs:
+              WORK_ITEM_ID: ${inputs.WORK_ITEM_ID}
+              FEATURE_NAME: integration-${inputs.WORK_ITEM_ID}
+
+  - id: api-integration
+    name: API Integration
+    description: Implement API integrations
+    action: conditional
+    condition: "${inputs.INTEGRATION_TYPE}"
+    branches:
+      - condition: "eq 'api'"
+        steps:
+          - action: shell-command
+            command: |
+              # API integration
+              develop_api_clients
+              implement_api_endpoints
+              setup_authentication
+              implement_rate_limiting
+              add_retry_logic
+            outputs:
+              - API_INTEGRATION
+
+  - id: message-queue-integration
+    name: Message Queue Integration
+    description: Implement message queue integration
+    action: conditional
+    condition: "${inputs.INTEGRATION_TYPE}"
+    branches:
+      - condition: "eq 'message-queue'"
+        steps:
+          - action: shell-command
+            command: |
+              # Message queue integration
+              setup_message_brokers
+              implement_producers
+              implement_consumers
+              configure_topics_queues
+              implement_dead_letter_handling
+            outputs:
+              - MQ_INTEGRATION
+
+  - id: data-transformation
+    name: Data Transformation
+    description: Implement data transformation
+    action: shell-command
+    command: |
+      # Data transformation
+      analyze_source_formats
+      design_target_formats
+      implement_mappers
+      create_transformation_rules
+      validate_transformations
+    outputs:
+      - TRANSFORMATION_LOGIC
+
+  - id: middleware-development
+    name: Middleware Development
+    description: Develop middleware components
+    action: shell-command
+    command: |
+      # Middleware development
+      develop_middleware_services
+      implement_routing_logic
+      add_caching_layer
+      implement_logging
+      setup_monitoring
+    outputs:
+      - MIDDLEWARE_COMPONENTS
+
+  - id: integration-testing
+    name: Integration Testing
+    description: Test integrations
+    action: shell-command
+    command: |
+      # Integration testing
+      test_connectivity
+      verify_data_flow
+      test_error_scenarios
+      validate_performance
+      test_failover
+    outputs:
+      - TEST_RESULTS
+
+  - id: monitoring-setup
+    name: Monitoring Setup
+    description: Setup integration monitoring
+    action: shell-command
+    command: |
+      # Monitoring setup
+      configure_integration_monitoring
+      setup_health_checks
+      implement_alerting
+      create_dashboards
+      setup_log_aggregation
+    outputs:
+      - MONITORING_CONFIGURED
+
+  - id: documentation
+    name: Documentation
+    description: Document integrations
+    action: shell-command
+    command: |
+      # Documentation
+      document_integration_architecture
+      create_data_flow_diagrams
+      document_apis
+      create_troubleshooting_guide
+      update_runbooks
+    outputs:
+      - DOCUMENTATION
+
+  - id: create-validation-tasks
+    name: Create Validation Tasks
+    description: Create integration validation tasks
+    action: azure-devops
+    operation: create-work-items
+    inputs:
+      - type: Task
+        title: "Test integration for ${inputs.WORK_ITEM_ID}"
+        assignedTo: test-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+      - type: Task
+        title: "Monitor integration performance"
+        assignedTo: site-reliability-engineer
+        parent: ${inputs.WORK_ITEM_ID}
+
+outputs:
+  - name: RESULT
+    value: "${context.final_result}"
+    description: Integration engineering result
+  - name: INTEGRATION_DESIGN
+    value: "${steps.integration-design.INTEGRATION_DESIGN}"
+    description: Integration design
+  - name: COMPONENTS
+    value: "${steps.middleware-development.MIDDLEWARE_COMPONENTS}"
+    description: Integration components
+  - name: TEST_RESULTS
+    value: "${steps.integration-testing.TEST_RESULTS}"
+    description: Integration test results
+  - name: ARTIFACTS
+    value: "${context.generated_artifacts}"
+    description: Generated artifacts
+
+successCriteria:
+  - Integration designed
+  - Components implemented
+  - Testing completed
+  - Monitoring configured
+  - Documentation created
+
+errorHandling:
+  strategy: retry
+  onFailure:
+    - id: log-error
+      action: log
+      message: "Error in integration engineer workflow: ${error.message}"
+    - id: retry-integration
+      action: shell-command
+      command: "retry_integration_setup"
+      maxRetries: 3

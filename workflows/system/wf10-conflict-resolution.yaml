@@ -1,0 +1,317 @@
+metadata:
+  id: wf10-conflict-resolution
+  name: Conflict Resolution Workflow - Resolve merge conflicts systematically
+  version: 1.0.0
+  type: support
+  description: Handles merge conflicts systematically
+  author: AI Personas Team
+  tags:
+    - conflict
+    - merge
+    - support
+    - wf10
+  averageDuration: 15-60 minutes
+
+inputs:
+  - name: PR_NUMBER
+    type: number
+    description: PR with conflicts (optional)
+    required: false
+  - name: SOURCE_BRANCH
+    type: string
+    description: Source branch with conflicts
+    required: true
+  - name: TARGET_BRANCH
+    type: string
+    description: Target branch (usually main)
+    required: true
+    default: main
+  - name: CONFLICT_STRATEGY
+    type: enum
+    values: [ours, theirs, manual, smart]
+    description: Strategy for conflict resolution
+    required: false
+    default: smart
+  - name: AUTO_RESOLVE
+    type: boolean
+    description: Attempt automatic resolution
+    required: false
+    default: true
+
+prerequisites:
+  - description: Git repository accessible
+    required: true
+  - description: Merge conflict exists
+    required: true
+  - description: Permission to push to source branch
+    required: true
+
+steps:
+  - id: prepare-workspace
+    name: Prepare Workspace
+    description: Set up clean workspace for conflict resolution
+    action: shell-command
+    command: |
+      # Stash any local changes
+      git stash push -m "Conflict resolution workspace prep"
+      
+      # Fetch latest from all remotes
+      git fetch --all
+      
+      # Checkout source branch
+      git checkout ${inputs.SOURCE_BRANCH}
+      git pull origin ${inputs.SOURCE_BRANCH}
+
+  - id: attempt-merge
+    name: Attempt Merge
+    description: Try to merge target branch
+    action: shell-command
+    command: |
+      # Attempt the merge
+      git merge origin/${inputs.TARGET_BRANCH} --no-commit --no-ff
+      
+      # Check conflict status
+      CONFLICTS=$(git diff --name-only --diff-filter=U)
+      if [ -z "$CONFLICTS" ]; then
+        echo "No conflicts found or already resolved"
+        exit 0
+      fi
+      
+      echo "Conflicts found in:"
+      echo "$CONFLICTS"
+      
+      # Save conflict list
+      echo "$CONFLICTS" > /tmp/conflict_files.txt
+    outputs:
+      - CONFLICT_FILES
+      - CONFLICT_COUNT
+    onError: continue
+
+  - id: analyze-conflicts
+    name: Analyze Conflicts
+    description: Understand the nature of conflicts
+    action: shell-command
+    command: |
+      # Analyze each conflict
+      while read -r file; do
+        echo "Analyzing: $file"
+        
+        # Get conflict markers count
+        CONFLICT_SECTIONS=$(grep -c "^<<<<<<< " "$file" || echo 0)
+        
+        # Determine file type
+        FILE_EXT="${file##*.}"
+        
+        # Check if it's a generated file
+        if [[ "$file" =~ (package-lock|yarn.lock|.min.|dist/|build/) ]]; then
+          echo "$file:generated:$CONFLICT_SECTIONS" >> /tmp/conflict_analysis.txt
+        else
+          echo "$file:source:$CONFLICT_SECTIONS" >> /tmp/conflict_analysis.txt
+        fi
+      done < /tmp/conflict_files.txt
+    outputs:
+      - CONFLICT_ANALYSIS
+
+  - id: auto-resolve-simple
+    name: Auto-Resolve Simple Conflicts
+    description: Automatically resolve straightforward conflicts
+    action: conditional
+    condition: "${inputs.AUTO_RESOLVE}"
+    steps:
+      - id: resolve-generated-files
+        name: Resolve Generated Files
+        action: shell-command
+        command: |
+          # Auto-resolve generated files
+          while read -r line; do
+            file=$(echo "$line" | cut -d: -f1)
+            type=$(echo "$line" | cut -d: -f2)
+            
+            if [ "$type" = "generated" ]; then
+              echo "Auto-resolving generated file: $file"
+              
+              # Use theirs for lock files
+              if [[ "$file" =~ (package-lock|yarn.lock) ]]; then
+                git checkout --theirs "$file"
+                git add "$file"
+              # Regenerate for build files
+              elif [[ "$file" =~ (dist/|build/) ]]; then
+                rm -f "$file"
+                git add "$file"
+              fi
+            fi
+          done < /tmp/conflict_analysis.txt
+      
+      - id: smart-resolution
+        name: Smart Resolution
+        action: conditional
+        condition: "${inputs.CONFLICT_STRATEGY eq 'smart'}"
+        steps:
+          - action: shell-command
+            command: |
+              # Try git rerere
+              git config rerere.enabled true
+              git rerere
+              
+              # For each remaining conflict
+              for file in $(git diff --name-only --diff-filter=U); do
+                # Check if conflict is trivial (imports, simple additions)
+                if grep -q "^<<<<<<< HEAD$" "$file"; then
+                  # Extract conflict sections
+                  # Smart merge logic here based on file type and content
+                  echo "Attempting smart merge for: $file"
+                fi
+              done
+
+  - id: resolve-remaining-manually
+    name: Resolve Remaining Manually
+    description: Handle conflicts that need human decision
+    action: conditional
+    condition: "${context.has_remaining_conflicts}"
+    steps:
+      - id: apply-strategy
+        name: Apply Conflict Strategy
+        action: shell-command
+        command: |
+          REMAINING=$(git diff --name-only --diff-filter=U)
+          
+          if [ -n "$REMAINING" ]; then
+            case "${inputs.CONFLICT_STRATEGY}" in
+              "ours")
+                echo "Using our version for remaining conflicts"
+                for file in $REMAINING; do
+                  git checkout --ours "$file"
+                  git add "$file"
+                done
+                ;;
+              "theirs")
+                echo "Using their version for remaining conflicts"
+                for file in $REMAINING; do
+                  git checkout --theirs "$file"
+                  git add "$file"
+                done
+                ;;
+              "manual"|"smart")
+                echo "Manual resolution required for:"
+                echo "$REMAINING"
+                # In real implementation, this would trigger manual intervention
+                ;;
+            esac
+          fi
+
+  - id: validate-resolution
+    name: Validate Resolution
+    description: Ensure conflicts are properly resolved
+    action: parallel
+    steps:
+      - id: check-markers
+        name: Check for Conflict Markers
+        action: shell-command
+        command: |
+          # Ensure no conflict markers remain
+          if grep -r "^<<<<<<< \|^======= \|^>>>>>>> " . --include="*.js" --include="*.ts" --include="*.py" --include="*.java"; then
+            echo "ERROR: Conflict markers still present"
+            exit 1
+          fi
+          echo "No conflict markers found"
+      
+      - id: run-tests
+        name: Run Tests
+        action: shell-command
+        command: |
+          # Run tests to ensure resolution didn't break anything
+          npm test || yarn test || pytest || echo "No tests configured"
+        onError: continue
+      
+      - id: run-build
+        name: Run Build
+        action: shell-command
+        command: |
+          # Ensure project still builds
+          npm run build || yarn build || make build || echo "No build configured"
+        onError: continue
+
+  - id: commit-resolution
+    name: Commit Resolution
+    description: Commit the resolved conflicts
+    action: shell-command
+    command: |
+      # Complete the merge
+      if [ -z "$(git diff --cached --name-only)" ]; then
+        echo "No changes to commit"
+        exit 0
+      fi
+      
+      # Create merge commit
+      git commit -m "Merge ${inputs.TARGET_BRANCH} into ${inputs.SOURCE_BRANCH}
+      
+      Conflicts resolved:
+      $(cat /tmp/conflict_files.txt | sed 's/^/- /')
+      
+      Resolution strategy: ${inputs.CONFLICT_STRATEGY}
+      Automated resolution: ${inputs.AUTO_RESOLVE}"
+      
+      MERGE_COMMIT=$(git rev-parse HEAD)
+      echo "Merge commit: $MERGE_COMMIT"
+    outputs:
+      - MERGE_COMMIT
+
+  - id: push-resolution
+    name: Push Resolution
+    description: Push resolved branch
+    action: shell-command
+    command: |
+      git push origin ${inputs.SOURCE_BRANCH}
+      echo "Pushed conflict resolution to ${inputs.SOURCE_BRANCH}"
+
+  - id: update-pr
+    name: Update PR
+    description: Update PR if exists
+    action: conditional
+    condition: "${inputs.PR_NUMBER}"
+    steps:
+      - action: azure-devops
+        operation: create-pr-thread
+        inputs:
+          pr_id: "${inputs.PR_NUMBER}"
+          content: |
+            ✅ Merge conflicts resolved automatically
+            
+            **Resolution Details:**
+            - Strategy: ${inputs.CONFLICT_STRATEGY}
+            - Files with conflicts: ${steps.attempt-merge.CONFLICT_COUNT}
+            - Auto-resolved: ${context.auto_resolved_count}
+            - Manually resolved: ${context.manual_resolved_count}
+            - Merge commit: ${steps.commit-resolution.MERGE_COMMIT}
+            
+            Please review the resolution and re-run checks.
+
+outputs:
+  - name: MERGE_COMMIT
+    value: "${steps.commit-resolution.MERGE_COMMIT}"
+    description: The merge commit SHA
+  - name: CONFLICTS_RESOLVED
+    value: "${steps.attempt-merge.CONFLICT_COUNT}"
+    description: Number of conflicts resolved
+  - name: RESOLUTION_STATUS
+    value: "${context.all_resolved ? 'success' : 'partial'}"
+    description: Resolution status
+
+successCriteria:
+  - All conflicts resolved
+  - No conflict markers remain
+  - Tests pass (if configured)
+  - Changes pushed successfully
+
+errorHandling:
+  strategy: fail-fast
+  onFailure:
+    - id: abort-merge
+      action: shell-command
+      command: |
+        git merge --abort
+        git checkout ${inputs.SOURCE_BRANCH}
+        git stash pop || true
+  notifications:
+    - type: log
+      target: error

@@ -1,0 +1,342 @@
+metadata:
+  id: wf17-merge-strategy-selection
+  name: Merge Strategy Selection Workflow - Determine optimal merge strategy (squash/merge/rebase)
+  version: 1.0.0
+  type: decision
+  description: Analyze PR characteristics to select the best merge strategy
+  author: AI Personas Team
+  tags:
+    - merge
+    - strategy
+    - decision
+    - logic
+    - git
+    - wf17
+  averageDuration: 1-2 minutes
+
+inputs:
+  - name: PR_NUMBER
+    type: string
+    description: Pull request number
+    required: true
+  - name: SOURCE_BRANCH
+    type: string
+    description: Source branch name
+    required: true
+  - name: TARGET_BRANCH
+    type: string
+    description: Target branch for merge
+    required: true
+    default: main
+  - name: COMMIT_COUNT
+    type: number
+    description: Number of commits in PR
+    required: false
+  - name: PR_TYPE
+    type: enum
+    values: [feature, bugfix, hotfix, refactor, docs, chore]
+    description: Type of pull request
+    required: false
+  - name: TEAM_PREFERENCE
+    type: enum
+    values: [squash, merge, rebase, auto]
+    description: Team's default preference
+    required: false
+    default: auto
+
+prerequisites:
+  - description: Git repository access
+    required: true
+  - description: PR commit history available
+    required: true
+
+steps:
+  - id: analyze-commit-history
+    name: Analyze Commit History
+    description: Examine commits in the PR
+    action: shell-command
+    command: |
+      # Get commit information
+      if [ -z "${inputs.COMMIT_COUNT}" ]; then
+        COMMIT_COUNT=$(git rev-list --count ${inputs.TARGET_BRANCH}..${inputs.SOURCE_BRANCH})
+      else
+        COMMIT_COUNT="${inputs.COMMIT_COUNT}"
+      fi
+      
+      # Analyze commit messages
+      COMMIT_MESSAGES=$(git log ${inputs.TARGET_BRANCH}..${inputs.SOURCE_BRANCH} --pretty=format:"%s")
+      
+      # Check for WIP commits
+      WIP_COMMITS=$(echo "$COMMIT_MESSAGES" | grep -i "wip\|work in progress\|temp\|todo\|fixup\|squash me" | wc -l)
+      
+      # Check for merge commits
+      MERGE_COMMITS=$(git log ${inputs.TARGET_BRANCH}..${inputs.SOURCE_BRANCH} --merges --oneline | wc -l)
+      
+      # Check commit message quality
+      WELL_FORMED_COMMITS=0
+      CONVENTIONAL_COMMITS=0
+      
+      while IFS= read -r msg; do
+        # Check for conventional commit format (type: description)
+        if [[ $msg =~ ^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?:\ .+ ]]; then
+          ((CONVENTIONAL_COMMITS++))
+          ((WELL_FORMED_COMMITS++))
+        # Check for at least reasonable format
+        elif [[ ${#msg} -gt 10 ]] && [[ ${#msg} -lt 100 ]]; then
+          ((WELL_FORMED_COMMITS++))
+        fi
+      done <<< "$COMMIT_MESSAGES"
+      
+      # Calculate commit quality score
+      if [ $COMMIT_COUNT -gt 0 ]; then
+        COMMIT_QUALITY_SCORE=$((WELL_FORMED_COMMITS * 100 / COMMIT_COUNT))
+        CONVENTIONAL_SCORE=$((CONVENTIONAL_COMMITS * 100 / COMMIT_COUNT))
+      else
+        COMMIT_QUALITY_SCORE=0
+        CONVENTIONAL_SCORE=0
+      fi
+      
+      echo "COMMIT_COUNT=$COMMIT_COUNT"
+      echo "WIP_COMMITS=$WIP_COMMITS"
+      echo "MERGE_COMMITS=$MERGE_COMMITS"
+      echo "WELL_FORMED_COMMITS=$WELL_FORMED_COMMITS"
+      echo "CONVENTIONAL_COMMITS=$CONVENTIONAL_COMMITS"
+      echo "COMMIT_QUALITY_SCORE=$COMMIT_QUALITY_SCORE"
+      echo "CONVENTIONAL_SCORE=$CONVENTIONAL_SCORE"
+    outputs:
+      - COMMIT_COUNT
+      - WIP_COMMITS
+      - MERGE_COMMITS
+      - WELL_FORMED_COMMITS
+      - CONVENTIONAL_COMMITS
+      - COMMIT_QUALITY_SCORE
+      - CONVENTIONAL_SCORE
+
+  - id: analyze-changes-scope
+    name: Analyze Changes Scope
+    description: Determine the scope and nature of changes
+    action: shell-command
+    command: |
+      # Get file statistics
+      FILES_CHANGED=$(git diff --name-only ${inputs.TARGET_BRANCH}...${inputs.SOURCE_BRANCH} | wc -l)
+      LINES_ADDED=$(git diff --numstat ${inputs.TARGET_BRANCH}...${inputs.SOURCE_BRANCH} | awk '{sum+=$1} END {print sum}')
+      LINES_REMOVED=$(git diff --numstat ${inputs.TARGET_BRANCH}...${inputs.SOURCE_BRANCH} | awk '{sum+=$2} END {print sum}')
+      TOTAL_CHANGES=$((LINES_ADDED + LINES_REMOVED))
+      
+      # Check if changes are focused or scattered
+      UNIQUE_DIRS=$(git diff --name-only ${inputs.TARGET_BRANCH}...${inputs.SOURCE_BRANCH} | xargs -I {} dirname {} | sort -u | wc -l)
+      
+      # Determine if changes are cohesive
+      if [ $UNIQUE_DIRS -eq 1 ]; then
+        CHANGE_COHESION="high"
+      elif [ $UNIQUE_DIRS -le 3 ]; then
+        CHANGE_COHESION="medium"
+      else
+        CHANGE_COHESION="low"
+      fi
+      
+      # Check for file renames/moves
+      RENAMES=$(git diff --name-status ${inputs.TARGET_BRANCH}...${inputs.SOURCE_BRANCH} | grep -c "^R")
+      
+      echo "FILES_CHANGED=$FILES_CHANGED"
+      echo "LINES_ADDED=$LINES_ADDED"
+      echo "LINES_REMOVED=$LINES_REMOVED"
+      echo "TOTAL_CHANGES=$TOTAL_CHANGES"
+      echo "UNIQUE_DIRS=$UNIQUE_DIRS"
+      echo "CHANGE_COHESION=$CHANGE_COHESION"
+      echo "RENAMES=$RENAMES"
+    outputs:
+      - FILES_CHANGED
+      - LINES_ADDED
+      - LINES_REMOVED
+      - TOTAL_CHANGES
+      - UNIQUE_DIRS
+      - CHANGE_COHESION
+      - RENAMES
+
+  - id: check-branch-policies
+    name: Check Branch Policies
+    description: Get merge policies for target branch
+    action: execute-workflow
+    workflow: wf15-factory-settings-lookup
+    inputs:
+      SETTING_TYPE: branch_policies
+      FORMAT: json
+    outputs:
+      - BRANCH_POLICIES
+
+  - id: determine-strategy
+    name: Determine Merge Strategy
+    description: Select optimal merge strategy based on analysis
+    action: shell-command
+    command: |
+      # Initialize scores for each strategy
+      SQUASH_SCORE=0
+      MERGE_SCORE=0
+      REBASE_SCORE=0
+      
+      # Rule 1: Many commits with WIP/temp messages favor squash
+      if [ ${steps.analyze-commit-history.WIP_COMMITS} -gt 0 ] || [ ${steps.analyze-commit-history.COMMIT_COUNT} -gt 10 ]; then
+        ((SQUASH_SCORE+=3))
+      fi
+      
+      # Rule 2: High-quality conventional commits favor merge
+      if [ ${steps.analyze-commit-history.CONVENTIONAL_SCORE} -ge 80 ] && [ ${steps.analyze-commit-history.COMMIT_COUNT} -le 5 ]; then
+        ((MERGE_SCORE+=3))
+      fi
+      
+      # Rule 3: Linear history with few commits favors rebase
+      if [ ${steps.analyze-commit-history.MERGE_COMMITS} -eq 0 ] && [ ${steps.analyze-commit-history.COMMIT_COUNT} -le 3 ]; then
+        ((REBASE_SCORE+=2))
+      fi
+      
+      # Rule 4: Hotfixes favor squash for clean history
+      if [ "${inputs.PR_TYPE}" = "hotfix" ]; then
+        ((SQUASH_SCORE+=2))
+      fi
+      
+      # Rule 5: Feature branches with good commit messages favor merge
+      if [ "${inputs.PR_TYPE}" = "feature" ] && [ ${steps.analyze-commit-history.COMMIT_QUALITY_SCORE} -ge 70 ]; then
+        ((MERGE_SCORE+=2))
+      fi
+      
+      # Rule 6: Low cohesion changes favor squash
+      if [ "${steps.analyze-changes-scope.CHANGE_COHESION}" = "low" ]; then
+        ((SQUASH_SCORE+=2))
+      fi
+      
+      # Rule 7: Documentation changes favor squash
+      if [ "${inputs.PR_TYPE}" = "docs" ]; then
+        ((SQUASH_SCORE+=3))
+      fi
+      
+      # Rule 8: Small, focused changes favor rebase
+      if [ ${steps.analyze-changes-scope.FILES_CHANGED} -le 3 ] && [ ${steps.analyze-changes-scope.TOTAL_CHANGES} -le 50 ]; then
+        ((REBASE_SCORE+=1))
+      fi
+      
+      # Rule 9: Presence of merge commits eliminates rebase
+      if [ ${steps.analyze-commit-history.MERGE_COMMITS} -gt 0 ]; then
+        REBASE_SCORE=0
+      fi
+      
+      # Rule 10: Team preference adjustment
+      case "${inputs.TEAM_PREFERENCE}" in
+        squash)
+          ((SQUASH_SCORE+=2))
+          ;;
+        merge)
+          ((MERGE_SCORE+=2))
+          ;;
+        rebase)
+          ((REBASE_SCORE+=2))
+          ;;
+      esac
+      
+      # Determine winner
+      RECOMMENDED_STRATEGY="squash"  # default
+      MAX_SCORE=$SQUASH_SCORE
+      
+      if [ $MERGE_SCORE -gt $MAX_SCORE ]; then
+        RECOMMENDED_STRATEGY="merge"
+        MAX_SCORE=$MERGE_SCORE
+      fi
+      
+      if [ $REBASE_SCORE -gt $MAX_SCORE ]; then
+        RECOMMENDED_STRATEGY="rebase"
+        MAX_SCORE=$REBASE_SCORE
+      fi
+      
+      # Generate confidence level
+      TOTAL_SCORE=$((SQUASH_SCORE + MERGE_SCORE + REBASE_SCORE))
+      if [ $TOTAL_SCORE -gt 0 ]; then
+        CONFIDENCE=$((MAX_SCORE * 100 / TOTAL_SCORE))
+      else
+        CONFIDENCE=33
+      fi
+      
+      echo "SQUASH_SCORE=$SQUASH_SCORE"
+      echo "MERGE_SCORE=$MERGE_SCORE"
+      echo "REBASE_SCORE=$REBASE_SCORE"
+      echo "RECOMMENDED_STRATEGY=$RECOMMENDED_STRATEGY"
+      echo "CONFIDENCE=$CONFIDENCE"
+    outputs:
+      - SQUASH_SCORE
+      - MERGE_SCORE
+      - REBASE_SCORE
+      - RECOMMENDED_STRATEGY
+      - CONFIDENCE
+
+  - id: generate-recommendation
+    name: Generate Recommendation
+    description: Create detailed merge strategy recommendation
+    action: set-variable
+    variable: STRATEGY_RECOMMENDATION
+    value: |
+      ## Merge Strategy Recommendation for PR #${inputs.PR_NUMBER}
+      
+      ### Recommended Strategy: **${steps.determine-strategy.RECOMMENDED_STRATEGY}**
+      **Confidence Level**: ${steps.determine-strategy.CONFIDENCE}%
+      
+      ### Analysis Summary:
+      - **Commits**: ${steps.analyze-commit-history.COMMIT_COUNT} total (${steps.analyze-commit-history.WIP_COMMITS} WIP, ${steps.analyze-commit-history.CONVENTIONAL_COMMITS} conventional)
+      - **Commit Quality**: ${steps.analyze-commit-history.COMMIT_QUALITY_SCORE}% well-formed
+      - **Changes**: ${steps.analyze-changes-scope.FILES_CHANGED} files, ${steps.analyze-changes-scope.TOTAL_CHANGES} lines
+      - **Cohesion**: ${steps.analyze-changes-scope.CHANGE_COHESION}
+      - **PR Type**: ${inputs.PR_TYPE}
+      
+      ### Strategy Scores:
+      - Squash: ${steps.determine-strategy.SQUASH_SCORE} points
+      - Merge: ${steps.determine-strategy.MERGE_SCORE} points  
+      - Rebase: ${steps.determine-strategy.REBASE_SCORE} points
+      
+      ### Rationale:
+      ${steps.determine-strategy.RECOMMENDED_STRATEGY eq 'squash' ? '- Multiple commits will be combined into a single, clean commit\n- WIP/temporary commits will be hidden from main branch history\n- Provides a clear, atomic change in the history' : ''}${steps.determine-strategy.RECOMMENDED_STRATEGY eq 'merge' ? '- Preserves valuable commit history with well-formed messages\n- Maintains context of incremental changes\n- Shows the development process for future reference' : ''}${steps.determine-strategy.RECOMMENDED_STRATEGY eq 'rebase' ? '- Creates a linear history without merge commits\n- Small, focused changes integrate cleanly\n- Maintains clean project history' : ''}
+      
+      ### Alternative Strategies:
+      ${steps.determine-strategy.SQUASH_SCORE gt 0 and steps.determine-strategy.RECOMMENDED_STRATEGY ne 'squash' ? '- **Squash**: Use if you prefer a cleaner history without intermediate commits' : ''}${steps.determine-strategy.MERGE_SCORE gt 0 and steps.determine-strategy.RECOMMENDED_STRATEGY ne 'merge' ? '- **Merge**: Use if commit history provides valuable context' : ''}${steps.determine-strategy.REBASE_SCORE gt 0 and steps.determine-strategy.RECOMMENDED_STRATEGY ne 'rebase' ? '- **Rebase**: Use if you prefer linear history and commits are already clean' : ''}
+
+outputs:
+  - name: RECOMMENDED_STRATEGY
+    value: "${steps.determine-strategy.RECOMMENDED_STRATEGY}"
+    description: Recommended merge strategy
+  - name: CONFIDENCE
+    value: "${steps.determine-strategy.CONFIDENCE}"
+    description: Confidence level (0-100)
+  - name: STRATEGY_SCORES
+    value: |
+      {
+        "squash": ${steps.determine-strategy.SQUASH_SCORE},
+        "merge": ${steps.determine-strategy.MERGE_SCORE},
+        "rebase": ${steps.determine-strategy.REBASE_SCORE}
+      }
+    description: Scores for each strategy
+  - name: RECOMMENDATION_REPORT
+    value: "${context.STRATEGY_RECOMMENDATION}"
+    description: Detailed recommendation report
+  - name: COMMIT_ANALYSIS
+    value: |
+      {
+        "count": ${steps.analyze-commit-history.COMMIT_COUNT},
+        "quality_score": ${steps.analyze-commit-history.COMMIT_QUALITY_SCORE},
+        "conventional_score": ${steps.analyze-commit-history.CONVENTIONAL_SCORE},
+        "has_wip": ${steps.analyze-commit-history.WIP_COMMITS gt 0}
+      }
+    description: Commit history analysis
+
+successCriteria:
+  - Merge strategy selected
+  - Confidence level calculated
+  - Rationale documented
+  - Alternative strategies identified
+
+errorHandling:
+  strategy: continue-on-error
+  onFailure:
+    - id: use-safe-default
+      action: set-variable
+      variable: RECOMMENDED_STRATEGY
+      value: "squash"
+  notifications:
+    - type: log
+      target: warn

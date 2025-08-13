@@ -7,32 +7,46 @@ from typing import Dict, List, Optional
 from datetime import datetime
 import yaml
 import os
-from azure.devops.connection import Connection
-from msrest.authentication import BasicAuthentication
-import redis
+from dotenv import load_dotenv
+import redis.asyncio as redis
 import asyncpg
+from contextlib import asynccontextmanager
 
-app = FastAPI(title="AI Persona Orchestrator API")
+load_dotenv()
+
+# Lifespan context manager for startup/shutdown
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    app.state.pg_pool = await asyncpg.create_pool(
+        host=os.getenv("POSTGRES_HOST", "postgres"),
+        port=5432,
+        user=os.getenv("POSTGRES_USER"),
+        password=os.getenv("POSTGRES_PASSWORD"),
+        database=os.getenv("POSTGRES_DB"),
+        min_size=10,
+        max_size=20
+    )
+    app.state.redis = await redis.from_url(
+        os.getenv("REDIS_URL", "redis://redis:6379"),
+        decode_responses=True
+    )
+    yield
+    # Shutdown
+    await app.state.pg_pool.close()
+    await app.state.redis.close()
+
+app = FastAPI(title="AI Persona Orchestrator API", lifespan=lifespan)
 security = HTTPBearer()
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://localhost:3000"],
+    allow_origins=["http://localhost:3020", "https://localhost:3020"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Redis for pub/sub
-redis_client = redis.Redis(
-    host='localhost',
-    port=6379,
-    decode_responses=True
-)
-
-# PostgreSQL connection pool
-pg_pool = None
 
 class ConnectionManager:
     def __init__(self):
@@ -55,54 +69,59 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-@app.on_event("startup")
-async def startup():
-    global pg_pool
-    pg_pool = await asyncpg.create_pool(
-        host=os.getenv("POSTGRES_HOST", "localhost"),
-        port=5432,
-        user=os.getenv("POSTGRES_USER"),
-        password=os.getenv("POSTGRES_PASSWORD"),
-        database=os.getenv("POSTGRES_DB"),
-        min_size=10,
-        max_size=20
-    )
+@app.get("/")
+async def root():
+    return {"message": "AI Persona Orchestrator API", "status": "running"}
 
 @app.post("/api/workflow/execute")
 async def execute_workflow(
     work_item_id: str,
     workflow_type: str,
-    assigned_agents: Dict[str, str],
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    assigned_agents: Dict[str, str]
 ):
     """Start workflow execution for a work item"""
-    # Trigger Camunda process
-    # Start LangGraph workflow
-    # Return workflow instance ID
-    pass
+    # TODO: Trigger Camunda process
+    # TODO: Start LangGraph workflow
+    return {"workflow_id": f"wf_{work_item_id}_{datetime.now().timestamp()}"}
 
 @app.get("/api/workflow/status/{work_item_id}")
 async def get_workflow_status(work_item_id: str):
     """Get current status of a workflow"""
-    async with pg_pool.acquire() as conn:
-        result = await conn.fetch("""
-            SELECT step_name, status, agent_id, started_at, completed_at, error_message
-            FROM workflow_status
-            WHERE work_item_id = $1
-            ORDER BY started_at DESC
-        """, work_item_id)
-    
-    return {"work_item_id": work_item_id, "steps": result}
+    # TODO: Query from database
+    return {
+        "work_item_id": work_item_id, 
+        "status": "in_progress",
+        "steps": []
+    }
 
-@app.websocket("/workflow-updates")
+@app.get("/api/workflow/structure")
+async def get_workflow_structure():
+    """Get workflow structure for visualization"""
+    # TODO: Load from configuration
+    return {
+        "nodes": [
+            {"id": "1", "label": "Initialize", "x": 100, "y": 100},
+            {"id": "2", "label": "Development", "x": 300, "y": 100},
+            {"id": "3", "label": "Review", "x": 500, "y": 100}
+        ],
+        "edges": [
+            {"source": "1", "target": "2"},
+            {"source": "2", "target": "3"}
+        ]
+    }
+
+@app.websocket("/ws/workflow-updates")
 async def websocket_endpoint(websocket: WebSocket):
     client_id = f"client_{datetime.now().timestamp()}"
     await manager.connect(websocket, client_id)
     
     try:
         while True:
-            # Keep connection alive and handle incoming messages
             data = await websocket.receive_text()
             # Process any client requests
     except:
         await manager.disconnect(client_id)
+
+@app.get("/api/health")
+async def health_check():
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
