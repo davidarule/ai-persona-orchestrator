@@ -90,3 +90,6 @@ __pycache__/
 
 # Workflows directory should be included, but not data
 !workflows/
+
+# Test Reports
+test_reports/

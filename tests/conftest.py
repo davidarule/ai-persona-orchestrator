@@ -21,17 +21,24 @@ pytest_plugins = ('pytest_asyncio',)
 @pytest.fixture(scope="session")
 def event_loop():
     """Create an instance of the default event loop for the test session."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
+    policy = asyncio.get_event_loop_policy()
+    loop = policy.new_event_loop()
+    asyncio.set_event_loop(loop)
     yield loop
     loop.close()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 async def db():
     """Initialize database connections for testing"""
-    await db_manager.initialize()
-    yield db_manager
-    await db_manager.close()
+    # Create new instance for each test to avoid loop issues
+    from backend.services.database import DatabaseManager
+    from backend.config.database import db_config
+    
+    test_db_manager = DatabaseManager(db_config)
+    await test_db_manager.initialize()
+    yield test_db_manager
+    await test_db_manager.close()
 
 
 @pytest.fixture

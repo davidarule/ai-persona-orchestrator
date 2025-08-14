@@ -75,11 +75,15 @@ def run_tests():
     print(f"   Latest Report: {reports_dir / 'latest' / 'pytest_report.html'}")
     print("="*60)
     
-    # Open in browser if available
-    if sys.platform == "darwin":  # macOS
-        subprocess.run(["open", str(report_dir / "pytest_report.html")])
-    elif sys.platform == "linux":
-        subprocess.run(["xdg-open", str(report_dir / "pytest_report.html")])
+    # Try to open in browser if available
+    try:
+        if sys.platform == "darwin":  # macOS
+            subprocess.run(["open", str(report_dir / "pytest_report.html")])
+        elif sys.platform == "linux":
+            subprocess.run(["xdg-open", str(report_dir / "pytest_report.html")])
+    except (FileNotFoundError, subprocess.SubprocessError):
+        # Browser opening failed, just continue
+        pass
     
     return result.returncode
 

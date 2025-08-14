@@ -1,0 +1,118 @@
+name: Tests and Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: orchestrator_user
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'test123' }}
+          POSTGRES_DB: ai_orchestrator
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.txt
+        pip install pytest-html
+    
+    - name: Run migrations
+      env:
+        DATABASE_URL: postgresql://orchestrator_user:test123@localhost:5434/ai_orchestrator
+      run: |
+        for script in scripts/migrations/*.sql; do
+          psql $DATABASE_URL -f "$script"
+        done
+    
+    - name: Run tests with coverage
+      env:
+        POSTGRES_HOST: localhost
+        POSTGRES_PORT: 5434
+        POSTGRES_USER: orchestrator_user
+        POSTGRES_PASSWORD: test123
+        POSTGRES_DB: ai_orchestrator
+        REDIS_URL: redis://localhost:6379
+        PYTHONPATH: ${{ github.workspace }}
+      run: |
+        pytest tests/ \
+          --cov=backend \
+          --cov-report=xml \
+          --cov-report=html:htmlcov \
+          --cov-report=term \
+          --junit-xml=junit.xml \
+          --html=report.html \
+          --self-contained-html \
+          -v
+    
+    - name: Upload coverage to Codecov
+      if: always()
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: |
+          junit.xml
+          report.html
+          htmlcov/
+    
+    - name: Publish test results
+      if: always()
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      with:
+        files: junit.xml
+    
+    - name: Comment PR with coverage
+      if: github.event_name == 'pull_request'
+      uses: py-cov-action/python-coverage-comment-action@v3
+      with:
+        GITHUB_TOKEN: ${{ github.token }}
+        MINIMUM_GREEN: 80
+        MINIMUM_ORANGE: 60

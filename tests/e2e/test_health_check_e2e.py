@@ -95,7 +95,9 @@ class TestHealthCheckE2E:
     @pytest.mark.asyncio
     async def test_concurrent_health_checks(self):
         """Test concurrent health check requests"""
-        async with httpx.AsyncClient(app=app, base_url="http://test") as client:
+        from httpx import AsyncClient
+        transport = httpx.ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
             # Make 10 concurrent requests
             tasks = []
             for _ in range(10):
