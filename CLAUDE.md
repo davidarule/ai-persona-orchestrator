@@ -49,6 +49,31 @@ AI Persona Orchestrator is a comprehensive visual workflow orchestration system 
 - **Agent-based coordination**: 25 specialized AI personas using LangChain/LangGraph
 - **Workflow-driven**: YAML-defined workflows with 18 system workflows (wf0-wf17)
 
+## Implementation Plan
+
+The comprehensive implementation plan for this project is maintained at:
+**`/home/davidarule/ai-persona-orchestrator/IMPLEMENTATION-PLAN.md`**
+
+This living document contains:
+- 150 sequential TODOs organized in 10 phases
+- Detailed technical specifications
+- Database schemas
+- API designs
+- Error handling strategies
+- Current status tracking
+
+### Active Plan Summary
+- **Current TODO**: #1 - Add persona instance tables to database schema
+- **Current Phase**: Phase 1 - Database Foundation (TODOs 1-10)
+- **Key Decision**: Start with Software Architect persona as first complete implementation
+- **Architecture**: Personas are abstract types that can be instantiated multiple times
+- **Constraint**: Each persona instance works on only ONE project
+
+### Memory System References
+- Check memory for "ACTIVE_TODO" to see current task
+- Check memory for "AI Persona Orchestrator Implementation Plan" for plan location
+- Update IMPLEMENTATION-PLAN.md as tasks are completed
+
 ### Directory Structure
 ```
 backend/
