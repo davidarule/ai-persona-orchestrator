@@ -257,7 +257,7 @@ steps:
         title: "Apply security patch for ${inputs.WORK_ITEM_ID}"
         assignedTo: devsecops-engineer
         parent: ${inputs.WORK_ITEM_ID}
-        priority: ${inputs.THREAT_LEVEL == 'critical' ? 1 : 2}
+        priority: 1  # High priority for security engineering
       - type: Task
         title: "Update security monitoring"
         assignedTo: site-reliability-engineer

@@ -1,0 +1,3600 @@
+[
+  {
+    "workflow_id": "wf5-pull-request-creation",
+    "workflow_name": "Pull Request Creation Workflow - Create and configure pull requests",
+    "phase": "validate-branch-state",
+    "task_type": "Validate Branch State",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf5-pull-request-creation",
+    "workflow_name": "Pull Request Creation Workflow - Create and configure pull requests",
+    "phase": "get-required-reviewers",
+    "task_type": "Get Required Reviewers",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf5-pull-request-creation",
+    "workflow_name": "Pull Request Creation Workflow - Create and configure pull requests",
+    "phase": "generate-pr-details",
+    "task_type": "Generate PR Title and Description",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf5-pull-request-creation",
+    "workflow_name": "Pull Request Creation Workflow - Create and configure pull requests",
+    "phase": "set-pr-policies",
+    "task_type": "Set PR Policies",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf5-pull-request-creation",
+    "workflow_name": "Pull Request Creation Workflow - Create and configure pull requests",
+    "phase": "send-notifications",
+    "task_type": "Send Notifications",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf4-code-commit",
+    "workflow_name": "Code Commit Workflow - Stage, commit, and push code changes",
+    "phase": "verify-branch",
+    "task_type": "Verify Branch",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf4-code-commit",
+    "workflow_name": "Code Commit Workflow - Stage, commit, and push code changes",
+    "phase": "check-for-changes",
+    "task_type": "Check for Changes",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf4-code-commit",
+    "workflow_name": "Code Commit Workflow - Stage, commit, and push code changes",
+    "phase": "run-pre-commit-checks",
+    "task_type": "Run Pre-Commit Checks",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf4-code-commit",
+    "workflow_name": "Code Commit Workflow - Stage, commit, and push code changes",
+    "phase": "stage-files",
+    "task_type": "Stage Files",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf4-code-commit",
+    "workflow_name": "Code Commit Workflow - Stage, commit, and push code changes",
+    "phase": "create-commit",
+    "task_type": "Create Commit",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf4-code-commit",
+    "workflow_name": "Code Commit Workflow - Stage, commit, and push code changes",
+    "phase": "push-to-remote",
+    "task_type": "Push to Remote",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf4-code-commit",
+    "workflow_name": "Code Commit Workflow - Stage, commit, and push code changes",
+    "phase": "verify-commit",
+    "task_type": "Verify Commit",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf6-pull-request-review",
+    "workflow_name": "Pull Request Review Workflow (As Reviewer) - Review and provide feedback on pull requests (as reviewer)",
+    "phase": "add-review-comments",
+    "task_type": "Add Review Comments",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf11-rollback",
+    "workflow_name": "Rollback Workflow - Rollback problematic deployments",
+    "phase": "validate-rollback",
+    "task_type": "Validate Rollback Request",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf11-rollback",
+    "workflow_name": "Rollback Workflow - Rollback problematic deployments",
+    "phase": "execute-rollback",
+    "task_type": "Execute Rollback",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf3-branch-creation",
+    "workflow_name": "Branch Creation Workflow - Create properly named branches for development work",
+    "phase": "validate-base-branch",
+    "task_type": "Validate Base Branch",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf3-branch-creation",
+    "workflow_name": "Branch Creation Workflow - Create properly named branches for development work",
+    "phase": "generate-branch-name",
+    "task_type": "Generate Branch Name",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf3-branch-creation",
+    "workflow_name": "Branch Creation Workflow - Create properly named branches for development work",
+    "phase": "verify-branch",
+    "task_type": "Verify Branch Creation",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf13-pr-readiness-check",
+    "workflow_name": "PR Readiness Check Workflow - Determine if code is ready for pull request",
+    "phase": "check-commits",
+    "task_type": "Check Commits",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf13-pr-readiness-check",
+    "workflow_name": "PR Readiness Check Workflow - Determine if code is ready for pull request",
+    "phase": "check-tests",
+    "task_type": "Check Tests",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf13-pr-readiness-check",
+    "workflow_name": "PR Readiness Check Workflow - Determine if code is ready for pull request",
+    "phase": "check-lint",
+    "task_type": "Check Linting",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf13-pr-readiness-check",
+    "workflow_name": "PR Readiness Check Workflow - Determine if code is ready for pull request",
+    "phase": "check-build",
+    "task_type": "Check Build",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf13-pr-readiness-check",
+    "workflow_name": "PR Readiness Check Workflow - Determine if code is ready for pull request",
+    "phase": "check-coverage",
+    "task_type": "Check Coverage",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf13-pr-readiness-check",
+    "workflow_name": "PR Readiness Check Workflow - Determine if code is ready for pull request",
+    "phase": "check-docs",
+    "task_type": "Check Documentation",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf13-pr-readiness-check",
+    "workflow_name": "PR Readiness Check Workflow - Determine if code is ready for pull request",
+    "phase": "check-dependencies",
+    "task_type": "Check Dependencies",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf2-hotfix",
+    "workflow_name": "Hotfix Workflow - Emergency production fix process",
+    "phase": "implement-fix",
+    "task_type": "Implement Fix",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf4-code-commit"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf2-hotfix",
+    "workflow_name": "Hotfix Workflow - Emergency production fix process",
+    "phase": "emergency-pr-review",
+    "task_type": "Emergency PR and Review",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf5-pull-request-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf2-hotfix",
+    "workflow_name": "Hotfix Workflow - Emergency production fix process",
+    "phase": "emergency-merge",
+    "task_type": "Emergency Merge",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf8-merge"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf2-hotfix",
+    "workflow_name": "Hotfix Workflow - Emergency production fix process",
+    "phase": "verify-hotfix",
+    "task_type": "Verify Hotfix",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf9-post-merge-monitoring"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf14-build-failure-recovery",
+    "workflow_name": "Build Failure Recovery Workflow - Diagnose and fix build failures",
+    "phase": "analyze-failure",
+    "task_type": "Analyze Build Failure",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf14-build-failure-recovery",
+    "workflow_name": "Build Failure Recovery Workflow - Diagnose and fix build failures",
+    "phase": "attempt-auto-fix",
+    "task_type": "Attempt Automatic Fix",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf14-build-failure-recovery",
+    "workflow_name": "Build Failure Recovery Workflow - Diagnose and fix build failures",
+    "phase": "commit-fixes",
+    "task_type": "Commit Fixes",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf14-build-failure-recovery",
+    "workflow_name": "Build Failure Recovery Workflow - Diagnose and fix build failures",
+    "phase": "retry-build",
+    "task_type": "Retry Build",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf16-reviewer-selection",
+    "workflow_name": "Reviewer Selection Workflow - Select appropriate reviewers for PR",
+    "phase": "get-factory-settings",
+    "task_type": "Get Factory Settings",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf15-factory-settings-lookup"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf16-reviewer-selection",
+    "workflow_name": "Reviewer Selection Workflow - Select appropriate reviewers for PR",
+    "phase": "analyze-changed-files",
+    "task_type": "Analyze Changed Files",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf16-reviewer-selection",
+    "workflow_name": "Reviewer Selection Workflow - Select appropriate reviewers for PR",
+    "phase": "calculate-review-complexity",
+    "task_type": "Calculate Review Complexity",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf16-reviewer-selection",
+    "workflow_name": "Reviewer Selection Workflow - Select appropriate reviewers for PR",
+    "phase": "select-reviewers",
+    "task_type": "Select Reviewers",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf17-merge-strategy-selection",
+    "workflow_name": "Merge Strategy Selection Workflow - Determine optimal merge strategy (squash/merge/rebase)",
+    "phase": "analyze-commit-history",
+    "task_type": "Analyze Commit History",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf17-merge-strategy-selection",
+    "workflow_name": "Merge Strategy Selection Workflow - Determine optimal merge strategy (squash/merge/rebase)",
+    "phase": "analyze-changes-scope",
+    "task_type": "Analyze Changes Scope",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf17-merge-strategy-selection",
+    "workflow_name": "Merge Strategy Selection Workflow - Determine optimal merge strategy (squash/merge/rebase)",
+    "phase": "check-branch-policies",
+    "task_type": "Check Branch Policies",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf15-factory-settings-lookup"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf17-merge-strategy-selection",
+    "workflow_name": "Merge Strategy Selection Workflow - Determine optimal merge strategy (squash/merge/rebase)",
+    "phase": "determine-strategy",
+    "task_type": "Determine Merge Strategy",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf1-bug-fix",
+    "workflow_name": "Bug Fix Workflow - End-to-end bug fixing process",
+    "phase": "initialize-bug-fix",
+    "task_type": "Initialize Bug Fix",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf3-branch-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf1-bug-fix",
+    "workflow_name": "Bug Fix Workflow - End-to-end bug fixing process",
+    "phase": "implement-fix",
+    "task_type": "Implement Fix",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf4-code-commit"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf1-bug-fix",
+    "workflow_name": "Bug Fix Workflow - End-to-end bug fixing process",
+    "phase": "verify-fix-locally",
+    "task_type": "Verify Fix Locally",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf1-bug-fix",
+    "workflow_name": "Bug Fix Workflow - End-to-end bug fixing process",
+    "phase": "create-pull-request",
+    "task_type": "Create Pull Request",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf5-pull-request-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf1-bug-fix",
+    "workflow_name": "Bug Fix Workflow - End-to-end bug fixing process",
+    "phase": "fast-track-review",
+    "task_type": "Fast-Track Review (if P1)",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf1-bug-fix",
+    "workflow_name": "Bug Fix Workflow - End-to-end bug fixing process",
+    "phase": "merge-and-verify",
+    "task_type": "Merge and Verify",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf8-merge"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf1-bug-fix",
+    "workflow_name": "Bug Fix Workflow - End-to-end bug fixing process",
+    "phase": "production-verification",
+    "task_type": "Production Verification",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf9-post-merge-monitoring"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf9-post-merge-monitoring",
+    "workflow_name": "Post-Merge Monitoring Workflow - Monitor system health after merge",
+    "phase": "setup-monitoring",
+    "task_type": "Setup Monitoring",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf9-post-merge-monitoring",
+    "workflow_name": "Post-Merge Monitoring Workflow - Monitor system health after merge",
+    "phase": "verify-bug-fix",
+    "task_type": "Verify Bug Fix",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf12-work-item-update",
+    "workflow_name": "Work Item Update Workflow - Update Azure DevOps work items",
+    "phase": "get-work-items",
+    "task_type": "Get Work Items",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf12-work-item-update",
+    "workflow_name": "Work Item Update Workflow - Update Azure DevOps work items",
+    "phase": "update-related-items",
+    "task_type": "Update Related Items",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf12-work-item-update",
+    "workflow_name": "Work Item Update Workflow - Update Azure DevOps work items",
+    "phase": "send-notifications",
+    "task_type": "Send Notifications",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf15-factory-settings-lookup",
+    "workflow_name": "Factory Settings Lookup Workflow - Retrieve project configuration and settings",
+    "phase": "load-local-settings",
+    "task_type": "Load Local Settings",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf15-factory-settings-lookup",
+    "workflow_name": "Factory Settings Lookup Workflow - Retrieve project configuration and settings",
+    "phase": "get-reviewers-config",
+    "task_type": "Get Reviewers Configuration",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf15-factory-settings-lookup",
+    "workflow_name": "Factory Settings Lookup Workflow - Retrieve project configuration and settings",
+    "phase": "get-branch-policies",
+    "task_type": "Get Branch Policies",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf15-factory-settings-lookup",
+    "workflow_name": "Factory Settings Lookup Workflow - Retrieve project configuration and settings",
+    "phase": "get-personas-config",
+    "task_type": "Get Personas Configuration",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf15-factory-settings-lookup",
+    "workflow_name": "Factory Settings Lookup Workflow - Retrieve project configuration and settings",
+    "phase": "get-build-config",
+    "task_type": "Get Build Configuration",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf15-factory-settings-lookup",
+    "workflow_name": "Factory Settings Lookup Workflow - Retrieve project configuration and settings",
+    "phase": "get-project-info",
+    "task_type": "Get Project Information",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf15-factory-settings-lookup",
+    "workflow_name": "Factory Settings Lookup Workflow - Retrieve project configuration and settings",
+    "phase": "merge-all-settings",
+    "task_type": "Merge All Settings",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf10-conflict-resolution",
+    "workflow_name": "Conflict Resolution Workflow - Resolve merge conflicts systematically",
+    "phase": "prepare-workspace",
+    "task_type": "Prepare Workspace",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf10-conflict-resolution",
+    "workflow_name": "Conflict Resolution Workflow - Resolve merge conflicts systematically",
+    "phase": "attempt-merge",
+    "task_type": "Attempt Merge",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf10-conflict-resolution",
+    "workflow_name": "Conflict Resolution Workflow - Resolve merge conflicts systematically",
+    "phase": "analyze-conflicts",
+    "task_type": "Analyze Conflicts",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf10-conflict-resolution",
+    "workflow_name": "Conflict Resolution Workflow - Resolve merge conflicts systematically",
+    "phase": "auto-resolve-simple",
+    "task_type": "Auto-Resolve Simple Conflicts",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf10-conflict-resolution",
+    "workflow_name": "Conflict Resolution Workflow - Resolve merge conflicts systematically",
+    "phase": "resolve-remaining-manually",
+    "task_type": "Resolve Remaining Manually",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf10-conflict-resolution",
+    "workflow_name": "Conflict Resolution Workflow - Resolve merge conflicts systematically",
+    "phase": "commit-resolution",
+    "task_type": "Commit Resolution",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf10-conflict-resolution",
+    "workflow_name": "Conflict Resolution Workflow - Resolve merge conflicts systematically",
+    "phase": "push-resolution",
+    "task_type": "Push Resolution",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf10-conflict-resolution",
+    "workflow_name": "Conflict Resolution Workflow - Resolve merge conflicts systematically",
+    "phase": "update-pr",
+    "task_type": "Update PR",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf8-merge",
+    "workflow_name": "Merge Workflow - Complete PR merge into target branch",
+    "phase": "check-merge-readiness",
+    "task_type": "Check Merge Readiness",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf8-merge",
+    "workflow_name": "Merge Workflow - Complete PR merge into target branch",
+    "phase": "verify-merge",
+    "task_type": "Verify Merge",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf8-merge",
+    "workflow_name": "Merge Workflow - Complete PR merge into target branch",
+    "phase": "update-work-items",
+    "task_type": "Update Work Items",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf12-work-item-update"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf8-merge",
+    "workflow_name": "Merge Workflow - Complete PR merge into target branch",
+    "phase": "cleanup-remote-branch",
+    "task_type": "Cleanup Remote Branch",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf0-feature-development",
+    "workflow_name": "Feature Development Workflow - End-to-end feature development process",
+    "phase": "initialize-feature",
+    "task_type": "Initialize Feature",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf3-branch-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf0-feature-development",
+    "workflow_name": "Feature Development Workflow - End-to-end feature development process",
+    "phase": "create-pull-request",
+    "task_type": "Create Pull Request",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf5-pull-request-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf0-feature-development",
+    "workflow_name": "Feature Development Workflow - End-to-end feature development process",
+    "phase": "merge-feature",
+    "task_type": "Merge Feature",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf8-merge"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf0-feature-development",
+    "workflow_name": "Feature Development Workflow - End-to-end feature development process",
+    "phase": "post-merge-validation",
+    "task_type": "Post-Merge Validation",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf9-post-merge-monitoring"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf7-pull-request-response",
+    "workflow_name": "Pull Request Response Workflow (As Author) - Respond to PR feedback and update PR (as author)",
+    "phase": "analyze-feedback",
+    "task_type": "Analyze Feedback",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "wf7-pull-request-response",
+    "workflow_name": "Pull Request Response Workflow (As Author) - Respond to PR feedback and update PR (as author)",
+    "phase": "address-critical-issues",
+    "task_type": "Address Critical Issues",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-mobile-developer-workflow",
+    "workflow_name": "Mobile Developer Workflow - Mobile application development for iOS and Android",
+    "phase": "analyze-mobile-requirements",
+    "task_type": "Analyze Mobile Requirements",
+    "responsible": [
+      "mobile-developer",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-mobile-developer-workflow",
+    "workflow_name": "Mobile Developer Workflow - Mobile application development for iOS and Android",
+    "phase": "setup-mobile-env",
+    "task_type": "Setup Mobile Environment",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-mobile-developer-workflow",
+    "workflow_name": "Mobile Developer Workflow - Mobile application development for iOS and Android",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Mobile Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf1-bug-fix",
+      "workflow:wf0-feature-development",
+      "workflow:wf3-branch-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-mobile-developer-workflow",
+    "workflow_name": "Mobile Developer Workflow - Mobile application development for iOS and Android",
+    "phase": "implement-mobile-ui",
+    "task_type": "Implement Mobile UI",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-mobile-developer-workflow",
+    "workflow_name": "Mobile Developer Workflow - Mobile application development for iOS and Android",
+    "phase": "platform-specific-features",
+    "task_type": "Platform Specific Features",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-mobile-developer-workflow",
+    "workflow_name": "Mobile Developer Workflow - Mobile application development for iOS and Android",
+    "phase": "mobile-testing",
+    "task_type": "Mobile Testing",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-mobile-developer-workflow",
+    "workflow_name": "Mobile Developer Workflow - Mobile application development for iOS and Android",
+    "phase": "performance-profiling",
+    "task_type": "Performance Profiling",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-mobile-developer-workflow",
+    "workflow_name": "Mobile Developer Workflow - Mobile application development for iOS and Android",
+    "phase": "prepare-deployment",
+    "task_type": "Prepare Deployment",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-mobile-developer-workflow",
+    "workflow_name": "Mobile Developer Workflow - Mobile application development for iOS and Android",
+    "phase": "commit-mobile-changes",
+    "task_type": "Commit Mobile Changes",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf4-code-commit"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-mobile-developer-workflow",
+    "workflow_name": "Mobile Developer Workflow - Mobile application development for iOS and Android",
+    "phase": "create-mobile-pr",
+    "task_type": "Create Mobile PR",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf5-pull-request-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-mobile-developer-workflow",
+    "workflow_name": "Mobile Developer Workflow - Mobile application development for iOS and Android",
+    "phase": "distribute-for-testing",
+    "task_type": "Distribute for Testing",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-cloud-engineer-workflow",
+    "workflow_name": "Cloud Engineer Workflow - Cloud infrastructure and services management",
+    "phase": "analyze-cloud-requirements",
+    "task_type": "Analyze Cloud Requirements",
+    "responsible": [
+      "cloud-engineer",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-cloud-engineer-workflow",
+    "workflow_name": "Cloud Engineer Workflow - Cloud infrastructure and services management",
+    "phase": "cloud-architecture",
+    "task_type": "Cloud Architecture Design",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-cloud-engineer-workflow",
+    "workflow_name": "Cloud Engineer Workflow - Cloud infrastructure and services management",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Cloud Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf0-feature-development",
+      "workflow:wf3-branch-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-cloud-engineer-workflow",
+    "workflow_name": "Cloud Engineer Workflow - Cloud infrastructure and services management",
+    "phase": "infrastructure-as-code",
+    "task_type": "Infrastructure as Code",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-cloud-engineer-workflow",
+    "workflow_name": "Cloud Engineer Workflow - Cloud infrastructure and services management",
+    "phase": "container-orchestration",
+    "task_type": "Container Orchestration",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-cloud-engineer-workflow",
+    "workflow_name": "Cloud Engineer Workflow - Cloud infrastructure and services management",
+    "phase": "serverless-setup",
+    "task_type": "Serverless Setup",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-cloud-engineer-workflow",
+    "workflow_name": "Cloud Engineer Workflow - Cloud infrastructure and services management",
+    "phase": "cost-optimization",
+    "task_type": "Cost Optimization",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-cloud-engineer-workflow",
+    "workflow_name": "Cloud Engineer Workflow - Cloud infrastructure and services management",
+    "phase": "security-configuration",
+    "task_type": "Security Configuration",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-cloud-engineer-workflow",
+    "workflow_name": "Cloud Engineer Workflow - Cloud infrastructure and services management",
+    "phase": "monitoring-setup",
+    "task_type": "Monitoring Setup",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-cloud-engineer-workflow",
+    "workflow_name": "Cloud Engineer Workflow - Cloud infrastructure and services management",
+    "phase": "create-deployment-tasks",
+    "task_type": "Create Deployment Tasks",
+    "responsible": [
+      "devsecops-engineer",
+      "qa-test-engineer"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-frontend-developer-workflow",
+    "workflow_name": "Front End Developer Workflow - UI/UX implementation and frontend development",
+    "phase": "analyze-ui-requirements",
+    "task_type": "Analyze UI Requirements",
+    "responsible": [
+      "frontend-developer",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-frontend-developer-workflow",
+    "workflow_name": "Front End Developer Workflow - UI/UX implementation and frontend development",
+    "phase": "setup-frontend-env",
+    "task_type": "Setup Frontend Environment",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-frontend-developer-workflow",
+    "workflow_name": "Front End Developer Workflow - UI/UX implementation and frontend development",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Appropriate Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf1-bug-fix",
+      "workflow:wf0-feature-development",
+      "workflow:wf3-branch-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-frontend-developer-workflow",
+    "workflow_name": "Front End Developer Workflow - UI/UX implementation and frontend development",
+    "phase": "implement-components",
+    "task_type": "Implement UI Components",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-frontend-developer-workflow",
+    "workflow_name": "Front End Developer Workflow - UI/UX implementation and frontend development",
+    "phase": "styling-implementation",
+    "task_type": "Implement Styling",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-frontend-developer-workflow",
+    "workflow_name": "Front End Developer Workflow - UI/UX implementation and frontend development",
+    "phase": "accessibility-check",
+    "task_type": "Accessibility Check",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-frontend-developer-workflow",
+    "workflow_name": "Front End Developer Workflow - UI/UX implementation and frontend development",
+    "phase": "frontend-testing",
+    "task_type": "Frontend Testing",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-frontend-developer-workflow",
+    "workflow_name": "Front End Developer Workflow - UI/UX implementation and frontend development",
+    "phase": "performance-optimization",
+    "task_type": "Performance Optimization",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-frontend-developer-workflow",
+    "workflow_name": "Front End Developer Workflow - UI/UX implementation and frontend development",
+    "phase": "commit-frontend-changes",
+    "task_type": "Commit Frontend Changes",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf4-code-commit"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-frontend-developer-workflow",
+    "workflow_name": "Front End Developer Workflow - UI/UX implementation and frontend development",
+    "phase": "create-pr-for-review",
+    "task_type": "Create PR for Review",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf13-pr-readiness-check",
+      "workflow:wf5-pull-request-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-scrum-master-workflow",
+    "workflow_name": "Scrum Master Workflow - Agile facilitation and team coaching",
+    "phase": "analyze-agile-context",
+    "task_type": "Analyze Agile Context",
+    "responsible": [
+      "scrum-master",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-scrum-master-workflow",
+    "workflow_name": "Scrum Master Workflow - Agile facilitation and team coaching",
+    "phase": "team-health-check",
+    "task_type": "Team Health Check",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-scrum-master-workflow",
+    "workflow_name": "Scrum Master Workflow - Agile facilitation and team coaching",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Agile Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf12-work-item-update"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-scrum-master-workflow",
+    "workflow_name": "Scrum Master Workflow - Agile facilitation and team coaching",
+    "phase": "sprint-planning",
+    "task_type": "Sprint Planning",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-scrum-master-workflow",
+    "workflow_name": "Scrum Master Workflow - Agile facilitation and team coaching",
+    "phase": "daily-standup",
+    "task_type": "Daily Standup",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-scrum-master-workflow",
+    "workflow_name": "Scrum Master Workflow - Agile facilitation and team coaching",
+    "phase": "sprint-metrics",
+    "task_type": "Sprint Metrics",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-scrum-master-workflow",
+    "workflow_name": "Scrum Master Workflow - Agile facilitation and team coaching",
+    "phase": "impediment-tracking",
+    "task_type": "Impediment Tracking",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-scrum-master-workflow",
+    "workflow_name": "Scrum Master Workflow - Agile facilitation and team coaching",
+    "phase": "retrospective",
+    "task_type": "Sprint Retrospective",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-scrum-master-workflow",
+    "workflow_name": "Scrum Master Workflow - Agile facilitation and team coaching",
+    "phase": "create-improvement-tasks",
+    "task_type": "Create Improvement Tasks",
+    "responsible": [
+      "scrum-master"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-scrum-master-workflow",
+    "workflow_name": "Scrum Master Workflow - Agile facilitation and team coaching",
+    "phase": "update-team-board",
+    "task_type": "Update Team Board",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf12-work-item-update"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-security-architect-workflow",
+    "workflow_name": "Security Architect Workflow - Security architecture and risk management",
+    "phase": "analyze-security-requirements",
+    "task_type": "Analyze Security Requirements",
+    "responsible": [
+      "security-architect",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-leadership"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-architect-workflow",
+    "workflow_name": "Security Architect Workflow - Security architecture and risk management",
+    "phase": "threat-modeling",
+    "task_type": "Threat Modeling",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-leadership"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-architect-workflow",
+    "workflow_name": "Security Architect Workflow - Security architecture and risk management",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Security Architecture Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf6-pull-request-review"
+    ],
+    "informed": [
+      "security-leadership"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-architect-workflow",
+    "workflow_name": "Security Architect Workflow - Security architecture and risk management",
+    "phase": "security-architecture-design",
+    "task_type": "Security Architecture Design",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-leadership"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-architect-workflow",
+    "workflow_name": "Security Architect Workflow - Security architecture and risk management",
+    "phase": "identity-management",
+    "task_type": "Identity Management Design",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-leadership"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-architect-workflow",
+    "workflow_name": "Security Architect Workflow - Security architecture and risk management",
+    "phase": "data-protection",
+    "task_type": "Data Protection Design",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-leadership"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-architect-workflow",
+    "workflow_name": "Security Architect Workflow - Security architecture and risk management",
+    "phase": "compliance-framework",
+    "task_type": "Compliance Framework",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-leadership"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-architect-workflow",
+    "workflow_name": "Security Architect Workflow - Security architecture and risk management",
+    "phase": "security-controls",
+    "task_type": "Security Controls",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-leadership"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-architect-workflow",
+    "workflow_name": "Security Architect Workflow - Security architecture and risk management",
+    "phase": "risk-management",
+    "task_type": "Risk Management",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-leadership"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-architect-workflow",
+    "workflow_name": "Security Architect Workflow - Security architecture and risk management",
+    "phase": "create-security-tasks",
+    "task_type": "Create Security Tasks",
+    "responsible": [
+      "qa-test-engineer",
+      "security-engineer"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-leadership"
+    ]
+  },
+  {
+    "workflow_id": "persona-software-architect-workflow",
+    "workflow_name": "Software Architect Workflow - System design and technical leadership",
+    "phase": "analyze-requirements",
+    "task_type": "Analyze Requirements",
+    "responsible": [
+      "software-architect",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-architect-workflow",
+    "workflow_name": "Software Architect Workflow - System design and technical leadership",
+    "phase": "design-analysis",
+    "task_type": "Perform Design Analysis",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-architect-workflow",
+    "workflow_name": "Software Architect Workflow - System design and technical leadership",
+    "phase": "create-architecture-artifacts",
+    "task_type": "Create Architecture Artifacts",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-architect-workflow",
+    "workflow_name": "Software Architect Workflow - System design and technical leadership",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Appropriate Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf16-reviewer-selection",
+      "workflow:wf0-feature-development",
+      "workflow:wf5-pull-request-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-architect-workflow",
+    "workflow_name": "Software Architect Workflow - System design and technical leadership",
+    "phase": "api-design",
+    "task_type": "API Design",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-architect-workflow",
+    "workflow_name": "Software Architect Workflow - System design and technical leadership",
+    "phase": "performance-analysis",
+    "task_type": "Performance Analysis",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-architect-workflow",
+    "workflow_name": "Software Architect Workflow - System design and technical leadership",
+    "phase": "create-implementation-tasks",
+    "task_type": "Create Implementation Tasks",
+    "responsible": [
+      "frontend-developer",
+      "data-engineer-dba",
+      "backend-developer"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-business-analyst-workflow",
+    "workflow_name": "Business Analyst Workflow - Business requirements analysis and process improvement",
+    "phase": "analyze-business-context",
+    "task_type": "Analyze Business Context",
+    "responsible": [
+      "business-analyst",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-business-analyst-workflow",
+    "workflow_name": "Business Analyst Workflow - Business requirements analysis and process improvement",
+    "phase": "stakeholder-engagement",
+    "task_type": "Stakeholder Engagement",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-business-analyst-workflow",
+    "workflow_name": "Business Analyst Workflow - Business requirements analysis and process improvement",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Analysis Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-business-analyst-workflow",
+    "workflow_name": "Business Analyst Workflow - Business requirements analysis and process improvement",
+    "phase": "data-analysis",
+    "task_type": "Data Analysis",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-business-analyst-workflow",
+    "workflow_name": "Business Analyst Workflow - Business requirements analysis and process improvement",
+    "phase": "gap-analysis",
+    "task_type": "Gap Analysis",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-business-analyst-workflow",
+    "workflow_name": "Business Analyst Workflow - Business requirements analysis and process improvement",
+    "phase": "validation-planning",
+    "task_type": "Validation Planning",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-business-analyst-workflow",
+    "workflow_name": "Business Analyst Workflow - Business requirements analysis and process improvement",
+    "phase": "documentation",
+    "task_type": "Documentation",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-qa-workflow",
+    "workflow_name": "Software QA Workflow - Quality assurance and process improvement",
+    "phase": "analyze-quality-requirements",
+    "task_type": "Analyze Quality Requirements",
+    "responsible": [
+      "software-qa",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-qa-workflow",
+    "workflow_name": "Software QA Workflow - Quality assurance and process improvement",
+    "phase": "quality-planning",
+    "task_type": "Quality Planning",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-qa-workflow",
+    "workflow_name": "Software QA Workflow - Quality assurance and process improvement",
+    "phase": "route-to-workflow",
+    "task_type": "Route to QA Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf15-factory-settings-lookup"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-qa-workflow",
+    "workflow_name": "Software QA Workflow - Quality assurance and process improvement",
+    "phase": "quality-assessment",
+    "task_type": "Quality Assessment",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-qa-workflow",
+    "workflow_name": "Software QA Workflow - Quality assurance and process improvement",
+    "phase": "process-audit",
+    "task_type": "Process Audit",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-qa-workflow",
+    "workflow_name": "Software QA Workflow - Quality assurance and process improvement",
+    "phase": "standards-compliance",
+    "task_type": "Standards Compliance",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-qa-workflow",
+    "workflow_name": "Software QA Workflow - Quality assurance and process improvement",
+    "phase": "quality-metrics",
+    "task_type": "Quality Metrics Management",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-qa-workflow",
+    "workflow_name": "Software QA Workflow - Quality assurance and process improvement",
+    "phase": "process-improvement",
+    "task_type": "Process Improvement",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-qa-workflow",
+    "workflow_name": "Software QA Workflow - Quality assurance and process improvement",
+    "phase": "risk-management",
+    "task_type": "Risk Management",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-qa-workflow",
+    "workflow_name": "Software QA Workflow - Quality assurance and process improvement",
+    "phase": "training-coaching",
+    "task_type": "Training and Coaching",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-software-qa-workflow",
+    "workflow_name": "Software QA Workflow - Quality assurance and process improvement",
+    "phase": "create-improvement-tasks",
+    "task_type": "Create Improvement Tasks",
+    "responsible": [
+      "engineering-manager",
+      "technical-writer"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ui-ux-designer-workflow",
+    "workflow_name": "UI/UX Designer Workflow - User interface and experience design",
+    "phase": "analyze-design-requirements",
+    "task_type": "Analyze Design Requirements",
+    "responsible": [
+      "ui-ux-designer",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ui-ux-designer-workflow",
+    "workflow_name": "UI/UX Designer Workflow - User interface and experience design",
+    "phase": "user-research",
+    "task_type": "User Research",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ui-ux-designer-workflow",
+    "workflow_name": "UI/UX Designer Workflow - User interface and experience design",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Design Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf0-feature-development"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ui-ux-designer-workflow",
+    "workflow_name": "UI/UX Designer Workflow - User interface and experience design",
+    "phase": "wireframing",
+    "task_type": "Wireframing",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ui-ux-designer-workflow",
+    "workflow_name": "UI/UX Designer Workflow - User interface and experience design",
+    "phase": "visual-design",
+    "task_type": "Visual Design",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ui-ux-designer-workflow",
+    "workflow_name": "UI/UX Designer Workflow - User interface and experience design",
+    "phase": "prototyping",
+    "task_type": "Prototyping",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ui-ux-designer-workflow",
+    "workflow_name": "UI/UX Designer Workflow - User interface and experience design",
+    "phase": "design-system",
+    "task_type": "Design System",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ui-ux-designer-workflow",
+    "workflow_name": "UI/UX Designer Workflow - User interface and experience design",
+    "phase": "usability-testing",
+    "task_type": "Usability Testing",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ui-ux-designer-workflow",
+    "workflow_name": "UI/UX Designer Workflow - User interface and experience design",
+    "phase": "accessibility-design",
+    "task_type": "Accessibility Design",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ui-ux-designer-workflow",
+    "workflow_name": "UI/UX Designer Workflow - User interface and experience design",
+    "phase": "design-handoff",
+    "task_type": "Design Handoff",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ui-ux-designer-workflow",
+    "workflow_name": "UI/UX Designer Workflow - User interface and experience design",
+    "phase": "create-implementation-tasks",
+    "task_type": "Create Implementation Tasks",
+    "responsible": [
+      "frontend-developer",
+      "ui-ux-designer"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-product-owner-workflow",
+    "workflow_name": "Product Owner Workflow - Product management and backlog prioritization",
+    "phase": "analyze-product-requirements",
+    "task_type": "Analyze Product Requirements",
+    "responsible": [
+      "product-owner",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-product-owner-workflow",
+    "workflow_name": "Product Owner Workflow - Product management and backlog prioritization",
+    "phase": "stakeholder-analysis",
+    "task_type": "Stakeholder Analysis",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-product-owner-workflow",
+    "workflow_name": "Product Owner Workflow - Product management and backlog prioritization",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Product Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-product-owner-workflow",
+    "workflow_name": "Product Owner Workflow - Product management and backlog prioritization",
+    "phase": "define-acceptance-criteria",
+    "task_type": "Define Acceptance Criteria",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-product-owner-workflow",
+    "workflow_name": "Product Owner Workflow - Product management and backlog prioritization",
+    "phase": "prioritize-backlog",
+    "task_type": "Prioritize Backlog",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-product-owner-workflow",
+    "workflow_name": "Product Owner Workflow - Product management and backlog prioritization",
+    "phase": "sprint-planning",
+    "task_type": "Sprint Planning",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-product-owner-workflow",
+    "workflow_name": "Product Owner Workflow - Product management and backlog prioritization",
+    "phase": "create-development-tasks",
+    "task_type": "Create Development Tasks",
+    "responsible": [
+      "software-architect",
+      "developer-engineer"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-product-owner-workflow",
+    "workflow_name": "Product Owner Workflow - Product management and backlog prioritization",
+    "phase": "stakeholder-communication",
+    "task_type": "Stakeholder Communication",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-data-engineer-dba-workflow",
+    "workflow_name": "Data Engineer/DBA Workflow - Data pipeline and database management",
+    "phase": "analyze-data-requirements",
+    "task_type": "Analyze Data Requirements",
+    "responsible": [
+      "data-engineer-dba",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-data-engineer-dba-workflow",
+    "workflow_name": "Data Engineer/DBA Workflow - Data pipeline and database management",
+    "phase": "data-modeling",
+    "task_type": "Data Modeling",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-data-engineer-dba-workflow",
+    "workflow_name": "Data Engineer/DBA Workflow - Data pipeline and database management",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Data Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf1-bug-fix",
+      "workflow:wf3-branch-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-data-engineer-dba-workflow",
+    "workflow_name": "Data Engineer/DBA Workflow - Data pipeline and database management",
+    "phase": "database-design",
+    "task_type": "Database Design",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-data-engineer-dba-workflow",
+    "workflow_name": "Data Engineer/DBA Workflow - Data pipeline and database management",
+    "phase": "etl-development",
+    "task_type": "ETL Development",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-data-engineer-dba-workflow",
+    "workflow_name": "Data Engineer/DBA Workflow - Data pipeline and database management",
+    "phase": "performance-tuning",
+    "task_type": "Performance Tuning",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-data-engineer-dba-workflow",
+    "workflow_name": "Data Engineer/DBA Workflow - Data pipeline and database management",
+    "phase": "data-migration",
+    "task_type": "Data Migration",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-data-engineer-dba-workflow",
+    "workflow_name": "Data Engineer/DBA Workflow - Data pipeline and database management",
+    "phase": "backup-recovery",
+    "task_type": "Backup and Recovery",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-data-engineer-dba-workflow",
+    "workflow_name": "Data Engineer/DBA Workflow - Data pipeline and database management",
+    "phase": "data-quality",
+    "task_type": "Data Quality",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-data-engineer-dba-workflow",
+    "workflow_name": "Data Engineer/DBA Workflow - Data pipeline and database management",
+    "phase": "create-implementation-tasks",
+    "task_type": "Create Implementation Tasks",
+    "responsible": [
+      "qa-test-engineer",
+      "backend-developer"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-backend-developer-workflow",
+    "workflow_name": "Back End Developer Workflow - API and server-side development",
+    "phase": "analyze-backend-requirements",
+    "task_type": "Analyze Backend Requirements",
+    "responsible": [
+      "backend-developer",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-backend-developer-workflow",
+    "workflow_name": "Back End Developer Workflow - API and server-side development",
+    "phase": "setup-backend-env",
+    "task_type": "Setup Backend Environment",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-backend-developer-workflow",
+    "workflow_name": "Back End Developer Workflow - API and server-side development",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Backend Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf1-bug-fix",
+      "workflow:wf0-feature-development",
+      "workflow:wf3-branch-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-backend-developer-workflow",
+    "workflow_name": "Back End Developer Workflow - API and server-side development",
+    "phase": "implement-api-endpoints",
+    "task_type": "Implement API Endpoints",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-backend-developer-workflow",
+    "workflow_name": "Back End Developer Workflow - API and server-side development",
+    "phase": "database-operations",
+    "task_type": "Database Operations",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-backend-developer-workflow",
+    "workflow_name": "Back End Developer Workflow - API and server-side development",
+    "phase": "implement-auth",
+    "task_type": "Implement Authentication",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-backend-developer-workflow",
+    "workflow_name": "Back End Developer Workflow - API and server-side development",
+    "phase": "backend-testing",
+    "task_type": "Backend Testing",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-backend-developer-workflow",
+    "workflow_name": "Back End Developer Workflow - API and server-side development",
+    "phase": "api-documentation",
+    "task_type": "Generate API Documentation",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-backend-developer-workflow",
+    "workflow_name": "Back End Developer Workflow - API and server-side development",
+    "phase": "performance-optimization",
+    "task_type": "Performance Optimization",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-backend-developer-workflow",
+    "workflow_name": "Back End Developer Workflow - API and server-side development",
+    "phase": "commit-backend-changes",
+    "task_type": "Commit Backend Changes",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf4-code-commit"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-backend-developer-workflow",
+    "workflow_name": "Back End Developer Workflow - API and server-side development",
+    "phase": "create-backend-pr",
+    "task_type": "Create Backend PR",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf13-pr-readiness-check",
+      "workflow:wf5-pull-request-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-technical-writer-workflow",
+    "workflow_name": "Technical Writer Workflow - Documentation creation and maintenance",
+    "phase": "analyze-documentation-needs",
+    "task_type": "Analyze Documentation Needs",
+    "responsible": [
+      "technical-writer",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-technical-writer-workflow",
+    "workflow_name": "Technical Writer Workflow - Documentation creation and maintenance",
+    "phase": "gather-information",
+    "task_type": "Gather Information",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-technical-writer-workflow",
+    "workflow_name": "Technical Writer Workflow - Documentation creation and maintenance",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Documentation Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-technical-writer-workflow",
+    "workflow_name": "Technical Writer Workflow - Documentation creation and maintenance",
+    "phase": "create-documentation",
+    "task_type": "Create Documentation",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-technical-writer-workflow",
+    "workflow_name": "Technical Writer Workflow - Documentation creation and maintenance",
+    "phase": "api-documentation",
+    "task_type": "API Documentation",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-technical-writer-workflow",
+    "workflow_name": "Technical Writer Workflow - Documentation creation and maintenance",
+    "phase": "review-documentation",
+    "task_type": "Review Documentation",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-technical-writer-workflow",
+    "workflow_name": "Technical Writer Workflow - Documentation creation and maintenance",
+    "phase": "publish-documentation",
+    "task_type": "Publish Documentation",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-technical-writer-workflow",
+    "workflow_name": "Technical Writer Workflow - Documentation creation and maintenance",
+    "phase": "create-review-tasks",
+    "task_type": "Create Review Tasks",
+    "responsible": [
+      "software-architect",
+      "developer-engineer"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-test-engineer-workflow",
+    "workflow_name": "Test Engineer Workflow - Advanced testing and quality engineering",
+    "phase": "analyze-test-requirements",
+    "task_type": "Analyze Test Requirements",
+    "responsible": [
+      "test-engineer",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-test-engineer-workflow",
+    "workflow_name": "Test Engineer Workflow - Advanced testing and quality engineering",
+    "phase": "test-strategy",
+    "task_type": "Test Strategy Development",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-test-engineer-workflow",
+    "workflow_name": "Test Engineer Workflow - Advanced testing and quality engineering",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Test Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf13-pr-readiness-check"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-test-engineer-workflow",
+    "workflow_name": "Test Engineer Workflow - Advanced testing and quality engineering",
+    "phase": "test-automation-framework",
+    "task_type": "Test Automation Framework",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-test-engineer-workflow",
+    "workflow_name": "Test Engineer Workflow - Advanced testing and quality engineering",
+    "phase": "test-development",
+    "task_type": "Test Development",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-test-engineer-workflow",
+    "workflow_name": "Test Engineer Workflow - Advanced testing and quality engineering",
+    "phase": "performance-test-development",
+    "task_type": "Performance Test Development",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-test-engineer-workflow",
+    "workflow_name": "Test Engineer Workflow - Advanced testing and quality engineering",
+    "phase": "test-execution",
+    "task_type": "Test Execution",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-test-engineer-workflow",
+    "workflow_name": "Test Engineer Workflow - Advanced testing and quality engineering",
+    "phase": "test-data-management",
+    "task_type": "Test Data Management",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-test-engineer-workflow",
+    "workflow_name": "Test Engineer Workflow - Advanced testing and quality engineering",
+    "phase": "cross-platform-testing",
+    "task_type": "Cross-platform Testing",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-test-engineer-workflow",
+    "workflow_name": "Test Engineer Workflow - Advanced testing and quality engineering",
+    "phase": "quality-metrics",
+    "task_type": "Quality Metrics",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-test-engineer-workflow",
+    "workflow_name": "Test Engineer Workflow - Advanced testing and quality engineering",
+    "phase": "create-defect-tasks",
+    "task_type": "Create Defect Tasks",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "developer-engineer"
+    ]
+  },
+  {
+    "workflow_id": "persona-requirements-analyst-workflow",
+    "workflow_name": "Requirements Analyst Workflow - Requirements engineering and management",
+    "phase": "analyze-requirements-context",
+    "task_type": "Analyze Requirements Context",
+    "responsible": [
+      "requirements-analyst",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-requirements-analyst-workflow",
+    "workflow_name": "Requirements Analyst Workflow - Requirements engineering and management",
+    "phase": "elicit-requirements",
+    "task_type": "Elicit Requirements",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-requirements-analyst-workflow",
+    "workflow_name": "Requirements Analyst Workflow - Requirements engineering and management",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Requirements Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf0-feature-development"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-requirements-analyst-workflow",
+    "workflow_name": "Requirements Analyst Workflow - Requirements engineering and management",
+    "phase": "create-use-cases",
+    "task_type": "Create Use Cases",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-requirements-analyst-workflow",
+    "workflow_name": "Requirements Analyst Workflow - Requirements engineering and management",
+    "phase": "requirements-modeling",
+    "task_type": "Requirements Modeling",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-requirements-analyst-workflow",
+    "workflow_name": "Requirements Analyst Workflow - Requirements engineering and management",
+    "phase": "traceability-management",
+    "task_type": "Traceability Management",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-requirements-analyst-workflow",
+    "workflow_name": "Requirements Analyst Workflow - Requirements engineering and management",
+    "phase": "validation",
+    "task_type": "Requirements Validation",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-requirements-analyst-workflow",
+    "workflow_name": "Requirements Analyst Workflow - Requirements engineering and management",
+    "phase": "create-implementation-items",
+    "task_type": "Create Implementation Items",
+    "responsible": [
+      "qa-test-engineer",
+      "developer-engineer"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-security-engineer-workflow",
+    "workflow_name": "Security Engineer Workflow - Security assessment and vulnerability management",
+    "phase": "analyze-security-context",
+    "task_type": "Analyze Security Context",
+    "responsible": [
+      "security-engineer",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-team"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-engineer-workflow",
+    "workflow_name": "Security Engineer Workflow - Security assessment and vulnerability management",
+    "phase": "threat-modeling",
+    "task_type": "Threat Modeling",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-team"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-engineer-workflow",
+    "workflow_name": "Security Engineer Workflow - Security assessment and vulnerability management",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Security Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf6-pull-request-review"
+    ],
+    "informed": [
+      "security-team"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-engineer-workflow",
+    "workflow_name": "Security Engineer Workflow - Security assessment and vulnerability management",
+    "phase": "vulnerability-scanning",
+    "task_type": "Vulnerability Scanning",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-team"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-engineer-workflow",
+    "workflow_name": "Security Engineer Workflow - Security assessment and vulnerability management",
+    "phase": "penetration-testing",
+    "task_type": "Penetration Testing",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-team"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-engineer-workflow",
+    "workflow_name": "Security Engineer Workflow - Security assessment and vulnerability management",
+    "phase": "security-auditing",
+    "task_type": "Security Auditing",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-team"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-engineer-workflow",
+    "workflow_name": "Security Engineer Workflow - Security assessment and vulnerability management",
+    "phase": "incident-response",
+    "task_type": "Incident Response",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-team"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-engineer-workflow",
+    "workflow_name": "Security Engineer Workflow - Security assessment and vulnerability management",
+    "phase": "security-hardening",
+    "task_type": "Security Hardening",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-team"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-engineer-workflow",
+    "workflow_name": "Security Engineer Workflow - Security assessment and vulnerability management",
+    "phase": "compliance-check",
+    "task_type": "Compliance Check",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-team"
+    ]
+  },
+  {
+    "workflow_id": "persona-security-engineer-workflow",
+    "workflow_name": "Security Engineer Workflow - Security assessment and vulnerability management",
+    "phase": "create-remediation-tasks",
+    "task_type": "Create Remediation Tasks",
+    "responsible": [
+      "devsecops-engineer",
+      "site-reliability-engineer"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": [
+      "security-team"
+    ]
+  },
+  {
+    "workflow_id": "persona-systems-architect-workflow",
+    "workflow_name": "Systems Architect Workflow - Enterprise systems architecture and design",
+    "phase": "analyze-system-requirements",
+    "task_type": "Analyze System Requirements",
+    "responsible": [
+      "systems-architect",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-systems-architect-workflow",
+    "workflow_name": "Systems Architect Workflow - Enterprise systems architecture and design",
+    "phase": "enterprise-architecture",
+    "task_type": "Enterprise Architecture",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-systems-architect-workflow",
+    "workflow_name": "Systems Architect Workflow - Enterprise systems architecture and design",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Architecture Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf15-factory-settings-lookup",
+      "workflow:wf6-pull-request-review"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-systems-architect-workflow",
+    "workflow_name": "Systems Architect Workflow - Enterprise systems architecture and design",
+    "phase": "system-design",
+    "task_type": "System Design",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-systems-architect-workflow",
+    "workflow_name": "Systems Architect Workflow - Enterprise systems architecture and design",
+    "phase": "integration-architecture",
+    "task_type": "Integration Architecture",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-systems-architect-workflow",
+    "workflow_name": "Systems Architect Workflow - Enterprise systems architecture and design",
+    "phase": "infrastructure-planning",
+    "task_type": "Infrastructure Planning",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-systems-architect-workflow",
+    "workflow_name": "Systems Architect Workflow - Enterprise systems architecture and design",
+    "phase": "architecture-governance",
+    "task_type": "Architecture Governance",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-systems-architect-workflow",
+    "workflow_name": "Systems Architect Workflow - Enterprise systems architecture and design",
+    "phase": "create-implementation-blueprint",
+    "task_type": "Create Implementation Blueprint",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-systems-architect-workflow",
+    "workflow_name": "Systems Architect Workflow - Enterprise systems architecture and design",
+    "phase": "create-architecture-tasks",
+    "task_type": "Create Architecture Tasks",
+    "responsible": [
+      "engineering-manager",
+      "software-architect",
+      "cloud-engineer"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ai-engineer-workflow",
+    "workflow_name": "AI Engineer Workflow - Machine learning and AI system development",
+    "phase": "analyze-ml-requirements",
+    "task_type": "Analyze ML Requirements",
+    "responsible": [
+      "ai-engineer",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ai-engineer-workflow",
+    "workflow_name": "AI Engineer Workflow - Machine learning and AI system development",
+    "phase": "data-preparation",
+    "task_type": "Data Preparation",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ai-engineer-workflow",
+    "workflow_name": "AI Engineer Workflow - Machine learning and AI system development",
+    "phase": "route-to-workflow",
+    "task_type": "Route to ML Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf0-feature-development",
+      "workflow:wf3-branch-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ai-engineer-workflow",
+    "workflow_name": "AI Engineer Workflow - Machine learning and AI system development",
+    "phase": "model-development",
+    "task_type": "Model Development",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ai-engineer-workflow",
+    "workflow_name": "AI Engineer Workflow - Machine learning and AI system development",
+    "phase": "model-training",
+    "task_type": "Model Training",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ai-engineer-workflow",
+    "workflow_name": "AI Engineer Workflow - Machine learning and AI system development",
+    "phase": "model-evaluation",
+    "task_type": "Model Evaluation",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ai-engineer-workflow",
+    "workflow_name": "AI Engineer Workflow - Machine learning and AI system development",
+    "phase": "hyperparameter-tuning",
+    "task_type": "Hyperparameter Tuning",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ai-engineer-workflow",
+    "workflow_name": "AI Engineer Workflow - Machine learning and AI system development",
+    "phase": "model-deployment",
+    "task_type": "Model Deployment",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-ai-engineer-workflow",
+    "workflow_name": "AI Engineer Workflow - Machine learning and AI system development",
+    "phase": "mlops-setup",
+    "task_type": "MLOps Setup",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-developer-engineer-workflow",
+    "workflow_name": "Developer/Software Engineer Workflow - General software development",
+    "phase": "analyze-work-item",
+    "task_type": "Analyze Work Item",
+    "responsible": [
+      "developer-engineer",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-developer-engineer-workflow",
+    "workflow_name": "Developer/Software Engineer Workflow - General software development",
+    "phase": "setup-development",
+    "task_type": "Setup Development Environment",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-developer-engineer-workflow",
+    "workflow_name": "Developer/Software Engineer Workflow - General software development",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Development Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf1-bug-fix",
+      "workflow:wf0-feature-development",
+      "workflow:wf3-branch-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-developer-engineer-workflow",
+    "workflow_name": "Developer/Software Engineer Workflow - General software development",
+    "phase": "implement-code",
+    "task_type": "Implement Code",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-developer-engineer-workflow",
+    "workflow_name": "Developer/Software Engineer Workflow - General software development",
+    "phase": "code-quality-check",
+    "task_type": "Code Quality Check",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-developer-engineer-workflow",
+    "workflow_name": "Developer/Software Engineer Workflow - General software development",
+    "phase": "commit-changes",
+    "task_type": "Commit Changes",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf4-code-commit"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-developer-engineer-workflow",
+    "workflow_name": "Developer/Software Engineer Workflow - General software development",
+    "phase": "create-pull-request",
+    "task_type": "Create Pull Request",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf13-pr-readiness-check",
+      "workflow:wf5-pull-request-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-configuration-release-engineer-workflow",
+    "workflow_name": "Configuration & Release Engineer Workflow - Release management and deployment",
+    "phase": "analyze-release-requirements",
+    "task_type": "Analyze Release Requirements",
+    "responsible": [
+      "configuration-release-engineer",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-configuration-release-engineer-workflow",
+    "workflow_name": "Configuration & Release Engineer Workflow - Release management and deployment",
+    "phase": "release-planning",
+    "task_type": "Release Planning",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-configuration-release-engineer-workflow",
+    "workflow_name": "Configuration & Release Engineer Workflow - Release management and deployment",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Release Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf8-merge",
+      "workflow:wf3-branch-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-configuration-release-engineer-workflow",
+    "workflow_name": "Configuration & Release Engineer Workflow - Release management and deployment",
+    "phase": "pipeline-configuration",
+    "task_type": "Pipeline Configuration",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-configuration-release-engineer-workflow",
+    "workflow_name": "Configuration & Release Engineer Workflow - Release management and deployment",
+    "phase": "build-management",
+    "task_type": "Build Management",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-configuration-release-engineer-workflow",
+    "workflow_name": "Configuration & Release Engineer Workflow - Release management and deployment",
+    "phase": "environment-management",
+    "task_type": "Environment Management",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-configuration-release-engineer-workflow",
+    "workflow_name": "Configuration & Release Engineer Workflow - Release management and deployment",
+    "phase": "deployment-automation",
+    "task_type": "Deployment Automation",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-configuration-release-engineer-workflow",
+    "workflow_name": "Configuration & Release Engineer Workflow - Release management and deployment",
+    "phase": "configuration-management",
+    "task_type": "Configuration Management",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-configuration-release-engineer-workflow",
+    "workflow_name": "Configuration & Release Engineer Workflow - Release management and deployment",
+    "phase": "release-coordination",
+    "task_type": "Release Coordination",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-configuration-release-engineer-workflow",
+    "workflow_name": "Configuration & Release Engineer Workflow - Release management and deployment",
+    "phase": "post-deployment-validation",
+    "task_type": "Post-deployment Validation",
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf9-post-merge-monitoring"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-configuration-release-engineer-workflow",
+    "workflow_name": "Configuration & Release Engineer Workflow - Release management and deployment",
+    "phase": "create-release-tasks",
+    "task_type": "Create Release Tasks",
+    "responsible": [
+      "site-reliability-engineer",
+      "qa-test-engineer"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-integration-engineer-workflow",
+    "workflow_name": "Integration Engineer Workflow - System integration and middleware development",
+    "phase": "analyze-integration-requirements",
+    "task_type": "Analyze Integration Requirements",
+    "responsible": [
+      "integration-engineer",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-integration-engineer-workflow",
+    "workflow_name": "Integration Engineer Workflow - System integration and middleware development",
+    "phase": "integration-design",
+    "task_type": "Integration Design",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-integration-engineer-workflow",
+    "workflow_name": "Integration Engineer Workflow - System integration and middleware development",
+    "phase": "route-to-workflow",
+    "task_type": "Route to Integration Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf0-feature-development",
+      "workflow:wf3-branch-creation"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-integration-engineer-workflow",
+    "workflow_name": "Integration Engineer Workflow - System integration and middleware development",
+    "phase": "api-integration",
+    "task_type": "API Integration",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-integration-engineer-workflow",
+    "workflow_name": "Integration Engineer Workflow - System integration and middleware development",
+    "phase": "message-queue-integration",
+    "task_type": "Message Queue Integration",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-integration-engineer-workflow",
+    "workflow_name": "Integration Engineer Workflow - System integration and middleware development",
+    "phase": "data-transformation",
+    "task_type": "Data Transformation",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-integration-engineer-workflow",
+    "workflow_name": "Integration Engineer Workflow - System integration and middleware development",
+    "phase": "middleware-development",
+    "task_type": "Middleware Development",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-integration-engineer-workflow",
+    "workflow_name": "Integration Engineer Workflow - System integration and middleware development",
+    "phase": "integration-testing",
+    "task_type": "Integration Testing",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-integration-engineer-workflow",
+    "workflow_name": "Integration Engineer Workflow - System integration and middleware development",
+    "phase": "monitoring-setup",
+    "task_type": "Monitoring Setup",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-integration-engineer-workflow",
+    "workflow_name": "Integration Engineer Workflow - System integration and middleware development",
+    "phase": "documentation",
+    "task_type": "Documentation",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-integration-engineer-workflow",
+    "workflow_name": "Integration Engineer Workflow - System integration and middleware development",
+    "phase": "create-validation-tasks",
+    "task_type": "Create Validation Tasks",
+    "responsible": [
+      "site-reliability-engineer",
+      "test-engineer"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-site-reliability-engineer-workflow",
+    "workflow_name": "Site Reliability Engineer Workflow - System reliability and operations",
+    "phase": "analyze-reliability-context",
+    "task_type": "Analyze Reliability Context",
+    "responsible": [
+      "site-reliability-engineer",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-site-reliability-engineer-workflow",
+    "workflow_name": "Site Reliability Engineer Workflow - System reliability and operations",
+    "phase": "system-monitoring",
+    "task_type": "System Monitoring",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-site-reliability-engineer-workflow",
+    "workflow_name": "Site Reliability Engineer Workflow - System reliability and operations",
+    "phase": "route-to-workflow",
+    "task_type": "Route to SRE Workflow",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf6-pull-request-review"
+    ],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-site-reliability-engineer-workflow",
+    "workflow_name": "Site Reliability Engineer Workflow - System reliability and operations",
+    "phase": "incident-management",
+    "task_type": "Incident Management",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-site-reliability-engineer-workflow",
+    "workflow_name": "Site Reliability Engineer Workflow - System reliability and operations",
+    "phase": "monitoring-setup",
+    "task_type": "Monitoring Setup",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-site-reliability-engineer-workflow",
+    "workflow_name": "Site Reliability Engineer Workflow - System reliability and operations",
+    "phase": "capacity-planning",
+    "task_type": "Capacity Planning",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-site-reliability-engineer-workflow",
+    "workflow_name": "Site Reliability Engineer Workflow - System reliability and operations",
+    "phase": "chaos-engineering",
+    "task_type": "Chaos Engineering",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-site-reliability-engineer-workflow",
+    "workflow_name": "Site Reliability Engineer Workflow - System reliability and operations",
+    "phase": "performance-optimization",
+    "task_type": "Performance Optimization",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-site-reliability-engineer-workflow",
+    "workflow_name": "Site Reliability Engineer Workflow - System reliability and operations",
+    "phase": "automation",
+    "task_type": "Automation",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  {
+    "workflow_id": "persona-site-reliability-engineer-workflow",
+    "workflow_name": "Site Reliability Engineer Workflow - System reliability and operations",
+    "phase": "post-incident-review",
+    "task_type": "Post-Incident Review",
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  }
+]

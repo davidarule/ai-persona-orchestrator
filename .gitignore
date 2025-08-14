@@ -70,6 +70,7 @@ htmlcov/
 *.bak
 *.swp
 *~
+tmp/
 
 # Docker volumes (if mounted locally)
 volumes/

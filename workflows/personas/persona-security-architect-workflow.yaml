@@ -237,7 +237,7 @@ steps:
         title: "Implement security architecture for ${inputs.WORK_ITEM_ID}"
         assignedTo: security-engineer
         parent: ${inputs.WORK_ITEM_ID}
-        priority: ${inputs.RISK_LEVEL == 'critical' ? 1 : 2}
+        priority: 1  # High priority for security architecture
       - type: Task
         title: "Security testing for ${inputs.WORK_ITEM_ID}"
         assignedTo: qa-test-engineer

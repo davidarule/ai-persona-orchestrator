@@ -1,0 +1,829 @@
+{
+  "wf5-pull-request-creation": {
+    "phases": [
+      "generate-pr-details",
+      "get-required-reviewers",
+      "send-notifications",
+      "set-pr-policies",
+      "validate-branch-state"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "wf4-code-commit": {
+    "phases": [
+      "check-for-changes",
+      "create-commit",
+      "push-to-remote",
+      "run-pre-commit-checks",
+      "stage-files",
+      "verify-branch",
+      "verify-commit"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "wf6-pull-request-review": {
+    "phases": [
+      "add-review-comments"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "wf11-rollback": {
+    "phases": [
+      "execute-rollback",
+      "validate-rollback"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "wf3-branch-creation": {
+    "phases": [
+      "generate-branch-name",
+      "validate-base-branch",
+      "verify-branch"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "wf13-pr-readiness-check": {
+    "phases": [
+      "check-build",
+      "check-commits",
+      "check-coverage",
+      "check-dependencies",
+      "check-docs",
+      "check-lint",
+      "check-tests"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "wf2-hotfix": {
+    "phases": [
+      "emergency-merge",
+      "emergency-pr-review",
+      "implement-fix",
+      "verify-hotfix"
+    ],
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf4-code-commit",
+      "workflow:wf5-pull-request-creation",
+      "workflow:wf8-merge",
+      "workflow:wf9-post-merge-monitoring"
+    ],
+    "informed": []
+  },
+  "wf14-build-failure-recovery": {
+    "phases": [
+      "analyze-failure",
+      "attempt-auto-fix",
+      "commit-fixes",
+      "retry-build"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "wf16-reviewer-selection": {
+    "phases": [
+      "analyze-changed-files",
+      "calculate-review-complexity",
+      "get-factory-settings",
+      "select-reviewers"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf15-factory-settings-lookup"
+    ],
+    "informed": []
+  },
+  "wf17-merge-strategy-selection": {
+    "phases": [
+      "analyze-changes-scope",
+      "analyze-commit-history",
+      "check-branch-policies",
+      "determine-strategy"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf15-factory-settings-lookup"
+    ],
+    "informed": []
+  },
+  "wf1-bug-fix": {
+    "phases": [
+      "create-pull-request",
+      "fast-track-review",
+      "implement-fix",
+      "initialize-bug-fix",
+      "merge-and-verify",
+      "production-verification",
+      "verify-fix-locally"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf3-branch-creation",
+      "workflow:wf4-code-commit",
+      "workflow:wf5-pull-request-creation",
+      "workflow:wf8-merge",
+      "workflow:wf9-post-merge-monitoring"
+    ],
+    "informed": []
+  },
+  "wf9-post-merge-monitoring": {
+    "phases": [
+      "setup-monitoring",
+      "verify-bug-fix"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "wf12-work-item-update": {
+    "phases": [
+      "get-work-items",
+      "send-notifications",
+      "update-related-items"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "wf15-factory-settings-lookup": {
+    "phases": [
+      "get-branch-policies",
+      "get-build-config",
+      "get-personas-config",
+      "get-project-info",
+      "get-reviewers-config",
+      "load-local-settings",
+      "merge-all-settings"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "wf10-conflict-resolution": {
+    "phases": [
+      "analyze-conflicts",
+      "attempt-merge",
+      "auto-resolve-simple",
+      "commit-resolution",
+      "prepare-workspace",
+      "push-resolution",
+      "resolve-remaining-manually",
+      "update-pr"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "wf8-merge": {
+    "phases": [
+      "check-merge-readiness",
+      "cleanup-remote-branch",
+      "update-work-items",
+      "verify-merge"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf12-work-item-update"
+    ],
+    "informed": []
+  },
+  "wf0-feature-development": {
+    "phases": [
+      "create-pull-request",
+      "initialize-feature",
+      "merge-feature",
+      "post-merge-validation"
+    ],
+    "responsible": [],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf3-branch-creation",
+      "workflow:wf5-pull-request-creation",
+      "workflow:wf8-merge",
+      "workflow:wf9-post-merge-monitoring"
+    ],
+    "informed": []
+  },
+  "wf7-pull-request-response": {
+    "phases": [
+      "address-critical-issues",
+      "analyze-feedback"
+    ],
+    "responsible": [
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "persona-mobile-developer-workflow": {
+    "phases": [
+      "analyze-mobile-requirements",
+      "commit-mobile-changes",
+      "create-mobile-pr",
+      "distribute-for-testing",
+      "implement-mobile-ui",
+      "mobile-testing",
+      "performance-profiling",
+      "platform-specific-features",
+      "prepare-deployment",
+      "route-to-workflow",
+      "setup-mobile-env"
+    ],
+    "responsible": [
+      "current-executor",
+      "mobile-developer"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf0-feature-development",
+      "workflow:wf1-bug-fix",
+      "workflow:wf3-branch-creation",
+      "workflow:wf4-code-commit",
+      "workflow:wf5-pull-request-creation"
+    ],
+    "informed": []
+  },
+  "persona-cloud-engineer-workflow": {
+    "phases": [
+      "analyze-cloud-requirements",
+      "cloud-architecture",
+      "container-orchestration",
+      "cost-optimization",
+      "create-deployment-tasks",
+      "infrastructure-as-code",
+      "monitoring-setup",
+      "route-to-workflow",
+      "security-configuration",
+      "serverless-setup"
+    ],
+    "responsible": [
+      "cloud-engineer",
+      "current-executor",
+      "devsecops-engineer",
+      "qa-test-engineer"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf0-feature-development",
+      "workflow:wf3-branch-creation"
+    ],
+    "informed": []
+  },
+  "persona-frontend-developer-workflow": {
+    "phases": [
+      "accessibility-check",
+      "analyze-ui-requirements",
+      "commit-frontend-changes",
+      "create-pr-for-review",
+      "frontend-testing",
+      "implement-components",
+      "performance-optimization",
+      "route-to-workflow",
+      "setup-frontend-env",
+      "styling-implementation"
+    ],
+    "responsible": [
+      "current-executor",
+      "frontend-developer"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf0-feature-development",
+      "workflow:wf1-bug-fix",
+      "workflow:wf13-pr-readiness-check",
+      "workflow:wf3-branch-creation",
+      "workflow:wf4-code-commit",
+      "workflow:wf5-pull-request-creation"
+    ],
+    "informed": []
+  },
+  "persona-scrum-master-workflow": {
+    "phases": [
+      "analyze-agile-context",
+      "create-improvement-tasks",
+      "daily-standup",
+      "impediment-tracking",
+      "retrospective",
+      "route-to-workflow",
+      "sprint-metrics",
+      "sprint-planning",
+      "team-health-check",
+      "update-team-board"
+    ],
+    "responsible": [
+      "current-executor",
+      "scrum-master"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf12-work-item-update"
+    ],
+    "informed": []
+  },
+  "persona-security-architect-workflow": {
+    "phases": [
+      "analyze-security-requirements",
+      "compliance-framework",
+      "create-security-tasks",
+      "data-protection",
+      "identity-management",
+      "risk-management",
+      "route-to-workflow",
+      "security-architecture-design",
+      "security-controls",
+      "threat-modeling"
+    ],
+    "responsible": [
+      "current-executor",
+      "qa-test-engineer",
+      "security-architect",
+      "security-engineer"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf6-pull-request-review"
+    ],
+    "informed": [
+      "security-leadership"
+    ]
+  },
+  "persona-software-architect-workflow": {
+    "phases": [
+      "analyze-requirements",
+      "api-design",
+      "create-architecture-artifacts",
+      "create-implementation-tasks",
+      "design-analysis",
+      "performance-analysis",
+      "route-to-workflow"
+    ],
+    "responsible": [
+      "backend-developer",
+      "current-executor",
+      "data-engineer-dba",
+      "frontend-developer",
+      "software-architect"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf0-feature-development",
+      "workflow:wf16-reviewer-selection",
+      "workflow:wf5-pull-request-creation"
+    ],
+    "informed": []
+  },
+  "persona-business-analyst-workflow": {
+    "phases": [
+      "analyze-business-context",
+      "data-analysis",
+      "documentation",
+      "gap-analysis",
+      "route-to-workflow",
+      "stakeholder-engagement",
+      "validation-planning"
+    ],
+    "responsible": [
+      "business-analyst",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "persona-software-qa-workflow": {
+    "phases": [
+      "analyze-quality-requirements",
+      "create-improvement-tasks",
+      "process-audit",
+      "process-improvement",
+      "quality-assessment",
+      "quality-metrics",
+      "quality-planning",
+      "risk-management",
+      "route-to-workflow",
+      "standards-compliance",
+      "training-coaching"
+    ],
+    "responsible": [
+      "current-executor",
+      "engineering-manager",
+      "software-qa",
+      "technical-writer"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf15-factory-settings-lookup"
+    ],
+    "informed": []
+  },
+  "persona-ui-ux-designer-workflow": {
+    "phases": [
+      "accessibility-design",
+      "analyze-design-requirements",
+      "create-implementation-tasks",
+      "design-handoff",
+      "design-system",
+      "prototyping",
+      "route-to-workflow",
+      "usability-testing",
+      "user-research",
+      "visual-design",
+      "wireframing"
+    ],
+    "responsible": [
+      "current-executor",
+      "frontend-developer",
+      "ui-ux-designer"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf0-feature-development"
+    ],
+    "informed": []
+  },
+  "persona-product-owner-workflow": {
+    "phases": [
+      "analyze-product-requirements",
+      "create-development-tasks",
+      "define-acceptance-criteria",
+      "prioritize-backlog",
+      "route-to-workflow",
+      "sprint-planning",
+      "stakeholder-analysis",
+      "stakeholder-communication"
+    ],
+    "responsible": [
+      "current-executor",
+      "developer-engineer",
+      "product-owner",
+      "software-architect"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "persona-data-engineer-dba-workflow": {
+    "phases": [
+      "analyze-data-requirements",
+      "backup-recovery",
+      "create-implementation-tasks",
+      "data-migration",
+      "data-modeling",
+      "data-quality",
+      "database-design",
+      "etl-development",
+      "performance-tuning",
+      "route-to-workflow"
+    ],
+    "responsible": [
+      "backend-developer",
+      "current-executor",
+      "data-engineer-dba",
+      "qa-test-engineer"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf1-bug-fix",
+      "workflow:wf3-branch-creation"
+    ],
+    "informed": []
+  },
+  "persona-backend-developer-workflow": {
+    "phases": [
+      "analyze-backend-requirements",
+      "api-documentation",
+      "backend-testing",
+      "commit-backend-changes",
+      "create-backend-pr",
+      "database-operations",
+      "implement-api-endpoints",
+      "implement-auth",
+      "performance-optimization",
+      "route-to-workflow",
+      "setup-backend-env"
+    ],
+    "responsible": [
+      "backend-developer",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf0-feature-development",
+      "workflow:wf1-bug-fix",
+      "workflow:wf13-pr-readiness-check",
+      "workflow:wf3-branch-creation",
+      "workflow:wf4-code-commit",
+      "workflow:wf5-pull-request-creation"
+    ],
+    "informed": []
+  },
+  "persona-technical-writer-workflow": {
+    "phases": [
+      "analyze-documentation-needs",
+      "api-documentation",
+      "create-documentation",
+      "create-review-tasks",
+      "gather-information",
+      "publish-documentation",
+      "review-documentation",
+      "route-to-workflow"
+    ],
+    "responsible": [
+      "current-executor",
+      "developer-engineer",
+      "software-architect",
+      "technical-writer"
+    ],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "persona-test-engineer-workflow": {
+    "phases": [
+      "analyze-test-requirements",
+      "create-defect-tasks",
+      "cross-platform-testing",
+      "performance-test-development",
+      "quality-metrics",
+      "route-to-workflow",
+      "test-automation-framework",
+      "test-data-management",
+      "test-development",
+      "test-execution",
+      "test-strategy"
+    ],
+    "responsible": [
+      "current-executor",
+      "test-engineer"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf13-pr-readiness-check"
+    ],
+    "informed": [
+      "developer-engineer"
+    ]
+  },
+  "persona-requirements-analyst-workflow": {
+    "phases": [
+      "analyze-requirements-context",
+      "create-implementation-items",
+      "create-use-cases",
+      "elicit-requirements",
+      "requirements-modeling",
+      "route-to-workflow",
+      "traceability-management",
+      "validation"
+    ],
+    "responsible": [
+      "current-executor",
+      "developer-engineer",
+      "qa-test-engineer",
+      "requirements-analyst"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf0-feature-development"
+    ],
+    "informed": []
+  },
+  "persona-security-engineer-workflow": {
+    "phases": [
+      "analyze-security-context",
+      "compliance-check",
+      "create-remediation-tasks",
+      "incident-response",
+      "penetration-testing",
+      "route-to-workflow",
+      "security-auditing",
+      "security-hardening",
+      "threat-modeling",
+      "vulnerability-scanning"
+    ],
+    "responsible": [
+      "current-executor",
+      "devsecops-engineer",
+      "security-engineer",
+      "site-reliability-engineer"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf6-pull-request-review"
+    ],
+    "informed": [
+      "security-team"
+    ]
+  },
+  "persona-systems-architect-workflow": {
+    "phases": [
+      "analyze-system-requirements",
+      "architecture-governance",
+      "create-architecture-tasks",
+      "create-implementation-blueprint",
+      "enterprise-architecture",
+      "infrastructure-planning",
+      "integration-architecture",
+      "route-to-workflow",
+      "system-design"
+    ],
+    "responsible": [
+      "cloud-engineer",
+      "current-executor",
+      "engineering-manager",
+      "software-architect",
+      "systems-architect"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf15-factory-settings-lookup",
+      "workflow:wf6-pull-request-review"
+    ],
+    "informed": []
+  },
+  "persona-ai-engineer-workflow": {
+    "phases": [
+      "analyze-ml-requirements",
+      "data-preparation",
+      "hyperparameter-tuning",
+      "mlops-setup",
+      "model-deployment",
+      "model-development",
+      "model-evaluation",
+      "model-training",
+      "route-to-workflow"
+    ],
+    "responsible": [
+      "ai-engineer",
+      "current-executor"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf0-feature-development",
+      "workflow:wf3-branch-creation"
+    ],
+    "informed": []
+  },
+  "persona-developer-engineer-workflow": {
+    "phases": [
+      "analyze-work-item",
+      "code-quality-check",
+      "commit-changes",
+      "create-pull-request",
+      "implement-code",
+      "route-to-workflow",
+      "setup-development"
+    ],
+    "responsible": [
+      "current-executor",
+      "developer-engineer"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf0-feature-development",
+      "workflow:wf1-bug-fix",
+      "workflow:wf13-pr-readiness-check",
+      "workflow:wf3-branch-creation",
+      "workflow:wf4-code-commit",
+      "workflow:wf5-pull-request-creation"
+    ],
+    "informed": []
+  },
+  "persona-configuration-release-engineer-workflow": {
+    "phases": [
+      "analyze-release-requirements",
+      "build-management",
+      "configuration-management",
+      "create-release-tasks",
+      "deployment-automation",
+      "environment-management",
+      "pipeline-configuration",
+      "post-deployment-validation",
+      "release-coordination",
+      "release-planning",
+      "route-to-workflow"
+    ],
+    "responsible": [
+      "configuration-release-engineer",
+      "current-executor",
+      "qa-test-engineer",
+      "site-reliability-engineer"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf3-branch-creation",
+      "workflow:wf8-merge",
+      "workflow:wf9-post-merge-monitoring"
+    ],
+    "informed": []
+  },
+  "persona-integration-engineer-workflow": {
+    "phases": [
+      "analyze-integration-requirements",
+      "api-integration",
+      "create-validation-tasks",
+      "data-transformation",
+      "documentation",
+      "integration-design",
+      "integration-testing",
+      "message-queue-integration",
+      "middleware-development",
+      "monitoring-setup",
+      "route-to-workflow"
+    ],
+    "responsible": [
+      "current-executor",
+      "integration-engineer",
+      "site-reliability-engineer",
+      "test-engineer"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf0-feature-development",
+      "workflow:wf3-branch-creation"
+    ],
+    "informed": []
+  },
+  "persona-site-reliability-engineer-workflow": {
+    "phases": [
+      "analyze-reliability-context",
+      "automation",
+      "capacity-planning",
+      "chaos-engineering",
+      "incident-management",
+      "monitoring-setup",
+      "performance-optimization",
+      "post-incident-review",
+      "route-to-workflow",
+      "system-monitoring"
+    ],
+    "responsible": [
+      "current-executor",
+      "site-reliability-engineer"
+    ],
+    "accountable": [],
+    "consulted": [
+      "workflow:wf6-pull-request-review"
+    ],
+    "informed": []
+  }
+}

@@ -143,6 +143,39 @@ outputs:
 2. Test individual components with their respective commands
 3. Run integration tests to verify end-to-end functionality
 
+## Testing Standards
+
+### Test-Driven Development
+- Write tests alongside implementation, not after
+- Each phase must include comprehensive unit, integration, and E2E tests
+- Use real data and services - NO MOCKS unless absolutely necessary
+- Test with the 13 personas in AI-Personas-Test-Sandbox-2 project
+
+### Test Commands
+- **Run all tests**: `pytest tests/`
+- **Run with coverage**: `pytest --cov=backend tests/`
+- **Run specific test**: `pytest tests/unit/test_database.py`
+- **Run integration tests**: `pytest tests/integration/`
+- **Run E2E tests**: `pytest tests/e2e/`
+
+### Test Personas (Azure DevOps Test Sandbox)
+The following personas are configured in https://data6.visualstudio.com/AI-Personas-Test-Sandbox-2:
+- Steve Bot (steve.bot@insitec.com.au) - System Architect
+- Jordan Bot (jordan.bot@insitec.com.au) - Backend Developer
+- Matt Bot (matt.bot@insitec.com.au) - Frontend Developer
+- Kav Bot (kav.bot@insitec.com.au) - Test Engineer
+- Dave Bot (dave.bot@insitec.com.au) - Security Engineer
+- Lachlan Bot (lachlan.bot@insitec.com.au) - DevSecOps Engineer
+- Shaun Bot (shaun.bot@insitec.com.au) - UI/UX Designer
+- Laureen Bot (laureen.bot@insitec.com.au) - Technical Writer
+- Ruley Bot (ruley.bot@insitec.com.au) - Requirements Analyst
+- Brumbie Bot (brumbie.bot@insitec.com.au) - Project Manager
+- Moby Bot (moby.bot@insitec.com.au) - Mobile Developer
+- Claude Bot (claude.bot@insitec.com.au) - AI Integration
+- Puck Bot (puck.bot@insitec.com.au) - Developer
+
+Use environment variables AZURE_DEVOPS_ORG_URL and AZURE_DEVOPS_PAT for connections.
+
 ### Environment Configuration
 - Copy `.env.example` to `.env` and configure required variables
 - Key variables: Azure DevOps PAT, AI model API keys, database passwords
