@@ -86,6 +86,10 @@ class PersonaTypeRepository:
         row = await self.db.execute_query(query, type_name, fetch_one=True)
         return self._row_to_model(row) if row else None
     
+    async def get_by_name(self, type_name: str) -> Optional[PersonaType]:
+        """Alias for get_by_type_name for consistency"""
+        return await self.get_by_type_name(type_name)
+    
     async def list_all(
         self, 
         category: Optional[PersonaCategory] = None,
