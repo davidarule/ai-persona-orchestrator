@@ -192,11 +192,12 @@ class PersonaInstanceRepository:
         if not updates:
             return current
         
-        # Execute update
-        query = QueryBuilder.update(
-            f"{self.schema}.{self.table}",
+        # Execute update - QueryBuilder.update returns a tuple (query, params)
+        query, params = QueryBuilder.update(
+            self.table,
             updates,
-            {"id": instance_id}
+            {"id": instance_id},
+            schema=self.schema
         )
         
         # Get updated row with joins
@@ -206,9 +207,6 @@ class PersonaInstanceRepository:
             (SELECT type_name FROM {self.schema}.persona_types WHERE id = persona_type_id) as persona_type_name,
             (SELECT display_name FROM {self.schema}.persona_types WHERE id = persona_type_id) as persona_display_name
         """)
-        
-        # Prepare params for the update query
-        params = list(updates.values()) + [instance_id]
         
         row = await self.db.execute_query(query, *params, fetch_one=True)
         return self._row_to_model(row) if row else None
@@ -240,25 +238,32 @@ class PersonaInstanceRepository:
     async def reset_daily_spend(self) -> int:
         """Reset daily spend for all instances (called by cron job)"""
         query = f"""
-        UPDATE {self.schema}.{self.table}
-        SET current_spend_daily = 0
-        WHERE current_spend_daily > 0
+        WITH updated AS (
+            UPDATE {self.schema}.{self.table}
+            SET current_spend_daily = 0
+            WHERE current_spend_daily > 0
+            RETURNING id
+        )
+        SELECT COUNT(*) as count FROM updated
         """
         
-        result = await self.db.execute_query(query)
-        # Return number of rows updated
-        return int(result.split()[-1]) if result else 0
+        result = await self.db.execute_query(query, fetch_one=True)
+        return result['count'] if result else 0
     
     async def reset_monthly_spend(self) -> int:
         """Reset monthly spend for all instances (called by cron job)"""
         query = f"""
-        UPDATE {self.schema}.{self.table}
-        SET current_spend_monthly = 0
-        WHERE current_spend_monthly > 0
+        WITH updated AS (
+            UPDATE {self.schema}.{self.table}
+            SET current_spend_monthly = 0
+            WHERE current_spend_monthly > 0
+            RETURNING id
+        )
+        SELECT COUNT(*) as count FROM updated
         """
         
-        result = await self.db.execute_query(query)
-        return int(result.split()[-1]) if result else 0
+        result = await self.db.execute_query(query, fetch_one=True)
+        return result['count'] if result else 0
     
     async def deactivate(self, instance_id: UUID) -> bool:
         """Deactivate a persona instance (soft delete)"""

@@ -17,6 +17,7 @@ class PersonaCategory(str, Enum):
     OPERATIONS = "operations"
     MANAGEMENT = "management"
     SPECIALIZED = "specialized"
+    TESTING = "testing"
 
 
 class PersonaType(BaseModel):

@@ -227,7 +227,12 @@ async def test_persona_type_id(db):
     
     yield persona_type.id
     
-    # Clean up
+    # Clean up - first delete any instances that reference this type
+    await db.execute_query(
+        "DELETE FROM orchestrator.persona_instances WHERE persona_type_id = $1",
+        persona_type.id
+    )
+    # Then delete the persona type
     await db.execute_query(
         "DELETE FROM orchestrator.persona_types WHERE id = $1",
         persona_type.id

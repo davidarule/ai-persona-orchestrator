@@ -418,13 +418,13 @@ class TestPersonaInstanceRepository:
 class TestPersonaInstanceService:
     """Test PersonaInstanceService business logic"""
     
-    async def test_create_instance_validates_duplicates(self, db, test_persona_type_id):
+    async def test_create_instance_validates_duplicates(self, db, test_persona_type_id, clean_test_data):
         """Test that service prevents duplicate instances"""
         service = PersonaInstanceService(db)
         
         # Create first instance
         create_data = PersonaInstanceCreate(
-            instance_name="Duplicate Test",
+            instance_name=f"TEST_Duplicate_{uuid.uuid4().hex[:8]}",
             persona_type_id=test_persona_type_id,
             azure_devops_org="https://dev.azure.com/test",
             azure_devops_project="DuplicateProject",
@@ -448,7 +448,7 @@ class TestPersonaInstanceService:
         
         # Try with non-existent persona type
         create_data = PersonaInstanceCreate(
-            instance_name="Invalid Type Test",
+            instance_name=f"TEST_Invalid_Type_{uuid.uuid4().hex[:8]}",
             persona_type_id=UUID(str(uuid4())),  # Random UUID
             azure_devops_org="https://dev.azure.com/test",
             azure_devops_project="InvalidTypeProject",
@@ -464,13 +464,13 @@ class TestPersonaInstanceService:
         with pytest.raises(ValueError, match="does not exist"):
             await service.create_instance(create_data)
     
-    async def test_find_available_instance(self, db, test_persona_type_id):
+    async def test_find_available_instance(self, db, test_persona_type_id, clean_test_data):
         """Test finding available instance with capacity"""
         service = PersonaInstanceService(db)
         
         # Create instance
         create_data = PersonaInstanceCreate(
-            instance_name="Available Test",
+            instance_name=f"TEST_Available_{uuid.uuid4().hex[:8]}",
             persona_type_id=test_persona_type_id,
             azure_devops_org="https://dev.azure.com/test",
             azure_devops_project="AvailableProject",
@@ -494,14 +494,14 @@ class TestPersonaInstanceService:
         assert available is not None
         assert available.available_capacity > 0
     
-    async def test_get_instance_statistics(self, db, test_persona_type_id):
+    async def test_get_instance_statistics(self, db, test_persona_type_id, clean_test_data):
         """Test getting instance statistics"""
         service = PersonaInstanceService(db)
         
         # Create some instances
         for i in range(2):
             await service.create_instance(PersonaInstanceCreate(
-                instance_name=f"Stats Test {i}",
+                instance_name=f"TEST_Stats_{i}_{uuid.uuid4().hex[:8]}",
                 persona_type_id=test_persona_type_id,
                 azure_devops_org="https://dev.azure.com/test",
                 azure_devops_project=f"StatsProject{i}",

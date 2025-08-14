@@ -213,6 +213,10 @@ class PersonaInstanceService:
     
     async def _to_response(self, instance: PersonaInstance) -> PersonaInstanceResponse:
         """Convert PersonaInstance to PersonaInstanceResponse with computed fields"""
+        # If we don't have persona type info, fetch it
+        if not instance.persona_type_name:
+            instance = await self.repository.get_by_id(instance.id)
+        
         # Get current task count
         task_count = await self.repository.count_active_tasks(instance.id)
         
