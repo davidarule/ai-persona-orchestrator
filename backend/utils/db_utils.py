@@ -69,9 +69,14 @@ class QueryBuilder:
             values.append(value)
             param_index += 1
         
+        # Check if table has updated_at column (most do, but not all)
+        set_clause_str = ', '.join(set_clauses)
+        if table not in ['persona_types', 'mcp_servers', 'mcp_capabilities']:  # Tables without updated_at
+            set_clause_str += ', updated_at = NOW()'
+        
         query = f"""
             UPDATE {schema}.{table}
-            SET {', '.join(set_clauses)}, updated_at = NOW()
+            SET {set_clause_str}
             WHERE {' AND '.join(where_clauses)}
             RETURNING *
         """

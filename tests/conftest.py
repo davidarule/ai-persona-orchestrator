@@ -203,3 +203,32 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "slow: mark test as slow running"
     )
+
+
+@pytest.fixture
+async def test_persona_type_id(db):
+    """Create a test persona type and return its ID"""
+    from backend.repositories.persona_repository import PersonaTypeRepository
+    from backend.models.persona_type import PersonaTypeCreate, PersonaCategory
+    
+    repo = PersonaTypeRepository(db)
+    
+    # Create a test persona type with unique name
+    import uuid
+    unique_type_name = f"test-persona-type-{uuid.uuid4().hex[:8]}"
+    persona_type = await repo.create(PersonaTypeCreate(
+        type_name=unique_type_name,
+        display_name="Test Persona Type",
+        category=PersonaCategory.DEVELOPMENT,
+        description="Test persona for unit tests",
+        base_workflow_id="test-workflow",
+        default_capabilities={"can_test": True}
+    ))
+    
+    yield persona_type.id
+    
+    # Clean up
+    await db.execute_query(
+        "DELETE FROM orchestrator.persona_types WHERE id = $1",
+        persona_type.id
+    )
