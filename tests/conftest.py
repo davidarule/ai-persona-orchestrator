@@ -33,9 +33,8 @@ async def db():
     """Initialize database connections for testing"""
     # Create new instance for each test to avoid loop issues
     from backend.services.database import DatabaseManager
-    from backend.config.database import db_config
     
-    test_db_manager = DatabaseManager(db_config)
+    test_db_manager = DatabaseManager()
     await test_db_manager.initialize()
     yield test_db_manager
     await test_db_manager.close()

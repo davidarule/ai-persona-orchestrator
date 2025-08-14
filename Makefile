@@ -10,7 +10,9 @@ help:
 	@echo "  make test-e2e      - Run E2E tests only"
 	@echo "  make test-coverage - Run tests with coverage report"
 	@echo "  make test-report   - Generate HTML test reports"
-	@echo "  make dashboard     - Start test dashboard server"
+	@echo "  make dashboard     - Start both test dashboard services (static + dynamic)"
+	@echo "  make dashboard-static - Start only the static dashboard"
+	@echo "  make dashboard-stop - Stop all dashboard services"
 	@echo "  make clean         - Clean test artifacts"
 
 # Activate virtual environment for all commands
@@ -35,8 +37,18 @@ test-report:
 	$(VENV) python scripts/run_tests_with_report.py
 
 dashboard:
-	@echo "Starting test dashboard at http://localhost:8080/test_dashboard/"
-	@python scripts/test_dashboard_server.py
+	@echo "Starting test dashboard services..."
+	@bash scripts/start_test_services.sh
+
+dashboard-static:
+	@echo "Starting static test dashboard at http://localhost:8080/test_dashboard/"
+	@python3 scripts/test_dashboard_server.py
+
+dashboard-stop:
+	@echo "Stopping test dashboard services..."
+	@pkill -f test_dashboard_server.py || true
+	@pkill -f test_runner_service.py || true
+	@echo "Services stopped"
 
 clean:
 	@echo "Cleaning test artifacts..."

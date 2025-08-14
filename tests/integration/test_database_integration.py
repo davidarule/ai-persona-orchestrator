@@ -56,23 +56,27 @@ class TestDatabaseManager:
     
     async def test_postgresql_transaction(self, db):
         """Test transaction handling"""
-        async with db.acquire_pg_connection() as conn:
-            async with conn.transaction():
-                # Insert test data
-                await conn.execute("""
-                    INSERT INTO orchestrator.mcp_servers (server_name, server_type)
-                    VALUES ($1, $2)
-                """, "TEST_SERVER", "test")
-                
-                # Verify insert within transaction
-                result = await conn.fetchrow(
-                    "SELECT * FROM orchestrator.mcp_servers WHERE server_name = $1",
-                    "TEST_SERVER"
-                )
-                assert result is not None
-                
-                # Rollback by raising exception
-                raise Exception("Test rollback")
+        try:
+            async with db.acquire_pg_connection() as conn:
+                async with conn.transaction():
+                    # Insert test data
+                    await conn.execute("""
+                        INSERT INTO orchestrator.mcp_servers (server_name, server_type)
+                        VALUES ($1, $2)
+                    """, "TEST_SERVER", "test")
+                    
+                    # Verify insert within transaction
+                    result = await conn.fetchrow(
+                        "SELECT * FROM orchestrator.mcp_servers WHERE server_name = $1",
+                        "TEST_SERVER"
+                    )
+                    assert result is not None
+                    
+                    # Rollback by raising exception
+                    raise Exception("Test rollback")
+        except Exception as e:
+            # Expected - transaction should rollback
+            assert str(e) == "Test rollback"
     
         # Verify rollback worked - data should not exist
         result = await db.execute_query(
@@ -155,6 +159,10 @@ class TestDatabaseManager:
     
     async def test_pool_status(self, db):
         """Test connection pool status reporting"""
+        # Run some queries first to ensure counters are > 0
+        await db.execute_query("SELECT 1")
+        await db.redis_execute("ping")
+        
         status = db.get_pool_status()
         
         # PostgreSQL pool status
@@ -232,30 +240,37 @@ class TestQueryBuilderIntegration:
     
     async def test_update_operation(self, pg_conn):
         """Test UPDATE operation"""
-        # Insert test data first
-        result = await pg_conn.fetchrow("""
-            INSERT INTO orchestrator.mcp_servers (server_name, server_type, is_deployed)
-            VALUES ($1, $2, $3)
-            RETURNING id
-        """, "TEST_UPDATE", "test", False)
+        # Insert test data - use persona_instances which has updated_at
+        persona_type_result = await pg_conn.fetchrow("""
+            SELECT id FROM orchestrator.persona_types LIMIT 1
+        """)
         
-        server_id = result["id"]
+        result = await pg_conn.fetchrow("""
+            INSERT INTO orchestrator.persona_instances 
+            (instance_name, persona_type_id, azure_devops_project, is_active)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id, is_active
+        """, "TEST_UPDATE_PERSONA", persona_type_result["id"], "test-project", False)
+        
+        instance_id = result["id"]
+        assert result["is_active"] is False
         
         # Update the data
-        update_data = {"is_deployed": True}
-        conditions = {"id": server_id}
+        update_data = {"is_active": True}
+        conditions = {"id": instance_id}
         
         query, values = QueryBuilder.update(
-            "mcp_servers",
+            "persona_instances",
             update_data,
             conditions
         )
         result = await pg_conn.fetchrow(query, *values)
         
-        assert result["is_deployed"] is True
+        assert result["is_active"] is True
+        assert result["updated_at"] is not None
         
         # Clean up
         await pg_conn.execute(
-            "DELETE FROM orchestrator.mcp_servers WHERE id = $1",
-            server_id
+            "DELETE FROM orchestrator.persona_instances WHERE id = $1",
+            instance_id
         )

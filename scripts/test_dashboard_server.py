@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple HTTP server for test dashboard with auto-refresh
+Enhanced HTTP server for test dashboard with both static and dynamic views
 """
 
 import http.server
@@ -17,11 +17,101 @@ class TestDashboardHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/api/test-stats':
             self.send_test_stats()
+        elif self.path == '/dynamic' or self.path == '/dynamic/':
+            self.path = '/test_dashboard/dashboard.html'
+            return super().do_GET()
         else:
             # Serve static files
             if self.path == '/':
-                self.path = '/test_dashboard/index.html'
+                # Show a landing page with links to both dashboards
+                self.send_landing_page()
+                return
             return super().do_GET()
+    
+    def send_landing_page(self):
+        """Send landing page with links to dashboards"""
+        html = """<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Persona Orchestrator - Test Dashboards</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 40px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .dashboard-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .dashboard-card {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-decoration: none;
+            color: #333;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .dashboard-card h2 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+        }
+        .dashboard-card p {
+            margin: 0;
+            color: #666;
+            line-height: 1.5;
+        }
+        .new-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Persona Orchestrator - Test Dashboards</h1>
+        <div class="dashboard-links">
+            <a href="/test_dashboard/index.html" class="dashboard-card">
+                <h2>Static Dashboard</h2>
+                <p>View latest test results and coverage reports. Auto-refreshes every 30 seconds to show updated statistics.</p>
+            </a>
+            <a href="/dynamic" class="dashboard-card">
+                <h2>Dynamic Dashboard <span class="new-badge">NEW</span></h2>
+                <p>Real-time test execution with live logs, start/stop controls, and WebSocket updates. Watch tests run in real-time!</p>
+            </a>
+        </div>
+        <div style="margin-top: 40px; text-align: center; color: #666;">
+            <p>Note: For the Dynamic Dashboard, ensure the test runner service is running:</p>
+            <code style="background: #e0e0e0; padding: 5px 10px; border-radius: 3px;">python3 scripts/test_runner_service.py</code>
+        </div>
+    </div>
+</body>
+</html>"""
+        
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        self.wfile.write(html.encode())
     
     def send_test_stats(self):
         """Send current test statistics as JSON"""

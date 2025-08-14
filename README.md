@@ -293,6 +293,112 @@ Key metrics:
 - `api_request_rate`: API request rates
 - `database_connections`: Database pool status
 
+## 🧪 Testing Infrastructure
+
+The AI Persona Orchestrator includes a comprehensive testing framework with both static and dynamic test dashboards for real-time monitoring and control.
+
+### Test Dashboard System
+
+#### Starting the Test Services
+
+```bash
+# Start both test dashboard services
+make dashboard
+
+# Or manually:
+bash scripts/start_test_services.sh
+```
+
+#### Accessing the Dashboards
+
+| Dashboard | URL | Description |
+|-----------|-----|-------------|
+| **Landing Page** | http://localhost:8090/ | Choose between static and dynamic dashboards |
+| **Static Dashboard** | http://localhost:8090/test_dashboard/ | View latest test results, auto-refreshes every 30 seconds |
+| **Dynamic Dashboard** | http://localhost:8090/dynamic | Real-time test execution with live logs |
+
+#### Dynamic Dashboard Features
+
+The dynamic dashboard provides:
+- **Real-time test execution** - Start/stop tests with a single click
+- **Test type selection** - Choose All, Unit, Integration, or E2E tests
+- **Live log streaming** - Watch test output as it happens
+- **Progress tracking** - Visual progress bar and statistics
+- **Auto-scroll control** - Toggle to follow log output
+- **WebSocket updates** - Real-time connection status
+- **Color-coded output** - Easy identification of passes, failures, and errors
+
+#### Running Tests
+
+```bash
+# Run all tests with HTML report
+make test-report
+
+# Run specific test suites
+make test-unit          # Unit tests only
+make test-integration   # Integration tests only
+make test-e2e          # End-to-end tests only
+
+# Run with coverage
+make test-coverage
+
+# Stop dashboard services
+make dashboard-stop
+```
+
+#### Test Organization
+
+The test suite includes:
+- **Unit Tests** (27 tests) - Test individual components
+- **Integration Tests** (13 tests) - Test database connections and services
+- **E2E Tests** (6 tests) - Test complete API endpoints
+
+#### Test Reports
+
+After running tests, access detailed reports:
+- **Test Report**: `test_reports/latest/pytest_report.html`
+- **Coverage Report**: `test_reports/latest/coverage/index.html`
+- **JUnit XML**: `test_reports/latest/junit.xml`
+
+#### Architecture
+
+The test infrastructure consists of:
+
+1. **Test Runner Service** (`scripts/test_runner_service.py`)
+   - WebSocket server on port 8765
+   - Manages test execution
+   - Streams output in real-time
+   - Parses test results
+
+2. **Dashboard HTTP Server** (`scripts/test_dashboard_server.py`)
+   - HTTP server on port 8090
+   - Serves both dashboards
+   - Provides test statistics API
+
+3. **Test Dashboards**
+   - Static: `test_dashboard/index.html`
+   - Dynamic: `test_dashboard/dashboard.html`
+
+### Test Requirements
+
+- Python 3.11+ with pytest
+- WebSocket support (websockets package)
+- Environment variables from `.env`
+- Running database services
+
+### Continuous Integration
+
+The project includes GitHub Actions workflow for automated testing:
+
+```yaml
+# .github/workflows/tests.yml
+- Runs on push to main/develop
+- Sets up test databases
+- Executes full test suite
+- Generates coverage reports
+- Posts results to PRs
+```
+
 ## 🛠️ Development
 
 ### Project Structure
