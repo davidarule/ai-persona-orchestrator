@@ -15,6 +15,9 @@ from contextlib import asynccontextmanager
 from ..services.database import db_manager
 from ..config.database import db_config
 
+# Import API routes
+from .routes.persona_instances import router as persona_instances_router
+
 load_dotenv()
 
 # Configure logging
@@ -50,6 +53,9 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="AI Persona Orchestrator API", lifespan=lifespan)
 security = HTTPBearer()
+
+# Include routers
+app.include_router(persona_instances_router)
 
 # Configure CORS
 app.add_middleware(

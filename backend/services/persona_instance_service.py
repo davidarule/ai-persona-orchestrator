@@ -91,7 +91,12 @@ class PersonaInstanceService:
         instance = await self.repository.update(instance_id, data)
         return await self._to_response(instance) if instance else None
     
-    async def deactivate_instance(self, instance_id: UUID) -> bool:
+    async def activate_instance(self, instance_id: UUID) -> Optional[PersonaInstanceResponse]:
+        """Activate a persona instance"""
+        instance = await self.repository.activate(instance_id)
+        return await self._to_response(instance) if instance else None
+    
+    async def deactivate_instance(self, instance_id: UUID) -> Optional[PersonaInstanceResponse]:
         """Deactivate a persona instance"""
         # Check if instance has active tasks
         task_count = await self.repository.count_active_tasks(instance_id)
@@ -100,7 +105,19 @@ class PersonaInstanceService:
                 f"Cannot deactivate instance with {task_count} active tasks"
             )
         
-        return await self.repository.deactivate(instance_id)
+        instance = await self.repository.deactivate(instance_id)
+        return await self._to_response(instance) if instance else None
+    
+    async def delete_instance(self, instance_id: UUID) -> bool:
+        """Delete a persona instance"""
+        # Check if instance has active tasks
+        task_count = await self.repository.count_active_tasks(instance_id)
+        if task_count > 0:
+            raise ValueError(
+                f"Cannot delete instance with {task_count} active tasks"
+            )
+        
+        return await self.repository.delete(instance_id)
     
     async def record_spend(
         self,
