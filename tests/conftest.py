@@ -175,6 +175,41 @@ def azure_devops_config():
 
 
 @pytest.fixture
+async def test_persona_instance_id(db, test_persona_type_id):
+    """Create a test persona instance and return its ID"""
+    from backend.models.persona_instance import PersonaInstanceCreate, LLMProvider, LLMModel
+    from backend.services.persona_instance_service import PersonaInstanceService
+    from decimal import Decimal
+    from uuid import uuid4
+    
+    service = PersonaInstanceService(db)
+    instance = await service.create_instance(PersonaInstanceCreate(
+        instance_name=f"TEST_Instance_{uuid4().hex[:8]}",
+        persona_type_id=test_persona_type_id,
+        azure_devops_org="https://dev.azure.com/test",
+        azure_devops_project="TestProject",
+        spend_limit_daily=Decimal("100.00"),
+        spend_limit_monthly=Decimal("2000.00"),
+        llm_providers=[
+            LLMModel(
+                provider=LLMProvider.OPENAI,
+                model_name="gpt-4",
+                temperature=0.7,
+                api_key_env_var="OPENAI_API_KEY"
+            )
+        ]
+    ))
+    
+    yield instance.id
+    
+    # Cleanup
+    await db.execute_query(
+        "DELETE FROM orchestrator.persona_instances WHERE id = $1",
+        instance.id
+    )
+
+
+@pytest.fixture
 async def clean_test_data(pg_conn):
     """Clean up test data after each test"""
     yield
