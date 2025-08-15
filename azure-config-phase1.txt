@@ -1,0 +1,38 @@
+Azure AI Persona Orchestrator - Phase 1 Configuration
+Generated: Fri Aug 15 02:12:27 UTC 2025
+Location: australiaeast
+
+Resource Groups:
+  Main: rg-ai-persona-orchestrator
+  Dev: rg-ai-persona-dev
+  Staging: rg-ai-persona-staging
+  Prod: rg-ai-persona-prod
+
+Key Vaults:
+  Dev: kv-aip-dev-1755223521
+  Staging: kv-aip-stg-1755223521
+  Prod: kv-aip-prod-1755223521
+
+Container Registry:
+  Name: acraipersona1755223637
+  Login Server: 
+  Username: 
+
+Container Apps Environment:
+  Dev: cae-ai-persona-dev
+
+Application Insights:
+  Name: ai-persona-dev
+  Key: ecb92850-6c22-4b57-9f2a-cf5ab9b1c86b
+
+Storage Account:
+  Dev: staipersona1755223900
+
+Managed Identity:
+  Name: mi-ai-persona-dev
+  Client ID: 451ba6b4-6a6d-4d54-8492-89d207bc5cfe
+  Object ID: cd21bea1-0713-4210-bfe8-728c18d4d0c2
+
+Log Analytics:
+  Workspace: law-ai-persona-dev
+  Workspace ID: c61d7341-2f39-46b4-bebe-24827b855e93
