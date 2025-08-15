@@ -14,6 +14,7 @@ from backend.models.persona_instance import (
 )
 from backend.repositories.persona_instance_repository import PersonaInstanceRepository
 from backend.services.database import DatabaseManager
+from backend.services.project_assignment_validator import ProjectAssignmentValidator
 
 
 class PersonaInstanceService:
@@ -22,9 +23,31 @@ class PersonaInstanceService:
     def __init__(self, db_manager: DatabaseManager):
         self.repository = PersonaInstanceRepository(db_manager)
         self.db = db_manager
+        self.validator = ProjectAssignmentValidator(db_manager)
     
     async def create_instance(self, data: PersonaInstanceCreate) -> PersonaInstanceResponse:
         """Create a new persona instance with validation"""
+        # Validate project assignment first
+        validation = await self.validator.validate_project_assignment(
+            persona_type_id=data.persona_type_id,
+            azure_devops_org=data.azure_devops_org,
+            azure_devops_project=data.azure_devops_project,
+            repository_name=data.repository_name
+        )
+        
+        if not validation.can_proceed:
+            # Collect all blocking issues
+            blocking_issues = []
+            for result in validation.results:
+                if not result.can_proceed:
+                    blocking_issues.append(f"{result.rule_name}: {result.message}")
+            
+            error_msg = "Project assignment validation failed. Issues: " + "; ".join(blocking_issues)
+            if validation.recommendations:
+                error_msg += f". Recommendations: {'; '.join(validation.recommendations[:3])}"
+            
+            raise ValueError(error_msg)
+        
         # Check if instance name already exists for this project
         existing = await self.repository.get_by_name_and_project(
             data.instance_name,
@@ -34,11 +57,6 @@ class PersonaInstanceService:
             raise ValueError(
                 f"Instance '{data.instance_name}' already exists in project '{data.azure_devops_project}'"
             )
-        
-        # Validate persona type exists
-        persona_type = await self._validate_persona_type_exists(data.persona_type_id)
-        if not persona_type:
-            raise ValueError(f"Persona type with ID '{data.persona_type_id}' does not exist")
         
         # Create the instance
         instance = await self.repository.create(data)
@@ -75,18 +93,39 @@ class PersonaInstanceService:
         data: PersonaInstanceUpdate
     ) -> Optional[PersonaInstanceResponse]:
         """Update a persona instance"""
+        # Get current instance for validation context
+        current = await self.repository.get_by_id(instance_id)
+        if not current:
+            return None
+        
         # If updating instance name, check for duplicates
         if data.instance_name:
-            current = await self.repository.get_by_id(instance_id)
-            if current:
-                existing = await self.repository.get_by_name_and_project(
-                    data.instance_name,
-                    current.azure_devops_project
+            existing = await self.repository.get_by_name_and_project(
+                data.instance_name,
+                current.azure_devops_project
+            )
+            if existing and existing.id != instance_id:
+                raise ValueError(
+                    f"Instance name '{data.instance_name}' already exists in this project"
                 )
-                if existing and existing.id != instance_id:
-                    raise ValueError(
-                        f"Instance name '{data.instance_name}' already exists in this project"
-                    )
+        
+        # Re-validate project assignment if any relevant fields are being updated
+        # Note: We exclude the current instance from validation since we're updating it
+        validation = await self.validator.validate_project_assignment(
+            persona_type_id=current.persona_type_id,
+            azure_devops_org=current.azure_devops_org,
+            azure_devops_project=current.azure_devops_project,
+            repository_name=current.repository_name,
+            instance_id=instance_id  # Exclude self from validation
+        )
+        
+        # Check for warnings that might affect the update
+        critical_warnings = [r for r in validation.results 
+                           if r.severity.value in ['error', 'critical'] and not r.can_proceed]
+        
+        if critical_warnings:
+            warning_messages = [f"{r.rule_name}: {r.message}" for r in critical_warnings]
+            raise ValueError(f"Update blocked by validation issues: {'; '.join(warning_messages)}")
         
         instance = await self.repository.update(instance_id, data)
         return await self._to_response(instance) if instance else None
@@ -208,6 +247,27 @@ class PersonaInstanceService:
             stats["total_monthly_spend"] += instance.current_spend_monthly
         
         return stats
+    
+    async def validate_project_assignment(
+        self,
+        persona_type_id: UUID,
+        azure_devops_org: str,
+        azure_devops_project: str,
+        repository_name: Optional[str] = None,
+        instance_id: Optional[UUID] = None
+    ):
+        """
+        Validate project assignment without creating instance
+        
+        Returns the full validation result for API consumers
+        """
+        return await self.validator.validate_project_assignment(
+            persona_type_id=persona_type_id,
+            azure_devops_org=azure_devops_org,
+            azure_devops_project=azure_devops_project,
+            repository_name=repository_name,
+            instance_id=instance_id
+        )
     
     async def reset_daily_spend_all(self) -> int:
         """Reset daily spend for all instances (scheduled job)"""
