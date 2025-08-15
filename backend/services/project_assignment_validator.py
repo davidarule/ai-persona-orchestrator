@@ -690,7 +690,7 @@ class ProjectAssignmentValidator:
             id=result['id'],
             type_name=result['type_name'],
             display_name=result['display_name'],
-            category=result['category'],
+            category=PersonaCategory.DEVELOPMENT,  # Default category
             description=result['description'],
             base_workflow_id=result['base_workflow_id'],
             capabilities=result['capabilities'],
